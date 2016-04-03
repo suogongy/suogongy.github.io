@@ -3,15 +3,28 @@ layout: page
 title: About
 permalink: /about/
 ---
+<h2>关于本博客</h2>
+<p>海元的小围栏 </p>
+	<p><ul class="about-list">
+		<li><i class="fa fa-rss"></i><a href="{{ site.url }}/feed.xml"> Rss</a></li>
+		<li><i class="fa fa-modx"></i> Total <span id="busuanzi_value_site_pv"><i class="fa fa-spinner fa-pulse"></i></span> Hits and <span id="busuanzi_value_site_uv"><i class="fa fa-spinner fa-pulse"></i></span> Visitors</li>
+	</ul></p>
 
-rudy.yang
+<h2>About me</h2>
+<p>A normal person just wanna see this world. </p>
+    <p><ul class="about-list">
+		<li>
+			<i class="fa fa-twitter"></i><a href="https://twitter.com/{{ site.twitter_username }}"> Twitter</a>
+		</li>
+		<li>
+			<i class="fa fa-github"></i><a href="https://github.com/{{ site.github_username }}"> Github</a>
+		</li>
+		<li>
+			<i class="fa fa-envelope"></i><a href="mailto:{{ site.email }}?subject=Hello&nbsp;{{ site.name }}"> Email</a>
+		</li>
+	</ul></p>
 
----
-
-## work experience
-2015.04 - now,ximalaya.com
-2014.01 - 2014.09 dianping.com
-
-## education
-2012-2015 university of science and technology of China. school of software engineer
+	{% if site.skillstree %}
+	{% include skillstree.html %}
+	{% endif %}
 
