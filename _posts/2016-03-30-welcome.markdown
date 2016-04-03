@@ -62,8 +62,6 @@ Have fun.
 
 A normal person just wanna see this world.
 
-<i class="fa fa-twitter"></i>&nbsp;&nbsp;[Twitter](https://twitter.com/itisbenjamin1)
-
 ## License
 
 Use MIT License.
