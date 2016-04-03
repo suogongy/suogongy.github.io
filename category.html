@@ -1,12 +1,12 @@
 ---
 layout: page
-title: Code
+title: Category
 subtitle: Do something you like.
-permalink: /code/
+permalink: /category/
 ---
 
-{% for code in site.categories %}
-{% capture cat %}{{ code | first }}{% endcapture %}
+{% for category in site.categories %}
+{% capture cat %}{{ category | first }}{% endcapture %}
 
 <h2>{{ cat | capitalize }}</h2>
 	<ul>
