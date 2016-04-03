@@ -38,9 +38,6 @@ Post will be listed by categories in `Category` page:
 Post will be listed by tags in `Tags` page:  
 ![tags-page](https://itisbenjamin.github.io/Nice_Blog/img/blog/tags.png)
 
-You can put your `PGP` publickey in `Contact` page:  
-![contact-page](https://itisbenjamin.github.io/Nice_Blog/img/blog/contact.png)
-
 Now you have a `404` page and it will jump back to `index` page itself:  
 ![404-page](https://itisbenjamin.github.io/Nice_Blog/img/blog/404.png)
 
