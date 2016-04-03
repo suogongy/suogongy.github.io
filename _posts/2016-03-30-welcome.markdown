@@ -9,13 +9,13 @@ tags: jekyll
 finished: true
 ---
 
-## Welcome
+# Welcome
 
 I think many blog themes are over designed, so I created this one. 
 
 Just for using, not showing off.
 
-## Nice Blog
+# Nice Blog
 
 A Simple Jekyll Blog Theme.
 
@@ -44,7 +44,7 @@ If you add `finshed: true` in your post header, then an `EOF` container will sho
 Or it will show `TBC`:   
 <div class="tbc"></div>
 
-## How to use
+# How to use
 
 Star it, fork it, and download it.
 
@@ -58,11 +58,11 @@ If you make all codes a mess, do not worry, just come back and download again.
 
 Have fun.
 
-## Author
+# Author
 
 A normal person just wanna see this world.
 
-## License
+# License
 
 Use MIT License.
 

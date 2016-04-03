@@ -9,7 +9,7 @@ tags: markdown
 finished: true
 ---
 
-## Heading
+# Heading
 
 Heading is really simple in Markdown, you can use `#` or `=` or `-`. 
 
@@ -21,7 +21,7 @@ Like this:
 
 `## H2. Heading`
 
-## H2. Heading
+# H2. Heading
 
 `### H3. Heading`
 
@@ -56,7 +56,7 @@ Heading
 
 See? Really easy. 
 
-## Font
+# Font
 
 There are three kinds of font in Markdown.
 
@@ -97,7 +97,7 @@ You can also do this:
 **Markdown is _fun_**
 
 
-## List
+# List
 
 ### Order list:
 
@@ -129,7 +129,7 @@ There are three ways to make a unorder list:
 + BBB
 + CCC
 
-## Block quote
+# Block quote
 
 `> War is Peace`
 
@@ -158,7 +158,7 @@ There are three ways to make a unorder list:
 
 > * Ignorance is Stength
 
-## Link
+# Link
 
 ### Simple link
 
@@ -192,7 +192,7 @@ You can add the link description behind the link address:
 
 [Ben](www.itisbenjamin.github.io "Ben")
 
-## Image
+# Image
 
 `![Codes](/img/code.png)`
 
@@ -204,7 +204,7 @@ Images' descriptions are the same as how you do it in links:
 
 ![Codes](/img/code.png "Codes")
 
-## Code
+# Code
 
 You can use <code>``</code> to show your codes:
 
@@ -225,7 +225,7 @@ If you wanna show a piece of codes, use 4 spaces or 1 tab.
 </div>
 {% endhighlight %}
 
-## Others
+# Others
 
 ### Breaker
 
@@ -243,7 +243,7 @@ If you wanna show a piece of codes, use 4 spaces or 1 tab.
 
 They all show a breaker.
 
-## Footnote
+# Footnote
 
 `Something needs a footnote[^1].`
 
@@ -255,13 +255,13 @@ Something needs a footnote[^1].
 
 Then this footnote will show at the end of this post.
 
-## Delete
+# Delete
 
 `~~There is no tree waiting for me.~~`
 
 <del>There is no tree waiting for me.</del>
 
-## Table
+# Table
 
 ### A simple way
 
