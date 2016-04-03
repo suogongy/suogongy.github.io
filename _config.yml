@@ -10,10 +10,6 @@ weibo_username: 537945691 # your Twitter username
 github_username: suogongy # your Github username
 disqus_username: itisbenjamin # your disqus username
 
-google-analytics: UA-75034651-1 # add it if you have one
-
-skillstree: true # turn on or off the skills tree in about page
-
 # Build settings
 permalink: none
 markdown: kramdown

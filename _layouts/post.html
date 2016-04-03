@@ -9,9 +9,7 @@ layout: default
 		<div class="post-meta"><i class="fa fa-calendar-o"></i> <time datetime="{{ page.date | date_to_string }}" itemprop="datePublished">{{ page.date | date: "%b %-d %Y" }}</time>
 
 		{% if page.author %}&nbsp;&nbsp;•&nbsp;&nbsp;<i class="fa fa-user-secret"></i> <span itemprop="author" itemscope itemtype="http://schema.org/Person"><span itemprop="name">{{ page.author }}</span>
-        {% endif %}
-		<br>
-		<i class="fa fa-eye"></i> <span id="busuanzi_value_page_pv"><i class="fa fa-spinner fa-pulse"></i></span>˚C</span>
+        {% endif %}</span>
 	</div>
 
         {% if page.tags %}
@@ -24,7 +22,7 @@ layout: default
     
 </header>
 
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+<!--<article class="post" itemscope itemtype="http://schema.org/BlogPosting">-->
 <div class="post-content">
     <center>
 	{% if page.subtitle %}
@@ -48,8 +46,8 @@ layout: default
 	{% endif %}
 </div>
 
-{% include share.html %}
+<!--{% include share.html %}-->
 
-{% include disqus.html %}
+<!--{% include disqus.html %}-->
 
 </article>
