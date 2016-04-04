@@ -162,9 +162,9 @@ There are three ways to make a unorder list:
 
 ### Simple link
 
-`<http://itisbenjamin.github.io>`
+`<http://suogongy.github.io>`
 
-<http://itisbenjamin.github.io>
+<http://suogongy.github.io>
 
 You can also do this when you insert an email address.
 
@@ -172,9 +172,9 @@ You can also do this when you insert an email address.
 
 You can add your link just behind your words: 
 
-`[Ben](www.itisbenjamin.github.io)`
+`[Ben](www.suogongy.github.io)`
 
-[Ben](www.itisbenjamin.github.io)
+[Ben](www.suogongy.github.io)
 
 And you can also do it like this: 
 
@@ -188,9 +188,9 @@ Then put this line at anywhere you want in your post:
 
 You can add the link description behind the link address: 
 
-`[Ben](www.itisbenjamin.github.io "Ben")`
+`[Ben](www.suogongy.github.io "Ben")`
 
-[Ben](www.itisbenjamin.github.io "Ben")
+[Ben](www.suogongy.github.io "Ben")
 
 # Image
 
