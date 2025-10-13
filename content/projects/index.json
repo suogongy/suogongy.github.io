@@ -1,0 +1,97 @@
+[
+  {
+    "title": "React 个人博客系统",
+    "description": "使用 React 18 和现代 Web 技术构建的响应式个人博客系统，支持 Markdown 渲染、代码高亮、搜索功能和标签分类。",
+    "tags": ["React", "JavaScript", "CSS", "Markdown"],
+    "icon": "fas fa-blog",
+    "demoUrl": "/projects/react-blog-system",
+    "githubUrl": "https://github.com/suogongy/suogongy.github.io",
+    "features": [
+      "响应式设计，支持移动端",
+      "Markdown 实时渲染",
+      "代码语法高亮",
+      "全文搜索功能",
+      "标签分类系统",
+      "暗色模式支持"
+    ]
+  },
+  {
+    "title": "数据可视化平台",
+    "description": "基于 D3.js 和 React 的交互式数据可视化平台，支持多种图表类型、实时数据更新和自定义配置。",
+    "tags": ["D3.js", "React", "TypeScript", "SVG"],
+    "icon": "fas fa-chart-line",
+    "demoUrl": "https://dataviz-demo.example.com",
+    "githubUrl": "https://github.com/yourusername/data-visualization",
+    "features": [
+      "多种图表类型（柱状图、折线图、饼图等）",
+      "实时数据更新",
+      "交互式操作",
+      "响应式布局",
+      "数据导入导出"
+    ]
+  },
+  {
+    "title": "任务管理工具",
+    "description": "简洁高效的任务管理应用，支持项目分组、标签管理、进度跟踪和团队协作功能。",
+    "tags": ["Vue.js", "Node.js", "Express", "MongoDB"],
+    "icon": "fas fa-tasks",
+    "demoUrl": "https://taskmanager.example.com",
+    "githubUrl": "https://github.com/yourusername/task-manager",
+    "features": [
+      "拖拽排序",
+      "截止日期提醒",
+      "项目分组",
+      "标签系统",
+      "团队协作",
+      "进度统计"
+    ]
+  },
+  {
+    "title": "在线代码编辑器",
+    "description": "基于 Monaco Editor 的在线代码编辑器，支持多种编程语言语法高亮、代码补全和实时协作。",
+    "tags": ["JavaScript", "Monaco Editor", "WebRTC", "Node.js"],
+    "icon": "fas fa-code",
+    "demoUrl": "https://codeeditor.example.com",
+    "githubUrl": "https://github.com/yourusername/online-code-editor",
+    "features": [
+      "多语言语法高亮",
+      "代码自动补全",
+      "实时协作编辑",
+      "代码格式化",
+      "Git 集成",
+      "主题切换"
+    ]
+  },
+  {
+    "title": "API 文档生成器",
+    "description": "自动生成 API 文档的工具，支持多种 API 格式，生成交互式文档界面。",
+    "tags": ["Node.js", "Express", "Swagger", "Handlebars"],
+    "icon": "fas fa-book",
+    "demoUrl": "https://apidoc-generator.example.com",
+    "githubUrl": "https://github.com/yourusername/api-doc-generator",
+    "features": [
+      "支持 OpenAPI/Swagger",
+      "交互式文档界面",
+      "代码示例生成",
+      "多种输出格式",
+      "自定义模板",
+      "自动化部署"
+    ]
+  },
+  {
+    "title": "图片处理工具",
+    "description": "在线图片处理工具，支持图片压缩、格式转换、尺寸调整和滤镜效果。",
+    "tags": ["Canvas API", "WebAssembly", "React", "TypeScript"],
+    "icon": "fas fa-image",
+    "demoUrl": "https://image-tools.example.com",
+    "githubUrl": "https://github.com/yourusername/image-processor",
+    "features": [
+      "图片压缩优化",
+      "格式转换",
+      "尺寸调整",
+      "滤镜效果",
+      "批量处理",
+      "客户端处理"
+    ]
+  }
+]

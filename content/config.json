@@ -1,0 +1,21 @@
+{
+  "name": "Rudy Yang",
+  "bio": "JAVA | AI | WEB3",
+  "social": [
+    {
+      "name": "github",
+      "icon": "fab fa-github",
+      "url": "https://github.com/suogongy"
+    },
+    {
+      "name": "twitter",
+      "icon": "fab fa-twitter",
+      "url": "https://twitter.com/suogongy"
+    },
+    {
+      "name": "email",
+      "icon": "fas fa-envelope",
+      "url": "mailto:haiyuan1832@163.com"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "out",
+  "installCommand": "npm ci",
+  "framework": "nextjs",
+  "regions": ["hkg1"],
+  "functions": {
+    "out/**/*.html": {
+      "runtime": "static"
+    }
+  }
+}
