@@ -24,11 +24,14 @@ const nextConfig = {
   },
 }
 
-// GitHub Pages 部署时需要设置路径前缀
-// 如果你的仓库名不是 username.github.io，请修改下面的路径
+// GitHub Pages 部署配置
+// 对于 username.github.io 格式的仓库，不需要设置路径前缀
+// 如果你使用的是其他格式的仓库名（如 project-name），请取消下面的注释并修改路径
+/*
 if (process.env.NODE_ENV === 'production') {
-  nextConfig.assetPrefix = '/yourusername.github.io'
-  nextConfig.basePath = '/yourusername.github.io'
+  nextConfig.assetPrefix = '/repository-name'
+  nextConfig.basePath = '/repository-name'
 }
+*/
 
 module.exports = nextConfig
