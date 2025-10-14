@@ -1,0 +1,1028 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/55b7a9e84b417e65.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-c81f7fd28659d64f.js"/><script src="/_next/static/chunks/fd9d1056-9f91b5e418130764.js" async=""></script><script src="/_next/static/chunks/117-ee7b0ec54963e50f.js" async=""></script><script src="/_next/static/chunks/main-app-c180f1b9030bf4f6.js" async=""></script><script src="/_next/static/chunks/972-17ea62b17795b286.js" async=""></script><script src="/_next/static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-234087874853c0eb.js" async=""></script><script src="/_next/static/chunks/app/layout-8486db2c9a537bdb.js" async=""></script><title>秒杀系统设计详解 - Personal GitHub Page</title><meta name="description" content="深入分析秒杀系统的架构设计、核心技术难点、性能优化方案和实际实现，包括库存管理、流量控制、分布式锁等关键技术。"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body><div class="app"><header class="header "><nav class="nav-container"><a class="nav-brand" href="/"><i class="fas fa-terminal"></i>Rudy Yang</a><ul class="nav-menu"><li><a class="nav-link " href="/"><i class="fas fa-home"></i> 首页</a></li><li><a class="nav-link " href="/about/"><i class="fas fa-user"></i> 关于</a></li><li><a class="nav-link " href="/projects/"><i class="fas fa-code"></i> 项目</a></li><li><a class="nav-link " href="/notes/"><i class="fas fa-book"></i> 笔记</a></li><li><a class="nav-link " href="/articles/"><i class="fas fa-pen"></i> 随笔</a></li></ul></nav></header><main class="main-content"><div><a class="back-button" style="display:inline-block;background:var(--primary-color);color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;margin-bottom:20px;text-decoration:none" href="/notes/">← 返回<!-- -->笔记<!-- -->列表</a><article class="section"><header class="article-header"><h1 class="article-title">秒杀系统设计详解</h1><div class="article-meta"><div class="article-meta-info"><span class="article-date">2024-10-14</span><span class="article-category">• <!-- -->笔记</span></div><div class="article-tags"><span class="tag">秒杀系统</span><span class="tag">高并发</span><span class="tag">分布式锁</span><span class="tag">缓存</span><span class="tag">性能优化</span></div></div></header><div class="card markdown-content"><h1>秒杀系统设计详解</h1>
+<blockquote>
+<p>秒杀系统是高并发场景的典型应用，其架构设计体现了分布式系统的核心挑战</p>
+</blockquote>
+<h2>秒杀系统概述</h2>
+<h3>1. 系统特点</h3>
+<pre><code>秒杀系统特点：
+├── 高并发
+│   ├── 短时间内大量用户访问
+│   ├── 请求量瞬间激增
+│   └── 需要支撑百万级QPS
+├── 低延迟
+│   ├── 用户响应时间要求高
+│   ├── 支付流程需要快速
+│   └── 库存扣减要实时
+├── 高可用
+│   ├── 系统不能宕机
+│   ├── 服务降级要平滑
+│   └── 故障恢复要快速
+├── 数据一致性
+│   ├── 库存不能超卖
+│   ├── 订单数据要准确
+│   └── 支付状态要同步
+└── 防作弊
+    ├── 防止机器人抢购
+    ├── 限制用户行为
+    └── 识别恶意请求
+</code></pre>
+<h3>2. 架构设计原则</h3>
+<pre><code>架构设计原则：
+├── 服务拆分
+│   ├── 秒杀活动服务
+│   ├── 商品服务
+│   ├── 订单服务
+│   └── 支付服务
+├── 缓存优先
+│   ├── 页面静态化
+│   ├── 数据缓存
+│   ├── 库存缓存
+│   └── 结果缓存
+├── 异步处理
+│   ├── 消息队列
+│   ├── 异步下单
+│   ├── 异步支付
+│   └── 异步通知
+├── 流量控制
+│   ├── 接口限流
+│   ├── 用户限流
+│   ├── 动态限流
+│   └── 熔断降级
+└── 数据保护
+    ├── 库存保护
+    ├── 订单保护
+    ├── 支付保护
+    └── 系统保护
+</code></pre>
+<h2>秒杀系统架构</h2>
+<h3>1. 整体架构</h3>
+<pre><code>秒杀系统架构：
+┌─────────────────────────────────────────────────────────────┐
+│                    CDN                                     │
+│                    静态资源                                 │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    ┌─────────────┐
+                    │  Load        │
+                    │  Balancer    │
+                    └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Gateway    │ │  Gateway    │ │  Gateway    │
+    │  (限流)      │ │  (限流)      │ │  (限流)      │
+    └─────────────┘ └─────────────┘ └─────────────┘
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Seckill    │ │  Seckill    │ │  Seckill    │
+    │  Service    │ │  Service    │ │  Service    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Redis      │ │  Redis      │ │  Redis      │
+    │  (库存)      │ │  (订单)      │ │  (缓存)      │
+    └─────────────┘ └─────────────┘ └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  RabbitMQ   │ │  RabbitMQ   │ │  RabbitMQ   │
+    │  (下单)      │ │  (支付)      │ │  (通知)      │
+    └─────────────┘ └─────────────┘ └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  MySQL      │ │  MySQL      │ │  MySQL      │
+    │  (订单)      │ │  (支付)      │ │  (用户)      │
+    └─────────────┘ └─────────────┘ └─────────────┘
+</code></pre>
+<h3>2. 数据流设计</h3>
+<pre><code>秒杀数据流：
+用户请求
+    ↓
+限流检查
+    ↓
+活动验证
+    ↓
+库存检查
+    ↓
+创建订单
+    ↓
+异步处理
+    ↓
+支付处理
+    ↓
+结果通知
+</code></pre>
+<h2>核心功能实现</h2>
+<h3>1. 秒杀活动管理</h3>
+<p><strong>秒杀活动服务</strong></p>
+<pre><code class="language-java">@Service
+@Transactional
+public class SeckillActivityService {
+    
+    @Autowired
+    private SeckillActivityRepository activityRepository;
+    
+    @Autowired
+    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    
+    // 创建秒杀活动
+    public SeckillActivity createActivity(SeckillActivityCreateRequest request) {
+        // 1. 验证活动时间
+        if (request.getStartTime().after(request.getEndTime())) {
+            throw new BusinessException(&quot;活动时间不正确&quot;);
+        }
+        
+        // 2. 验证商品
+        Product product = productService.getProduct(request.getProductId());
+        if (product == null) {
+            throw new BusinessException(&quot;商品不存在&quot;);
+        }
+        
+        // 3. 验证库存
+        if (request.getStock() &lt;= 0) {
+            throw new BusinessException(&quot;库存必须大于0&quot;);
+        }
+        
+        // 4. 创建活动
+        SeckillActivity activity = new SeckillActivity();
+        activity.setName(request.getName());
+        activity.setProductId(request.getProductId());
+        activity.setOriginalPrice(product.getPrice());
+        activity.setSeckillPrice(request.getSeckillPrice());
+        activity.setStock(request.getStock());
+        activity.setStartTime(request.getStartTime());
+        activity.setEndTime(request.getEndTime());
+        activity.setStatus(SeckillActivityStatus.PENDING);
+        activity.setCreateTime(new Date());
+        
+        activity = activityRepository.save(activity);
+        
+        // 5. 预热库存到Redis
+        warmupStockToRedis(activity);
+        
+        // 6. 预热活动信息到缓存
+        warmupActivityToCache(activity);
+        
+        return activity;
+    }
+    
+    // 预热库存到Redis
+    private void warmupStockToRedis(SeckillActivity activity) {
+        String stockKey = &quot;seckill:stock:&quot; + activity.getId();
+        redisTemplate.opsForValue().set(stockKey, String.valueOf(activity.getStock()));
+        
+        // 设置库存告警阈值
+        String alertKey = &quot;seckill:stock:alert:&quot; + activity.getId();
+        redisTemplate.opsForValue().set(alertKey, String.valueOf(activity.getStock() * 0.1));
+    }
+    
+    // 预热活动信息到缓存
+    private void warmupActivityToCache(SeckillActivity activity) {
+        String cacheKey = &quot;seckill:activity:&quot; + activity.getId();
+        redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(activity), 1, TimeUnit.HOURS);
+    }
+    
+    // 获取活动信息
+    public SeckillActivity getActivity(Long activityId) {
+        String cacheKey = &quot;seckill:activity:&quot; + activityId;
+        String cached = redisTemplate.opsForValue().get(cacheKey);
+        
+        if (cached != null) {
+            return JSON.parseObject(cached, SeckillActivity.class);
+        }
+        
+        SeckillActivity activity = activityRepository.findById(activityId)
+            .orElseThrow(() -&gt; new BusinessException(&quot;活动不存在&quot;));
+        
+        // 缓存活动信息
+        redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(activity), 1, TimeUnit.HOURS);
+        
+        return activity;
+    }
+    
+    // 检查活动状态
+    public boolean isActivityValid(Long activityId) {
+        SeckillActivity activity = getActivity(activityId);
+        
+        // 检查活动状态
+        if (activity.getStatus() != SeckillActivityStatus.RUNNING) {
+            return false;
+        }
+        
+        // 检查活动时间
+        Date now = new Date();
+        if (now.before(activity.getStartTime()) || now.after(activity.getEndTime())) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // 获取剩余库存
+    public int getRemainingStock(Long activityId) {
+        String stockKey = &quot;seckill:stock:&quot; + activityId;
+        String stock = redisTemplate.opsForValue().get(stockKey);
+        
+        if (stock != null) {
+            return Integer.parseInt(stock);
+        }
+        
+        return 0;
+    }
+    
+    // 开始活动
+    public void startActivity(Long activityId) {
+        SeckillActivity activity = getActivity(activityId);
+        activity.setStatus(SeckillActivityStatus.RUNNING);
+        activity.setStartTime(new Date());
+        activityRepository.save(activity);
+        
+        // 更新缓存
+        warmupActivityToCache(activity);
+        
+        // 发送活动开始消息
+        sendActivityStartMessage(activity);
+    }
+    
+    // 结束活动
+    public void endActivity(Long activityId) {
+        SeckillActivity activity = getActivity(activityId);
+        activity.setStatus(SeckillActivityStatus.ENDED);
+        activity.setEndTime(new Date());
+        activityRepository.save(activity);
+        
+        // 更新缓存
+        warmupActivityToCache(activity);
+        
+        // 发送活动结束消息
+        sendActivityEndMessage(activity);
+    }
+    
+    private void sendActivityStartMessage(SeckillActivity activity) {
+        SeckillMessage message = new SeckillMessage();
+        message.setActivityId(activity.getId());
+        message.setAction(&quot;ACTIVITY_START&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;seckill.exchange&quot;, &quot;activity.start&quot;, message);
+    }
+    
+    private void sendActivityEndMessage(SeckillActivity activity) {
+        SeckillMessage message = new SeckillMessage();
+        message.setActivityId(activity.getId());
+        message.setAction(&quot;ACTIVITY_END&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;seckill.exchange&quot;, &quot;activity.end&quot;, message);
+    }
+}
+</code></pre>
+<h3>2. 秒杀下单</h3>
+<p><strong>秒杀下单服务</strong></p>
+<pre><code class="language-java">@Service
+@Transactional
+public class SeckillOrderService {
+    
+    @Autowired
+    private SeckillActivityService activityService;
+    
+    @Autowired
+    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    
+    // 秒杀下单
+    public SeckillResult createOrder(SeckillOrderRequest request) {
+        Long userId = request.getUserId();
+        Long activityId = request.getActivityId();
+        
+        // 1. 验证活动
+        if (!activityService.isActivityValid(activityId)) {
+            return SeckillResult.error(&quot;活动不存在或已结束&quot;);
+        }
+        
+        // 2. 检查用户是否已参与
+        if (hasUserParticipated(userId, activityId)) {
+            return SeckillResult.error(&quot;您已参与过此活动&quot;);
+        }
+        
+        // 3. 预扣减库存
+        boolean stockReduced = reduceStock(activityId);
+        if (!stockReduced) {
+            return SeckillResult.error(&quot;库存不足&quot;);
+        }
+        
+        // 4. 创建预订单
+        SeckillOrder order = createPreOrder(request);
+        
+        // 5. 标记用户已参与
+        markUserParticipated(userId, activityId);
+        
+        // 6. 发送异步下单消息
+        sendCreateOrderMessage(order);
+        
+        return SeckillResult.success(&quot;抢购成功，正在处理订单&quot;);
+    }
+    
+    // 预扣减库存
+    private boolean reduceStock(Long activityId) {
+        String stockKey = &quot;seckill:stock:&quot; + activityId;
+        String script = 
+            &quot;local stock = redis.call(&#39;GET&#39;, KEYS[1]) &quot; +
+            &quot;if tonumber(stock) &lt;= 0 then &quot; +
+            &quot;  return 0 &quot; +
+            &quot;end &quot; +
+            &quot;redis.call(&#39;DECR&#39;, KEYS[1]) &quot; +
+            &quot;return 1&quot;;
+        
+        Long result = redisTemplate.execute(
+            new DefaultRedisScript&lt;&gt;(script, Long.class),
+            Collections.singletonList(stockKey)
+        );
+        
+        return result != null &amp;&amp; result == 1;
+    }
+    
+    // 创建预订单
+    private SeckillOrder createPreOrder(SeckillOrderRequest request) {
+        SeckillOrder order = new SeckillOrder();
+        order.setOrderNo(generateOrderNo());
+        order.setUserId(request.getUserId());
+        order.setActivityId(request.getActivityId());
+        order.setProductId(request.getProductId());
+        order.setQuantity(1);
+        order.setStatus(SeckillOrderStatus.PENDING);
+        order.setCreateTime(new Date());
+        
+        return seckillOrderRepository.save(order);
+    }
+    
+    // 检查用户是否已参与
+    private boolean hasUserParticipated(Long userId, Long activityId) {
+        String key = &quot;seckill:user:&quot; + activityId;
+        return redisTemplate.opsForSet().isMember(key, userId.toString());
+    }
+    
+    // 标记用户已参与
+    private void markUserParticipated(Long userId, Long activityId) {
+        String key = &quot;seckill:user:&quot; + activityId;
+        redisTemplate.opsForSet().add(key, userId.toString());
+        redisTemplate.expire(key, 1, TimeUnit.DAYS);
+    }
+    
+    // 异步创建订单
+    @RabbitListener(queues = &quot;seckill.order.queue&quot;)
+    public void asyncCreateOrder(SeckillOrderMessage message) {
+        try {
+            SeckillOrder order = seckillOrderRepository.findById(message.getOrderId())
+                .orElseThrow(() -&gt; new BusinessException(&quot;订单不存在&quot;));
+            
+            // 1. 创建正式订单
+            Order formalOrder = createFormalOrder(order);
+            
+            // 2. 更新订单状态
+            order.setStatus(SeckillOrderStatus.SUCCESS);
+            order.setFormalOrderId(formalOrder.getId());
+            order.setUpdateTime(new Date());
+            seckillOrderRepository.save(order);
+            
+            // 3. 发送订单创建成功消息
+            sendOrderSuccessMessage(order, formalOrder);
+            
+        } catch (Exception e) {
+            // 处理失败，回滚库存
+            rollbackStock(message.getActivityId());
+            
+            // 更新订单状态
+            SeckillOrder order = seckillOrderRepository.findById(message.getOrderId()).orElse(null);
+            if (order != null) {
+                order.setStatus(SeckillOrderStatus.FAILED);
+                order.setFailReason(e.getMessage());
+                order.setUpdateTime(new Date());
+                seckillOrderRepository.save(order);
+            }
+            
+            // 发送订单创建失败消息
+            sendOrderFailedMessage(message, e.getMessage());
+        }
+    }
+    
+    // 创建正式订单
+    private Order createFormalOrder(SeckillOrder seckillOrder) {
+        Order order = new Order();
+        order.setOrderNo(generateOrderNo());
+        order.setUserId(seckillOrder.getUserId());
+        order.setProductId(seckillOrder.getProductId());
+        order.setQuantity(seckillOrder.getQuantity());
+        
+        // 获取秒杀价格
+        SeckillActivity activity = activityService.getActivity(seckillOrder.getActivityId());
+        order.setPrice(activity.getSeckillPrice());
+        order.setTotalAmount(activity.getSeckillPrice());
+        order.setPayAmount(activity.getSeckillPrice());
+        
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
+        order.setCreateTime(new Date());
+        
+        return orderRepository.save(order);
+    }
+    
+    // 回滚库存
+    private void rollbackStock(Long activityId) {
+        String stockKey = &quot;seckill:stock:&quot; + activityId;
+        redisTemplate.opsForValue().increment(stockKey);
+    }
+    
+    // 发送订单成功消息
+    private void sendOrderSuccessMessage(SeckillOrder seckillOrder, Order formalOrder) {
+        SeckillMessage message = new SeckillMessage();
+        message.setUserId(seckillOrder.getUserId());
+        message.setOrderId(formalOrder.getId());
+        message.setAction(&quot;ORDER_SUCCESS&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;seckill.exchange&quot;, &quot;order.success&quot;, message);
+    }
+    
+    // 发送订单失败消息
+    private void sendOrderFailedMessage(SeckillOrderMessage message, String reason) {
+        SeckillMessage seckillMessage = new SeckillMessage();
+        seckillMessage.setUserId(message.getUserId());
+        seckillMessage.setOrderId(message.getOrderId());
+        seckillMessage.setAction(&quot;ORDER_FAILED&quot;);
+        seckillMessage.setReason(reason);
+        
+        rabbitTemplate.convertAndSend(&quot;seckill.exchange&quot;, &quot;order.failed&quot;, seckillMessage);
+    }
+    
+    private String generateOrderNo() {
+        return &quot;SK&quot; + System.currentTimeMillis() + 
+               String.format(&quot;%04d&quot;, new Random().nextInt(10000));
+    }
+}
+</code></pre>
+<h3>3. 限流和防刷</h3>
+<p><strong>限流服务</strong></p>
+<pre><code class="language-java">@Service
+public class SeckillRateLimitService {
+    
+    @Autowired
+    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    
+    // 接口级别限流
+    public boolean tryAcquire(String key, int permits, int rate) {
+        String limitKey = &quot;seckill:limit:&quot; + key;
+        String script = 
+            &quot;local current = redis.call(&#39;GET&#39;, KEYS[1]) &quot; +
+            &quot;if current == false then &quot; +
+            &quot;  redis.call(&#39;SET&#39;, KEYS[1], ARGV[1]) &quot; +
+            &quot;  redis.call(&#39;EXPIRE&#39;, KEYS[1], ARGV[2]) &quot; +
+            &quot;  return 1 &quot; +
+            &quot;else &quot; +
+            &quot;  if tonumber(current) &lt; tonumber(ARGV[3]) then &quot; +
+            &quot;    return redis.call(&#39;INCR&#39;, KEYS[1]) &quot; +
+            &quot;  else &quot; +
+            &quot;    return 0 &quot; +
+            &quot;  end &quot; +
+            &quot;end&quot;;
+        
+        Long result = redisTemplate.execute(
+            new DefaultRedisScript&lt;&gt;(script, Long.class),
+            Collections.singletonList(limitKey),
+            &quot;1&quot;,
+            &quot;1&quot;,
+            String.valueOf(rate)
+        );
+        
+        return result != null &amp;&amp; result == 1;
+    }
+    
+    // 用户级别限流
+    public boolean tryAcquireUser(Long userId, Long activityId) {
+        String userKey = &quot;seckill:user:limit:&quot; + activityId + &quot;:&quot; + userId;
+        return tryAcquire(userKey, 1, 1); // 每个用户每秒只能抢购一次
+    }
+    
+    // 活动级别限流
+    public boolean tryAcquireActivity(Long activityId) {
+        String activityKey = &quot;seckill:activity:limit:&quot; + activityId;
+        return tryAcquire(activityKey, 1000, 1000); // 每个活动每秒1000次请求
+    }
+    
+    // 滑动窗口限流
+    public boolean tryAcquireSlidingWindow(String key, int permits, int windowSize) {
+        String windowKey = &quot;seckill:window:&quot; + key;
+        long currentTime = System.currentTimeMillis();
+        
+        // 清理过期记录
+        redisTemplate.execute(
+            new DefaultRedisScript&lt;&gt;(CLEANUP_SCRIPT, Long.class),
+            Collections.singletonList(windowKey),
+            String.valueOf(currentTime - windowSize * 1000)
+        );
+        
+        // 检查当前窗口内的请求数
+        Long currentCount = redisTemplate.opsForZSet().count(windowKey, 
+            currentTime - windowSize * 1000, currentTime);
+        
+        if (currentCount &lt; permits) {
+            // 添加当前请求
+            redisTemplate.opsForZSet().add(windowKey, 
+                String.valueOf(currentTime), currentTime);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // 令牌桶限流
+    public boolean tryAcquireTokenBucket(String key, int capacity, double refillRate) {
+        String bucketKey = &quot;seckill:bucket:&quot; + key;
+        String script = 
+            &quot;local capacity = tonumber(ARGV[1]) &quot; +
+            &quot;local tokens = tonumber(ARGV[2]) &quot; +
+            &quot;local interval = tonumber(ARGV[3]) &quot; +
+            &quot;local now = tonumber(ARGV[4]) &quot; +
+            &quot;local bucket_key = KEYS[1] &quot; +
+            &quot;local bucket = redis.call(&#39;HMGET&#39;, bucket_key, &#39;tokens&#39;, &#39;last_refill&#39;) &quot; +
+            &quot;local current_tokens = tonumber(bucket[1]) &quot; +
+            &quot;local last_refill = tonumber(bucket[2]) &quot; +
+            &quot;if current_tokens == nil then &quot; +
+            &quot;  current_tokens = capacity &quot; +
+            &quot;  last_refill = now &quot; +
+            &quot;end &quot; +
+            &quot;local elapsed = now - last_refill &quot; +
+            &quot;local tokens_to_add = math.floor(elapsed / interval * tokens) &quot; +
+            &quot;current_tokens = math.min(capacity, current_tokens + tokens_to_add) &quot; +
+            &quot;if current_tokens &gt;= 1 then &quot; +
+            &quot;  current_tokens = current_tokens - 1 &quot; +
+            &quot;  redis.call(&#39;HMSET&#39;, bucket_key, &#39;tokens&#39;, current_tokens, &#39;last_refill&#39;, now) &quot; +
+            &quot;  redis.call(&#39;EXPIRE&#39;, bucket_key, interval * 2) &quot; +
+            &quot;  return 1 &quot; +
+            &quot;else &quot; +
+            &quot;  redis.call(&#39;HMSET&#39;, bucket_key, &#39;tokens&#39;, current_tokens, &#39;last_refill&#39;, now) &quot; +
+            &quot;  redis.call(&#39;EXPIRE&#39;, bucket_key, interval * 2) &quot; +
+            &quot;  return 0 &quot; +
+            &quot;end&quot;;
+        
+        Long result = redisTemplate.execute(
+            new DefaultRedisScript&lt;&gt;(script, Long.class),
+            Collections.singletonList(bucketKey),
+            String.valueOf(capacity),
+            String.valueOf(refillRate),
+            &quot;1000&quot;,
+            String.valueOf(System.currentTimeMillis())
+        );
+        
+        return result != null &amp;&amp; result == 1;
+    }
+    
+    private static final String CLEANUP_SCRIPT = 
+        &quot;redis.call(&#39;ZREMRANGEBYSCORE&#39;, KEYS[1], 0, ARGV[1]) &quot; +
+        &quot;return redis.call(&#39;ZCARD&#39;, KEYS[1])&quot;;
+}
+</code></pre>
+<h3>4. 缓存优化</h3>
+<p><strong>缓存服务</strong></p>
+<pre><code class="language-java">@Service
+public class SeckillCacheService {
+    
+    @Autowired
+    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    
+    // 预热活动页面
+    public void warmupActivityPage(Long activityId) {
+        // 1. 生成静态页面
+        String html = generateActivityPage(activityId);
+        
+        // 2. 缓存页面
+        String pageKey = &quot;seckill:page:&quot; + activityId;
+        redisTemplate.opsForValue().set(pageKey, html, 1, TimeUnit.HOURS);
+        
+        // 3. 推送到CDN
+        pushToCdn(activityId, html);
+    }
+    
+    // 生成活动页面
+    private String generateActivityPage(Long activityId) {
+        SeckillActivity activity = activityService.getActivity(activityId);
+        Product product = productService.getProduct(activity.getProductId());
+        
+        // 使用模板引擎生成页面
+        Map&lt;String, Object&gt; model = new HashMap&lt;&gt;();
+        model.put(&quot;activity&quot;, activity);
+        model.put(&quot;product&quot;, product);
+        model.put(&quot;remainingStock&quot;, activityService.getRemainingStock(activityId));
+        
+        return templateEngine.process(&quot;seckill/activity&quot;, model);
+    }
+    
+    // 推送到CDN
+    private void pushToCdn(Long activityId, String html) {
+        String cdnUrl = &quot;https://cdn.example.com/seckill/&quot; + activityId + &quot;.html&quot;;
+        
+        // 调用CDN API推送内容
+        cdnService.pushContent(cdnUrl, html);
+    }
+    
+    // 缓存商品信息
+    public void warmupProductInfo(Long productId) {
+        Product product = productService.getProduct(productId);
+        
+        String productKey = &quot;seckill:product:&quot; + productId;
+        redisTemplate.opsForValue().set(productKey, JSON.toJSONString(product), 1, TimeUnit.HOURS);
+    }
+    
+    // 缓存用户信息
+    public void warmupUserInfo(Long userId) {
+        User user = userService.getUser(userId);
+        
+        String userKey = &quot;seckill:user:&quot; + userId;
+        redisTemplate.opsForValue().set(userKey, JSON.toJSONString(user), 30, TimeUnit.MINUTES);
+    }
+    
+    // 获取缓存页面
+    public String getCachedPage(Long activityId) {
+        String pageKey = &quot;seckill:page:&quot; + activityId;
+        return redisTemplate.opsForValue().get(pageKey);
+    }
+    
+    // 获取缓存商品信息
+    public Product getCachedProduct(Long productId) {
+        String productKey = &quot;seckill:product:&quot; + productId;
+        String cached = redisTemplate.opsForValue().get(productKey);
+        
+        if (cached != null) {
+            return JSON.parseObject(cached, Product.class);
+        }
+        
+        return null;
+    }
+    
+    // 获取缓存用户信息
+    public User getCachedUser(Long userId) {
+        String userKey = &quot;seckill:user:&quot; + userId;
+        String cached = redisTemplate.opsForValue().get(userKey);
+        
+        if (cached != null) {
+            return JSON.parseObject(cached, User.class);
+        }
+        
+        return null;
+    }
+    
+    // 更新库存缓存
+    public void updateStockCache(Long activityId, int stock) {
+        String stockKey = &quot;seckill:stock:&quot; + activityId;
+        redisTemplate.opsForValue().set(stockKey, String.valueOf(stock));
+        
+        // 检查库存告警
+        checkStockAlert(activityId, stock);
+    }
+    
+    // 检查库存告警
+    private void checkStockAlert(Long activityId, int stock) {
+        String alertKey = &quot;seckill:stock:alert:&quot; + activityId;
+        String alertStr = redisTemplate.opsForValue().get(alertKey);
+        
+        if (alertStr != null) {
+            int alertThreshold = Integer.parseInt(alertStr);
+            
+            if (stock &lt;= alertThreshold) {
+                // 发送库存告警
+                sendStockAlert(activityId, stock);
+            }
+        }
+    }
+    
+    // 发送库存告警
+    private void sendStockAlert(Long activityId, int stock) {
+        SeckillMessage message = new SeckillMessage();
+        message.setActivityId(activityId);
+        message.setAction(&quot;STOCK_ALERT&quot;);
+        message.setStock(stock);
+        
+        rabbitTemplate.convertAndSend(&quot;seckill.exchange&quot;, &quot;stock.alert&quot;, message);
+    }
+}
+</code></pre>
+<h2>前端优化</h2>
+<h3>1. 页面静态化</h3>
+<p><strong>页面控制器</strong></p>
+<pre><code class="language-java">@Controller
+@RequestMapping(&quot;/seckill&quot;)
+public class SeckillPageController {
+    
+    @Autowired
+    private SeckillCacheService cacheService;
+    
+    @Autowired
+    private SeckillActivityService activityService;
+    
+    // 秒杀活动页面
+    @GetMapping(&quot;/activity/{activityId}&quot;)
+    public String activityPage(@PathVariable Long activityId, Model model) {
+        // 尝试从缓存获取页面
+        String cachedPage = cacheService.getCachedPage(activityId);
+        
+        if (cachedPage != null) {
+            return cachedPage;
+        }
+        
+        // 获取活动信息
+        SeckillActivity activity = activityService.getActivity(activityId);
+        Product product = cacheService.getCachedProduct(activity.getProductId());
+        
+        // 检查活动状态
+        boolean isValid = activityService.isActivityValid(activityId);
+        int remainingStock = activityService.getRemainingStock(activityId);
+        
+        model.addAttribute(&quot;activity&quot;, activity);
+        model.addAttribute(&quot;product&quot;, product);
+        model.addAttribute(&quot;isValid&quot;, isValid);
+        model.addAttribute(&quot;remainingStock&quot;, remainingStock);
+        
+        return &quot;seckill/activity&quot;;
+    }
+    
+    // 秒杀结果页面
+    @GetMapping(&quot;/result/{orderNo}&quot;)
+    public String resultPage(@PathVariable String orderNo, Model model) {
+        SeckillOrder order = seckillOrderRepository.findByOrderNo(orderNo);
+        
+        model.addAttribute(&quot;order&quot;, order);
+        
+        return &quot;seckill/result&quot;;
+    }
+    
+    // 获取活动状态（AJAX接口）
+    @GetMapping(&quot;/api/activity/{activityId}/status&quot;)
+    @ResponseBody
+    public Map&lt;String, Object&gt; getActivityStatus(@PathVariable Long activityId) {
+        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();
+        
+        SeckillActivity activity = activityService.getActivity(activityId);
+        boolean isValid = activityService.isActivityValid(activityId);
+        int remainingStock = activityService.getRemainingStock(activityId);
+        
+        result.put(&quot;valid&quot;, isValid);
+        result.put(&quot;remainingStock&quot;, remainingStock);
+        result.put(&quot;startTime&quot;, activity.getStartTime());
+        result.put(&quot;endTime&quot;, activity.getEndTime());
+        
+        return result;
+    }
+}
+</code></pre>
+<h3>2. 前端秒杀逻辑</h3>
+<p><strong>JavaScript秒杀代码</strong></p>
+<pre><code class="language-javascript">class SeckillManager {
+    constructor(activityId) {
+        this.activityId = activityId;
+        this.userId = getCurrentUserId();
+        this.isSubmitting = false;
+        this.countdownTimer = null;
+        
+        this.init();
+    }
+    
+    init() {
+        // 绑定事件
+        this.bindEvents();
+        
+        // 开始倒计时
+        this.startCountdown();
+        
+        // 定期更新库存
+        this.updateStockPeriodically();
+    }
+    
+    bindEvents() {
+        const seckillBtn = document.getElementById(&#39;seckill-btn&#39;);
+        seckillBtn.addEventListener(&#39;click&#39;, () =&gt; this.handleSeckill());
+        
+        const refreshBtn = document.getElementById(&#39;refresh-btn&#39;);
+        refreshBtn.addEventListener(&#39;click&#39;, () =&gt; this.updateStock());
+    }
+    
+    startCountdown() {
+        this.updateCountdown();
+        this.countdownTimer = setInterval(() =&gt; this.updateCountdown(), 1000);
+    }
+    
+    updateCountdown() {
+        fetch(`/seckill/api/activity/${this.activityId}/status`)
+            .then(response =&gt; response.json())
+            .then(data =&gt; {
+                const seckillBtn = document.getElementById(&#39;seckill-btn&#39;);
+                const countdownEl = document.getElementById(&#39;countdown&#39;);
+                
+                if (!data.valid) {
+                    seckillBtn.disabled = true;
+                    seckillBtn.textContent = &#39;活动已结束&#39;;
+                    clearInterval(this.countdownTimer);
+                    return;
+                }
+                
+                const now = new Date().getTime();
+                const startTime = new Date(data.startTime).getTime();
+                const endTime = new Date(data.endTime).getTime();
+                
+                if (now &lt; startTime) {
+                    // 活动未开始
+                    const distance = startTime - now;
+                    const hours = Math.floor(distance / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    countdownEl.textContent = `${hours}时${minutes}分${seconds}秒`;
+                    seckillBtn.disabled = true;
+                    seckillBtn.textContent = &#39;即将开始&#39;;
+                } else if (now &gt; endTime) {
+                    // 活动已结束
+                    seckillBtn.disabled = true;
+                    seckillBtn.textContent = &#39;活动已结束&#39;;
+                    clearInterval(this.countdownTimer);
+                } else {
+                    // 活动进行中
+                    countdownEl.textContent = &#39;活动进行中&#39;;
+                    seckillBtn.disabled = false;
+                    seckillBtn.textContent = &#39;立即抢购&#39;;
+                }
+                
+                // 更新库存显示
+                this.updateStockDisplay(data.remainingStock);
+            })
+            .catch(error =&gt; {
+                console.error(&#39;获取活动状态失败:&#39;, error);
+            });
+    }
+    
+    updateStockPeriodically() {
+        setInterval(() =&gt; this.updateStock(), 5000); // 每5秒更新一次
+    }
+    
+    updateStock() {
+        fetch(`/seckill/api/activity/${this.activityId}/status`)
+            .then(response =&gt; response.json())
+            .then(data =&gt; {
+                this.updateStockDisplay(data.remainingStock);
+            })
+            .catch(error =&gt; {
+                console.error(&#39;获取库存信息失败:&#39;, error);
+            });
+    }
+    
+    updateStockDisplay(stock) {
+        const stockEl = document.getElementById(&#39;stock&#39;);
+        stockEl.textContent = `剩余库存: ${stock}`;
+        
+        if (stock &lt;= 10) {
+            stockEl.classList.add(&#39;low-stock&#39;);
+        } else {
+            stockEl.classList.remove(&#39;low-stock&#39;);
+        }
+    }
+    
+    async handleSeckill() {
+        if (this.isSubmitting) {
+            return;
+        }
+        
+        this.isSubmitting = true;
+        const seckillBtn = document.getElementById(&#39;seckill-btn&#39;);
+        const originalText = seckillBtn.textContent;
+        
+        try {
+            seckillBtn.disabled = true;
+            seckillBtn.textContent = &#39;抢购中...&#39;;
+            
+            const response = await fetch(&#39;/seckill/api/order/create&#39;, {
+                method: &#39;POST&#39;,
+                headers: {
+                    &#39;Content-Type&#39;: &#39;application/json&#39;,
+                },
+                body: JSON.stringify({
+                    userId: this.userId,
+                    activityId: this.activityId
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                // 抢购成功，跳转到结果页面
+                window.location.href = `/seckill/result/${result.data.orderNo}`;
+            } else {
+                // 抢购失败，显示错误信息
+                this.showError(result.message);
+                seckillBtn.disabled = false;
+                seckillBtn.textContent = originalText;
+            }
+        } catch (error) {
+            console.error(&#39;抢购失败:&#39;, error);
+            this.showError(&#39;网络错误，请重试&#39;);
+            seckillBtn.disabled = false;
+            seckillBtn.textContent = originalText;
+        } finally {
+            this.isSubmitting = false;
+        }
+    }
+    
+    showError(message) {
+        const errorEl = document.getElementById(&#39;error-message&#39;);
+        errorEl.textContent = message;
+        errorEl.style.display = &#39;block&#39;;
+        
+        // 3秒后自动隐藏
+        setTimeout(() =&gt; {
+            errorEl.style.display = &#39;none&#39;;
+        }, 3000);
+    }
+}
+
+// 使用示例
+document.addEventListener(&#39;DOMContentLoaded&#39;, () =&gt; {
+    const activityId = getQueryParameter(&#39;activityId&#39;);
+    new SeckillManager(activityId);
+});
+
+function getQueryParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+function getCurrentUserId() {
+    // 从cookie或localStorage获取用户ID
+    return localStorage.getItem(&#39;userId&#39;) || &#39;&#39;;
+}
+</code></pre>
+<h2>监控和告警</h2>
+<h3>1. 性能监控</h3>
+<p><strong>监控服务</strong></p>
+<pre><code class="language-java">@Component
+public class SeckillMonitorService {
+    
+    @Autowired
+    private MeterRegistry meterRegistry;
+    
+    // 记录秒杀请求
+    public void recordSeckillRequest(Long activityId, boolean success) {
+        Counter.builder(&quot;seckill.requests&quot;)
+            .tag(&quot;activity&quot;, activityId.toString())
+            .tag(&quot;result&quot;, success ? &quot;success&quot; : &quot;failed&quot;)
+            .register(meterRegistry)
+            .increment();
+    }
+    
+    // 记录库存变化
+    public void recordStockChange(Long activityId, int stock) {
+        Gauge.builder(&quot;seckill.stock&quot;)
+            .tag(&quot;activity&quot;, activityId.toString())
+            .register(meterRegistry, this, obj -&gt; stock);
+    }
+    
+    // 记录QPS
+    public void recordQPS(Long activityId, int qps) {
+        Gauge.builder(&quot;seckill.qps&quot;)
+            .tag(&quot;activity&quot;, activityId.toString())
+            .register(meterRegistry, this, obj -&gt; qps);
+    }
+    
+    // 记录响应时间
+    public void recordResponseTime(Long activityId, long responseTime) {
+        Timer.builder(&quot;seckill.response.time&quot;)
+            .tag(&quot;activity&quot;, activityId.toString())
+            .register(meterRegistry)
+            .record(responseTime, TimeUnit.MILLISECONDS);
+    }
+    
+    // 记录错误率
+    public void recordErrorRate(Long activityId, double errorRate) {
+        Gauge.builder(&quot;seckill.error.rate&quot;)
+            .tag(&quot;activity&quot;, activityId.toString())
+            .register(meterRegistry, this, obj -&gt; errorRate);
+    }
+}
+</code></pre>
+<h2>总结</h2>
+<p>秒杀系统设计的关键点：</p>
+<ol>
+<li><strong>高并发处理</strong>：通过限流、缓存、异步等方式处理高并发</li>
+<li><strong>数据一致性</strong>：使用分布式锁、事务保证数据一致性</li>
+<li><strong>系统稳定性</strong>：通过降级、熔断保证系统稳定</li>
+<li><strong>用户体验</strong>：通过页面静态化、前端优化提升用户体验</li>
+<li><strong>监控告警</strong>：完善的监控体系及时发现问题</li>
+</ol>
+<p>通过合理的技术选型和架构设计，可以构建稳定高效的秒杀系统。</p>
+</div></article></div></main></div><script src="/_next/static/chunks/webpack-c81f7fd28659d64f.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:HL[\"/_next/static/css/55b7a9e84b417e65.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"2:I[2846,[],\"\"]\n5:I[4707,[],\"\"]\n8:I[6423,[],\"\"]\nb:I[1060,[],\"\"]\n6:[\"category\",\"notes\",\"d\"]\n7:[\"slug\",\"seckill-system-design\",\"d\"]\nc:[]\n0:[\"$\",\"$L2\",null,{\"buildId\":\"build\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"notes\",\"seckill-system-design\",\"\"],\"initialTree\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"seckill-system-design\",\"d\"],{\"children\":[\"__PAGE__?{\\\"category\\\":\\\"notes\\\",\\\"slug\\\":\\\"seckill-system-design\\\"}\",{}]}]}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"seckill-system-design\",\"d\"],{\"children\":[\"__PAGE__\",{},[[\"$L3\",\"$L4\",null],null],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\",\"$7\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/55b7a9e84b417e65.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}]],\"$L9\"],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$La\"],\"globalErrorComponent\":\"$b\",\"missingSlots\":\"$Wc\"}]\n"])</script><script>self.__next_f.push([1,"d:I[2972,[\"972\",\"static/chunks/972-17ea62b17795b286.js\",\"621\",\"static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-234087874853c0eb.js\"],\"\"]\nf:I[7140,[\"972\",\"static/chunks/972-17ea62b17795b286.js\",\"185\",\"static/chunks/app/layout-8486db2c9a537bdb.js\"],\"default\"]\ne:T9d9a,"])</script><script>self.__next_f.push([1,"\u003ch1\u003e秒杀系统设计详解\u003c/h1\u003e\n\u003cblockquote\u003e\n\u003cp\u003e秒杀系统是高并发场景的典型应用，其架构设计体现了分布式系统的核心挑战\u003c/p\u003e\n\u003c/blockquote\u003e\n\u003ch2\u003e秒杀系统概述\u003c/h2\u003e\n\u003ch3\u003e1. 系统特点\u003c/h3\u003e\n\u003cpre\u003e\u003ccode\u003e秒杀系统特点：\n├── 高并发\n│   ├── 短时间内大量用户访问\n│   ├── 请求量瞬间激增\n│   └── 需要支撑百万级QPS\n├── 低延迟\n│   ├── 用户响应时间要求高\n│   ├── 支付流程需要快速\n│   └── 库存扣减要实时\n├── 高可用\n│   ├── 系统不能宕机\n│   ├── 服务降级要平滑\n│   └── 故障恢复要快速\n├── 数据一致性\n│   ├── 库存不能超卖\n│   ├── 订单数据要准确\n│   └── 支付状态要同步\n└── 防作弊\n    ├── 防止机器人抢购\n    ├── 限制用户行为\n    └── 识别恶意请求\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e2. 架构设计原则\u003c/h3\u003e\n\u003cpre\u003e\u003ccode\u003e架构设计原则：\n├── 服务拆分\n│   ├── 秒杀活动服务\n│   ├── 商品服务\n│   ├── 订单服务\n│   └── 支付服务\n├── 缓存优先\n│   ├── 页面静态化\n│   ├── 数据缓存\n│   ├── 库存缓存\n│   └── 结果缓存\n├── 异步处理\n│   ├── 消息队列\n│   ├── 异步下单\n│   ├── 异步支付\n│   └── 异步通知\n├── 流量控制\n│   ├── 接口限流\n│   ├── 用户限流\n│   ├── 动态限流\n│   └── 熔断降级\n└── 数据保护\n    ├── 库存保护\n    ├── 订单保护\n    ├── 支付保护\n    └── 系统保护\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003e秒杀系统架构\u003c/h2\u003e\n\u003ch3\u003e1. 整体架构\u003c/h3\u003e\n\u003cpre\u003e\u003ccode\u003e秒杀系统架构：\n┌─────────────────────────────────────────────────────────────┐\n│                    CDN                                     │\n│                    静态资源                                 │\n└─────────────────────────────────────────────────────────────┘\n                          │\n                    ┌─────────────┐\n                    │  Load        │\n                    │  Balancer    │\n                    └─────────────┘\n                          │\n          ┌───────────────┼───────────────┐\n          │               │               │\n    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐\n    │  Gateway    │ │  Gateway    │ │  Gateway    │\n    │  (限流)      │ │  (限流)      │ │  (限流)      │\n    └─────────────┘ └─────────────┘ └─────────────┘\n          │               │               │\n          └───────────────┼───────────────┘\n                          │\n          ┌───────────────┼───────────────┐\n          │               │               │\n    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐\n    │  Seckill    │ │  Seckill    │ │  Seckill    │\n    │  Service    │ │  Service    │ │  Service    │\n    └─────────────┘ └─────────────┘ └─────────────┘\n          │               │               │\n          └───────────────┼───────────────┘\n                          │\n          ┌───────────────┼───────────────┐\n          │               │               │\n    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐\n    │  Redis      │ │  Redis      │ │  Redis      │\n    │  (库存)      │ │  (订单)      │ │  (缓存)      │\n    └─────────────┘ └─────────────┘ └─────────────┘\n                          │\n          ┌───────────────┼───────────────┐\n          │               │               │\n    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐\n    │  RabbitMQ   │ │  RabbitMQ   │ │  RabbitMQ   │\n    │  (下单)      │ │  (支付)      │ │  (通知)      │\n    └─────────────┘ └─────────────┘ └─────────────┘\n                          │\n          ┌───────────────┼───────────────┐\n          │               │               │\n    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐\n    │  MySQL      │ │  MySQL      │ │  MySQL      │\n    │  (订单)      │ │  (支付)      │ │  (用户)      │\n    └─────────────┘ └─────────────┘ └─────────────┘\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e2. 数据流设计\u003c/h3\u003e\n\u003cpre\u003e\u003ccode\u003e秒杀数据流：\n用户请求\n    ↓\n限流检查\n    ↓\n活动验证\n    ↓\n库存检查\n    ↓\n创建订单\n    ↓\n异步处理\n    ↓\n支付处理\n    ↓\n结果通知\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003e核心功能实现\u003c/h2\u003e\n\u003ch3\u003e1. 秒杀活动管理\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e秒杀活动服务\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e@Service\n@Transactional\npublic class SeckillActivityService {\n    \n    @Autowired\n    private SeckillActivityRepository activityRepository;\n    \n    @Autowired\n    private RedisTemplate\u0026lt;String, String\u0026gt; redisTemplate;\n    \n    // 创建秒杀活动\n    public SeckillActivity createActivity(SeckillActivityCreateRequest request) {\n        // 1. 验证活动时间\n        if (request.getStartTime().after(request.getEndTime())) {\n            throw new BusinessException(\u0026quot;活动时间不正确\u0026quot;);\n        }\n        \n        // 2. 验证商品\n        Product product = productService.getProduct(request.getProductId());\n        if (product == null) {\n            throw new BusinessException(\u0026quot;商品不存在\u0026quot;);\n        }\n        \n        // 3. 验证库存\n        if (request.getStock() \u0026lt;= 0) {\n            throw new BusinessException(\u0026quot;库存必须大于0\u0026quot;);\n        }\n        \n        // 4. 创建活动\n        SeckillActivity activity = new SeckillActivity();\n        activity.setName(request.getName());\n        activity.setProductId(request.getProductId());\n        activity.setOriginalPrice(product.getPrice());\n        activity.setSeckillPrice(request.getSeckillPrice());\n        activity.setStock(request.getStock());\n        activity.setStartTime(request.getStartTime());\n        activity.setEndTime(request.getEndTime());\n        activity.setStatus(SeckillActivityStatus.PENDING);\n        activity.setCreateTime(new Date());\n        \n        activity = activityRepository.save(activity);\n        \n        // 5. 预热库存到Redis\n        warmupStockToRedis(activity);\n        \n        // 6. 预热活动信息到缓存\n        warmupActivityToCache(activity);\n        \n        return activity;\n    }\n    \n    // 预热库存到Redis\n    private void warmupStockToRedis(SeckillActivity activity) {\n        String stockKey = \u0026quot;seckill:stock:\u0026quot; + activity.getId();\n        redisTemplate.opsForValue().set(stockKey, String.valueOf(activity.getStock()));\n        \n        // 设置库存告警阈值\n        String alertKey = \u0026quot;seckill:stock:alert:\u0026quot; + activity.getId();\n        redisTemplate.opsForValue().set(alertKey, String.valueOf(activity.getStock() * 0.1));\n    }\n    \n    // 预热活动信息到缓存\n    private void warmupActivityToCache(SeckillActivity activity) {\n        String cacheKey = \u0026quot;seckill:activity:\u0026quot; + activity.getId();\n        redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(activity), 1, TimeUnit.HOURS);\n    }\n    \n    // 获取活动信息\n    public SeckillActivity getActivity(Long activityId) {\n        String cacheKey = \u0026quot;seckill:activity:\u0026quot; + activityId;\n        String cached = redisTemplate.opsForValue().get(cacheKey);\n        \n        if (cached != null) {\n            return JSON.parseObject(cached, SeckillActivity.class);\n        }\n        \n        SeckillActivity activity = activityRepository.findById(activityId)\n            .orElseThrow(() -\u0026gt; new BusinessException(\u0026quot;活动不存在\u0026quot;));\n        \n        // 缓存活动信息\n        redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(activity), 1, TimeUnit.HOURS);\n        \n        return activity;\n    }\n    \n    // 检查活动状态\n    public boolean isActivityValid(Long activityId) {\n        SeckillActivity activity = getActivity(activityId);\n        \n        // 检查活动状态\n        if (activity.getStatus() != SeckillActivityStatus.RUNNING) {\n            return false;\n        }\n        \n        // 检查活动时间\n        Date now = new Date();\n        if (now.before(activity.getStartTime()) || now.after(activity.getEndTime())) {\n            return false;\n        }\n        \n        return true;\n    }\n    \n    // 获取剩余库存\n    public int getRemainingStock(Long activityId) {\n        String stockKey = \u0026quot;seckill:stock:\u0026quot; + activityId;\n        String stock = redisTemplate.opsForValue().get(stockKey);\n        \n        if (stock != null) {\n            return Integer.parseInt(stock);\n        }\n        \n        return 0;\n    }\n    \n    // 开始活动\n    public void startActivity(Long activityId) {\n        SeckillActivity activity = getActivity(activityId);\n        activity.setStatus(SeckillActivityStatus.RUNNING);\n        activity.setStartTime(new Date());\n        activityRepository.save(activity);\n        \n        // 更新缓存\n        warmupActivityToCache(activity);\n        \n        // 发送活动开始消息\n        sendActivityStartMessage(activity);\n    }\n    \n    // 结束活动\n    public void endActivity(Long activityId) {\n        SeckillActivity activity = getActivity(activityId);\n        activity.setStatus(SeckillActivityStatus.ENDED);\n        activity.setEndTime(new Date());\n        activityRepository.save(activity);\n        \n        // 更新缓存\n        warmupActivityToCache(activity);\n        \n        // 发送活动结束消息\n        sendActivityEndMessage(activity);\n    }\n    \n    private void sendActivityStartMessage(SeckillActivity activity) {\n        SeckillMessage message = new SeckillMessage();\n        message.setActivityId(activity.getId());\n        message.setAction(\u0026quot;ACTIVITY_START\u0026quot;);\n        \n        rabbitTemplate.convertAndSend(\u0026quot;seckill.exchange\u0026quot;, \u0026quot;activity.start\u0026quot;, message);\n    }\n    \n    private void sendActivityEndMessage(SeckillActivity activity) {\n        SeckillMessage message = new SeckillMessage();\n        message.setActivityId(activity.getId());\n        message.setAction(\u0026quot;ACTIVITY_END\u0026quot;);\n        \n        rabbitTemplate.convertAndSend(\u0026quot;seckill.exchange\u0026quot;, \u0026quot;activity.end\u0026quot;, message);\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e2. 秒杀下单\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e秒杀下单服务\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e@Service\n@Transactional\npublic class SeckillOrderService {\n    \n    @Autowired\n    private SeckillActivityService activityService;\n    \n    @Autowired\n    private RedisTemplate\u0026lt;String, String\u0026gt; redisTemplate;\n    \n    @Autowired\n    private RabbitTemplate rabbitTemplate;\n    \n    // 秒杀下单\n    public SeckillResult createOrder(SeckillOrderRequest request) {\n        Long userId = request.getUserId();\n        Long activityId = request.getActivityId();\n        \n        // 1. 验证活动\n        if (!activityService.isActivityValid(activityId)) {\n            return SeckillResult.error(\u0026quot;活动不存在或已结束\u0026quot;);\n        }\n        \n        // 2. 检查用户是否已参与\n        if (hasUserParticipated(userId, activityId)) {\n            return SeckillResult.error(\u0026quot;您已参与过此活动\u0026quot;);\n        }\n        \n        // 3. 预扣减库存\n        boolean stockReduced = reduceStock(activityId);\n        if (!stockReduced) {\n            return SeckillResult.error(\u0026quot;库存不足\u0026quot;);\n        }\n        \n        // 4. 创建预订单\n        SeckillOrder order = createPreOrder(request);\n        \n        // 5. 标记用户已参与\n        markUserParticipated(userId, activityId);\n        \n        // 6. 发送异步下单消息\n        sendCreateOrderMessage(order);\n        \n        return SeckillResult.success(\u0026quot;抢购成功，正在处理订单\u0026quot;);\n    }\n    \n    // 预扣减库存\n    private boolean reduceStock(Long activityId) {\n        String stockKey = \u0026quot;seckill:stock:\u0026quot; + activityId;\n        String script = \n            \u0026quot;local stock = redis.call(\u0026#39;GET\u0026#39;, KEYS[1]) \u0026quot; +\n            \u0026quot;if tonumber(stock) \u0026lt;= 0 then \u0026quot; +\n            \u0026quot;  return 0 \u0026quot; +\n            \u0026quot;end \u0026quot; +\n            \u0026quot;redis.call(\u0026#39;DECR\u0026#39;, KEYS[1]) \u0026quot; +\n            \u0026quot;return 1\u0026quot;;\n        \n        Long result = redisTemplate.execute(\n            new DefaultRedisScript\u0026lt;\u0026gt;(script, Long.class),\n            Collections.singletonList(stockKey)\n        );\n        \n        return result != null \u0026amp;\u0026amp; result == 1;\n    }\n    \n    // 创建预订单\n    private SeckillOrder createPreOrder(SeckillOrderRequest request) {\n        SeckillOrder order = new SeckillOrder();\n        order.setOrderNo(generateOrderNo());\n        order.setUserId(request.getUserId());\n        order.setActivityId(request.getActivityId());\n        order.setProductId(request.getProductId());\n        order.setQuantity(1);\n        order.setStatus(SeckillOrderStatus.PENDING);\n        order.setCreateTime(new Date());\n        \n        return seckillOrderRepository.save(order);\n    }\n    \n    // 检查用户是否已参与\n    private boolean hasUserParticipated(Long userId, Long activityId) {\n        String key = \u0026quot;seckill:user:\u0026quot; + activityId;\n        return redisTemplate.opsForSet().isMember(key, userId.toString());\n    }\n    \n    // 标记用户已参与\n    private void markUserParticipated(Long userId, Long activityId) {\n        String key = \u0026quot;seckill:user:\u0026quot; + activityId;\n        redisTemplate.opsForSet().add(key, userId.toString());\n        redisTemplate.expire(key, 1, TimeUnit.DAYS);\n    }\n    \n    // 异步创建订单\n    @RabbitListener(queues = \u0026quot;seckill.order.queue\u0026quot;)\n    public void asyncCreateOrder(SeckillOrderMessage message) {\n        try {\n            SeckillOrder order = seckillOrderRepository.findById(message.getOrderId())\n                .orElseThrow(() -\u0026gt; new BusinessException(\u0026quot;订单不存在\u0026quot;));\n            \n            // 1. 创建正式订单\n            Order formalOrder = createFormalOrder(order);\n            \n            // 2. 更新订单状态\n            order.setStatus(SeckillOrderStatus.SUCCESS);\n            order.setFormalOrderId(formalOrder.getId());\n            order.setUpdateTime(new Date());\n            seckillOrderRepository.save(order);\n            \n            // 3. 发送订单创建成功消息\n            sendOrderSuccessMessage(order, formalOrder);\n            \n        } catch (Exception e) {\n            // 处理失败，回滚库存\n            rollbackStock(message.getActivityId());\n            \n            // 更新订单状态\n            SeckillOrder order = seckillOrderRepository.findById(message.getOrderId()).orElse(null);\n            if (order != null) {\n                order.setStatus(SeckillOrderStatus.FAILED);\n                order.setFailReason(e.getMessage());\n                order.setUpdateTime(new Date());\n                seckillOrderRepository.save(order);\n            }\n            \n            // 发送订单创建失败消息\n            sendOrderFailedMessage(message, e.getMessage());\n        }\n    }\n    \n    // 创建正式订单\n    private Order createFormalOrder(SeckillOrder seckillOrder) {\n        Order order = new Order();\n        order.setOrderNo(generateOrderNo());\n        order.setUserId(seckillOrder.getUserId());\n        order.setProductId(seckillOrder.getProductId());\n        order.setQuantity(seckillOrder.getQuantity());\n        \n        // 获取秒杀价格\n        SeckillActivity activity = activityService.getActivity(seckillOrder.getActivityId());\n        order.setPrice(activity.getSeckillPrice());\n        order.setTotalAmount(activity.getSeckillPrice());\n        order.setPayAmount(activity.getSeckillPrice());\n        \n        order.setStatus(OrderStatus.PENDING_PAYMENT);\n        order.setCreateTime(new Date());\n        \n        return orderRepository.save(order);\n    }\n    \n    // 回滚库存\n    private void rollbackStock(Long activityId) {\n        String stockKey = \u0026quot;seckill:stock:\u0026quot; + activityId;\n        redisTemplate.opsForValue().increment(stockKey);\n    }\n    \n    // 发送订单成功消息\n    private void sendOrderSuccessMessage(SeckillOrder seckillOrder, Order formalOrder) {\n        SeckillMessage message = new SeckillMessage();\n        message.setUserId(seckillOrder.getUserId());\n        message.setOrderId(formalOrder.getId());\n        message.setAction(\u0026quot;ORDER_SUCCESS\u0026quot;);\n        \n        rabbitTemplate.convertAndSend(\u0026quot;seckill.exchange\u0026quot;, \u0026quot;order.success\u0026quot;, message);\n    }\n    \n    // 发送订单失败消息\n    private void sendOrderFailedMessage(SeckillOrderMessage message, String reason) {\n        SeckillMessage seckillMessage = new SeckillMessage();\n        seckillMessage.setUserId(message.getUserId());\n        seckillMessage.setOrderId(message.getOrderId());\n        seckillMessage.setAction(\u0026quot;ORDER_FAILED\u0026quot;);\n        seckillMessage.setReason(reason);\n        \n        rabbitTemplate.convertAndSend(\u0026quot;seckill.exchange\u0026quot;, \u0026quot;order.failed\u0026quot;, seckillMessage);\n    }\n    \n    private String generateOrderNo() {\n        return \u0026quot;SK\u0026quot; + System.currentTimeMillis() + \n               String.format(\u0026quot;%04d\u0026quot;, new Random().nextInt(10000));\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e3. 限流和防刷\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e限流服务\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e@Service\npublic class SeckillRateLimitService {\n    \n    @Autowired\n    private RedisTemplate\u0026lt;String, String\u0026gt; redisTemplate;\n    \n    // 接口级别限流\n    public boolean tryAcquire(String key, int permits, int rate) {\n        String limitKey = \u0026quot;seckill:limit:\u0026quot; + key;\n        String script = \n            \u0026quot;local current = redis.call(\u0026#39;GET\u0026#39;, KEYS[1]) \u0026quot; +\n            \u0026quot;if current == false then \u0026quot; +\n            \u0026quot;  redis.call(\u0026#39;SET\u0026#39;, KEYS[1], ARGV[1]) \u0026quot; +\n            \u0026quot;  redis.call(\u0026#39;EXPIRE\u0026#39;, KEYS[1], ARGV[2]) \u0026quot; +\n            \u0026quot;  return 1 \u0026quot; +\n            \u0026quot;else \u0026quot; +\n            \u0026quot;  if tonumber(current) \u0026lt; tonumber(ARGV[3]) then \u0026quot; +\n            \u0026quot;    return redis.call(\u0026#39;INCR\u0026#39;, KEYS[1]) \u0026quot; +\n            \u0026quot;  else \u0026quot; +\n            \u0026quot;    return 0 \u0026quot; +\n            \u0026quot;  end \u0026quot; +\n            \u0026quot;end\u0026quot;;\n        \n        Long result = redisTemplate.execute(\n            new DefaultRedisScript\u0026lt;\u0026gt;(script, Long.class),\n            Collections.singletonList(limitKey),\n            \u0026quot;1\u0026quot;,\n            \u0026quot;1\u0026quot;,\n            String.valueOf(rate)\n        );\n        \n        return result != null \u0026amp;\u0026amp; result == 1;\n    }\n    \n    // 用户级别限流\n    public boolean tryAcquireUser(Long userId, Long activityId) {\n        String userKey = \u0026quot;seckill:user:limit:\u0026quot; + activityId + \u0026quot;:\u0026quot; + userId;\n        return tryAcquire(userKey, 1, 1); // 每个用户每秒只能抢购一次\n    }\n    \n    // 活动级别限流\n    public boolean tryAcquireActivity(Long activityId) {\n        String activityKey = \u0026quot;seckill:activity:limit:\u0026quot; + activityId;\n        return tryAcquire(activityKey, 1000, 1000); // 每个活动每秒1000次请求\n    }\n    \n    // 滑动窗口限流\n    public boolean tryAcquireSlidingWindow(String key, int permits, int windowSize) {\n        String windowKey = \u0026quot;seckill:window:\u0026quot; + key;\n        long currentTime = System.currentTimeMillis();\n        \n        // 清理过期记录\n        redisTemplate.execute(\n            new DefaultRedisScript\u0026lt;\u0026gt;(CLEANUP_SCRIPT, Long.class),\n            Collections.singletonList(windowKey),\n            String.valueOf(currentTime - windowSize * 1000)\n        );\n        \n        // 检查当前窗口内的请求数\n        Long currentCount = redisTemplate.opsForZSet().count(windowKey, \n            currentTime - windowSize * 1000, currentTime);\n        \n        if (currentCount \u0026lt; permits) {\n            // 添加当前请求\n            redisTemplate.opsForZSet().add(windowKey, \n                String.valueOf(currentTime), currentTime);\n            return true;\n        }\n        \n        return false;\n    }\n    \n    // 令牌桶限流\n    public boolean tryAcquireTokenBucket(String key, int capacity, double refillRate) {\n        String bucketKey = \u0026quot;seckill:bucket:\u0026quot; + key;\n        String script = \n            \u0026quot;local capacity = tonumber(ARGV[1]) \u0026quot; +\n            \u0026quot;local tokens = tonumber(ARGV[2]) \u0026quot; +\n            \u0026quot;local interval = tonumber(ARGV[3]) \u0026quot; +\n            \u0026quot;local now = tonumber(ARGV[4]) \u0026quot; +\n            \u0026quot;local bucket_key = KEYS[1] \u0026quot; +\n            \u0026quot;local bucket = redis.call(\u0026#39;HMGET\u0026#39;, bucket_key, \u0026#39;tokens\u0026#39;, \u0026#39;last_refill\u0026#39;) \u0026quot; +\n            \u0026quot;local current_tokens = tonumber(bucket[1]) \u0026quot; +\n            \u0026quot;local last_refill = tonumber(bucket[2]) \u0026quot; +\n            \u0026quot;if current_tokens == nil then \u0026quot; +\n            \u0026quot;  current_tokens = capacity \u0026quot; +\n            \u0026quot;  last_refill = now \u0026quot; +\n            \u0026quot;end \u0026quot; +\n            \u0026quot;local elapsed = now - last_refill \u0026quot; +\n            \u0026quot;local tokens_to_add = math.floor(elapsed / interval * tokens) \u0026quot; +\n            \u0026quot;current_tokens = math.min(capacity, current_tokens + tokens_to_add) \u0026quot; +\n            \u0026quot;if current_tokens \u0026gt;= 1 then \u0026quot; +\n            \u0026quot;  current_tokens = current_tokens - 1 \u0026quot; +\n            \u0026quot;  redis.call(\u0026#39;HMSET\u0026#39;, bucket_key, \u0026#39;tokens\u0026#39;, current_tokens, \u0026#39;last_refill\u0026#39;, now) \u0026quot; +\n            \u0026quot;  redis.call(\u0026#39;EXPIRE\u0026#39;, bucket_key, interval * 2) \u0026quot; +\n            \u0026quot;  return 1 \u0026quot; +\n            \u0026quot;else \u0026quot; +\n            \u0026quot;  redis.call(\u0026#39;HMSET\u0026#39;, bucket_key, \u0026#39;tokens\u0026#39;, current_tokens, \u0026#39;last_refill\u0026#39;, now) \u0026quot; +\n            \u0026quot;  redis.call(\u0026#39;EXPIRE\u0026#39;, bucket_key, interval * 2) \u0026quot; +\n            \u0026quot;  return 0 \u0026quot; +\n            \u0026quot;end\u0026quot;;\n        \n        Long result = redisTemplate.execute(\n            new DefaultRedisScript\u0026lt;\u0026gt;(script, Long.class),\n            Collections.singletonList(bucketKey),\n            String.valueOf(capacity),\n            String.valueOf(refillRate),\n            \u0026quot;1000\u0026quot;,\n            String.valueOf(System.currentTimeMillis())\n        );\n        \n        return result != null \u0026amp;\u0026amp; result == 1;\n    }\n    \n    private static final String CLEANUP_SCRIPT = \n        \u0026quot;redis.call(\u0026#39;ZREMRANGEBYSCORE\u0026#39;, KEYS[1], 0, ARGV[1]) \u0026quot; +\n        \u0026quot;return redis.call(\u0026#39;ZCARD\u0026#39;, KEYS[1])\u0026quot;;\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e4. 缓存优化\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e缓存服务\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e@Service\npublic class SeckillCacheService {\n    \n    @Autowired\n    private RedisTemplate\u0026lt;String, String\u0026gt; redisTemplate;\n    \n    // 预热活动页面\n    public void warmupActivityPage(Long activityId) {\n        // 1. 生成静态页面\n        String html = generateActivityPage(activityId);\n        \n        // 2. 缓存页面\n        String pageKey = \u0026quot;seckill:page:\u0026quot; + activityId;\n        redisTemplate.opsForValue().set(pageKey, html, 1, TimeUnit.HOURS);\n        \n        // 3. 推送到CDN\n        pushToCdn(activityId, html);\n    }\n    \n    // 生成活动页面\n    private String generateActivityPage(Long activityId) {\n        SeckillActivity activity = activityService.getActivity(activityId);\n        Product product = productService.getProduct(activity.getProductId());\n        \n        // 使用模板引擎生成页面\n        Map\u0026lt;String, Object\u0026gt; model = new HashMap\u0026lt;\u0026gt;();\n        model.put(\u0026quot;activity\u0026quot;, activity);\n        model.put(\u0026quot;product\u0026quot;, product);\n        model.put(\u0026quot;remainingStock\u0026quot;, activityService.getRemainingStock(activityId));\n        \n        return templateEngine.process(\u0026quot;seckill/activity\u0026quot;, model);\n    }\n    \n    // 推送到CDN\n    private void pushToCdn(Long activityId, String html) {\n        String cdnUrl = \u0026quot;https://cdn.example.com/seckill/\u0026quot; + activityId + \u0026quot;.html\u0026quot;;\n        \n        // 调用CDN API推送内容\n        cdnService.pushContent(cdnUrl, html);\n    }\n    \n    // 缓存商品信息\n    public void warmupProductInfo(Long productId) {\n        Product product = productService.getProduct(productId);\n        \n        String productKey = \u0026quot;seckill:product:\u0026quot; + productId;\n        redisTemplate.opsForValue().set(productKey, JSON.toJSONString(product), 1, TimeUnit.HOURS);\n    }\n    \n    // 缓存用户信息\n    public void warmupUserInfo(Long userId) {\n        User user = userService.getUser(userId);\n        \n        String userKey = \u0026quot;seckill:user:\u0026quot; + userId;\n        redisTemplate.opsForValue().set(userKey, JSON.toJSONString(user), 30, TimeUnit.MINUTES);\n    }\n    \n    // 获取缓存页面\n    public String getCachedPage(Long activityId) {\n        String pageKey = \u0026quot;seckill:page:\u0026quot; + activityId;\n        return redisTemplate.opsForValue().get(pageKey);\n    }\n    \n    // 获取缓存商品信息\n    public Product getCachedProduct(Long productId) {\n        String productKey = \u0026quot;seckill:product:\u0026quot; + productId;\n        String cached = redisTemplate.opsForValue().get(productKey);\n        \n        if (cached != null) {\n            return JSON.parseObject(cached, Product.class);\n        }\n        \n        return null;\n    }\n    \n    // 获取缓存用户信息\n    public User getCachedUser(Long userId) {\n        String userKey = \u0026quot;seckill:user:\u0026quot; + userId;\n        String cached = redisTemplate.opsForValue().get(userKey);\n        \n        if (cached != null) {\n            return JSON.parseObject(cached, User.class);\n        }\n        \n        return null;\n    }\n    \n    // 更新库存缓存\n    public void updateStockCache(Long activityId, int stock) {\n        String stockKey = \u0026quot;seckill:stock:\u0026quot; + activityId;\n        redisTemplate.opsForValue().set(stockKey, String.valueOf(stock));\n        \n        // 检查库存告警\n        checkStockAlert(activityId, stock);\n    }\n    \n    // 检查库存告警\n    private void checkStockAlert(Long activityId, int stock) {\n        String alertKey = \u0026quot;seckill:stock:alert:\u0026quot; + activityId;\n        String alertStr = redisTemplate.opsForValue().get(alertKey);\n        \n        if (alertStr != null) {\n            int alertThreshold = Integer.parseInt(alertStr);\n            \n            if (stock \u0026lt;= alertThreshold) {\n                // 发送库存告警\n                sendStockAlert(activityId, stock);\n            }\n        }\n    }\n    \n    // 发送库存告警\n    private void sendStockAlert(Long activityId, int stock) {\n        SeckillMessage message = new SeckillMessage();\n        message.setActivityId(activityId);\n        message.setAction(\u0026quot;STOCK_ALERT\u0026quot;);\n        message.setStock(stock);\n        \n        rabbitTemplate.convertAndSend(\u0026quot;seckill.exchange\u0026quot;, \u0026quot;stock.alert\u0026quot;, message);\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003e前端优化\u003c/h2\u003e\n\u003ch3\u003e1. 页面静态化\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e页面控制器\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e@Controller\n@RequestMapping(\u0026quot;/seckill\u0026quot;)\npublic class SeckillPageController {\n    \n    @Autowired\n    private SeckillCacheService cacheService;\n    \n    @Autowired\n    private SeckillActivityService activityService;\n    \n    // 秒杀活动页面\n    @GetMapping(\u0026quot;/activity/{activityId}\u0026quot;)\n    public String activityPage(@PathVariable Long activityId, Model model) {\n        // 尝试从缓存获取页面\n        String cachedPage = cacheService.getCachedPage(activityId);\n        \n        if (cachedPage != null) {\n            return cachedPage;\n        }\n        \n        // 获取活动信息\n        SeckillActivity activity = activityService.getActivity(activityId);\n        Product product = cacheService.getCachedProduct(activity.getProductId());\n        \n        // 检查活动状态\n        boolean isValid = activityService.isActivityValid(activityId);\n        int remainingStock = activityService.getRemainingStock(activityId);\n        \n        model.addAttribute(\u0026quot;activity\u0026quot;, activity);\n        model.addAttribute(\u0026quot;product\u0026quot;, product);\n        model.addAttribute(\u0026quot;isValid\u0026quot;, isValid);\n        model.addAttribute(\u0026quot;remainingStock\u0026quot;, remainingStock);\n        \n        return \u0026quot;seckill/activity\u0026quot;;\n    }\n    \n    // 秒杀结果页面\n    @GetMapping(\u0026quot;/result/{orderNo}\u0026quot;)\n    public String resultPage(@PathVariable String orderNo, Model model) {\n        SeckillOrder order = seckillOrderRepository.findByOrderNo(orderNo);\n        \n        model.addAttribute(\u0026quot;order\u0026quot;, order);\n        \n        return \u0026quot;seckill/result\u0026quot;;\n    }\n    \n    // 获取活动状态（AJAX接口）\n    @GetMapping(\u0026quot;/api/activity/{activityId}/status\u0026quot;)\n    @ResponseBody\n    public Map\u0026lt;String, Object\u0026gt; getActivityStatus(@PathVariable Long activityId) {\n        Map\u0026lt;String, Object\u0026gt; result = new HashMap\u0026lt;\u0026gt;();\n        \n        SeckillActivity activity = activityService.getActivity(activityId);\n        boolean isValid = activityService.isActivityValid(activityId);\n        int remainingStock = activityService.getRemainingStock(activityId);\n        \n        result.put(\u0026quot;valid\u0026quot;, isValid);\n        result.put(\u0026quot;remainingStock\u0026quot;, remainingStock);\n        result.put(\u0026quot;startTime\u0026quot;, activity.getStartTime());\n        result.put(\u0026quot;endTime\u0026quot;, activity.getEndTime());\n        \n        return result;\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e2. 前端秒杀逻辑\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eJavaScript秒杀代码\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-javascript\"\u003eclass SeckillManager {\n    constructor(activityId) {\n        this.activityId = activityId;\n        this.userId = getCurrentUserId();\n        this.isSubmitting = false;\n        this.countdownTimer = null;\n        \n        this.init();\n    }\n    \n    init() {\n        // 绑定事件\n        this.bindEvents();\n        \n        // 开始倒计时\n        this.startCountdown();\n        \n        // 定期更新库存\n        this.updateStockPeriodically();\n    }\n    \n    bindEvents() {\n        const seckillBtn = document.getElementById(\u0026#39;seckill-btn\u0026#39;);\n        seckillBtn.addEventListener(\u0026#39;click\u0026#39;, () =\u0026gt; this.handleSeckill());\n        \n        const refreshBtn = document.getElementById(\u0026#39;refresh-btn\u0026#39;);\n        refreshBtn.addEventListener(\u0026#39;click\u0026#39;, () =\u0026gt; this.updateStock());\n    }\n    \n    startCountdown() {\n        this.updateCountdown();\n        this.countdownTimer = setInterval(() =\u0026gt; this.updateCountdown(), 1000);\n    }\n    \n    updateCountdown() {\n        fetch(`/seckill/api/activity/${this.activityId}/status`)\n            .then(response =\u0026gt; response.json())\n            .then(data =\u0026gt; {\n                const seckillBtn = document.getElementById(\u0026#39;seckill-btn\u0026#39;);\n                const countdownEl = document.getElementById(\u0026#39;countdown\u0026#39;);\n                \n                if (!data.valid) {\n                    seckillBtn.disabled = true;\n                    seckillBtn.textContent = \u0026#39;活动已结束\u0026#39;;\n                    clearInterval(this.countdownTimer);\n                    return;\n                }\n                \n                const now = new Date().getTime();\n                const startTime = new Date(data.startTime).getTime();\n                const endTime = new Date(data.endTime).getTime();\n                \n                if (now \u0026lt; startTime) {\n                    // 活动未开始\n                    const distance = startTime - now;\n                    const hours = Math.floor(distance / (1000 * 60 * 60));\n                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));\n                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);\n                    \n                    countdownEl.textContent = `${hours}时${minutes}分${seconds}秒`;\n                    seckillBtn.disabled = true;\n                    seckillBtn.textContent = \u0026#39;即将开始\u0026#39;;\n                } else if (now \u0026gt; endTime) {\n                    // 活动已结束\n                    seckillBtn.disabled = true;\n                    seckillBtn.textContent = \u0026#39;活动已结束\u0026#39;;\n                    clearInterval(this.countdownTimer);\n                } else {\n                    // 活动进行中\n                    countdownEl.textContent = \u0026#39;活动进行中\u0026#39;;\n                    seckillBtn.disabled = false;\n                    seckillBtn.textContent = \u0026#39;立即抢购\u0026#39;;\n                }\n                \n                // 更新库存显示\n                this.updateStockDisplay(data.remainingStock);\n            })\n            .catch(error =\u0026gt; {\n                console.error(\u0026#39;获取活动状态失败:\u0026#39;, error);\n            });\n    }\n    \n    updateStockPeriodically() {\n        setInterval(() =\u0026gt; this.updateStock(), 5000); // 每5秒更新一次\n    }\n    \n    updateStock() {\n        fetch(`/seckill/api/activity/${this.activityId}/status`)\n            .then(response =\u0026gt; response.json())\n            .then(data =\u0026gt; {\n                this.updateStockDisplay(data.remainingStock);\n            })\n            .catch(error =\u0026gt; {\n                console.error(\u0026#39;获取库存信息失败:\u0026#39;, error);\n            });\n    }\n    \n    updateStockDisplay(stock) {\n        const stockEl = document.getElementById(\u0026#39;stock\u0026#39;);\n        stockEl.textContent = `剩余库存: ${stock}`;\n        \n        if (stock \u0026lt;= 10) {\n            stockEl.classList.add(\u0026#39;low-stock\u0026#39;);\n        } else {\n            stockEl.classList.remove(\u0026#39;low-stock\u0026#39;);\n        }\n    }\n    \n    async handleSeckill() {\n        if (this.isSubmitting) {\n            return;\n        }\n        \n        this.isSubmitting = true;\n        const seckillBtn = document.getElementById(\u0026#39;seckill-btn\u0026#39;);\n        const originalText = seckillBtn.textContent;\n        \n        try {\n            seckillBtn.disabled = true;\n            seckillBtn.textContent = \u0026#39;抢购中...\u0026#39;;\n            \n            const response = await fetch(\u0026#39;/seckill/api/order/create\u0026#39;, {\n                method: \u0026#39;POST\u0026#39;,\n                headers: {\n                    \u0026#39;Content-Type\u0026#39;: \u0026#39;application/json\u0026#39;,\n                },\n                body: JSON.stringify({\n                    userId: this.userId,\n                    activityId: this.activityId\n                })\n            });\n            \n            const result = await response.json();\n            \n            if (result.success) {\n                // 抢购成功，跳转到结果页面\n                window.location.href = `/seckill/result/${result.data.orderNo}`;\n            } else {\n                // 抢购失败，显示错误信息\n                this.showError(result.message);\n                seckillBtn.disabled = false;\n                seckillBtn.textContent = originalText;\n            }\n        } catch (error) {\n            console.error(\u0026#39;抢购失败:\u0026#39;, error);\n            this.showError(\u0026#39;网络错误，请重试\u0026#39;);\n            seckillBtn.disabled = false;\n            seckillBtn.textContent = originalText;\n        } finally {\n            this.isSubmitting = false;\n        }\n    }\n    \n    showError(message) {\n        const errorEl = document.getElementById(\u0026#39;error-message\u0026#39;);\n        errorEl.textContent = message;\n        errorEl.style.display = \u0026#39;block\u0026#39;;\n        \n        // 3秒后自动隐藏\n        setTimeout(() =\u0026gt; {\n            errorEl.style.display = \u0026#39;none\u0026#39;;\n        }, 3000);\n    }\n}\n\n// 使用示例\ndocument.addEventListener(\u0026#39;DOMContentLoaded\u0026#39;, () =\u0026gt; {\n    const activityId = getQueryParameter(\u0026#39;activityId\u0026#39;);\n    new SeckillManager(activityId);\n});\n\nfunction getQueryParameter(name) {\n    const urlParams = new URLSearchParams(window.location.search);\n    return urlParams.get(name);\n}\n\nfunction getCurrentUserId() {\n    // 从cookie或localStorage获取用户ID\n    return localStorage.getItem(\u0026#39;userId\u0026#39;) || \u0026#39;\u0026#39;;\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003e监控和告警\u003c/h2\u003e\n\u003ch3\u003e1. 性能监控\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e监控服务\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e@Component\npublic class SeckillMonitorService {\n    \n    @Autowired\n    private MeterRegistry meterRegistry;\n    \n    // 记录秒杀请求\n    public void recordSeckillRequest(Long activityId, boolean success) {\n        Counter.builder(\u0026quot;seckill.requests\u0026quot;)\n            .tag(\u0026quot;activity\u0026quot;, activityId.toString())\n            .tag(\u0026quot;result\u0026quot;, success ? \u0026quot;success\u0026quot; : \u0026quot;failed\u0026quot;)\n            .register(meterRegistry)\n            .increment();\n    }\n    \n    // 记录库存变化\n    public void recordStockChange(Long activityId, int stock) {\n        Gauge.builder(\u0026quot;seckill.stock\u0026quot;)\n            .tag(\u0026quot;activity\u0026quot;, activityId.toString())\n            .register(meterRegistry, this, obj -\u0026gt; stock);\n    }\n    \n    // 记录QPS\n    public void recordQPS(Long activityId, int qps) {\n        Gauge.builder(\u0026quot;seckill.qps\u0026quot;)\n            .tag(\u0026quot;activity\u0026quot;, activityId.toString())\n            .register(meterRegistry, this, obj -\u0026gt; qps);\n    }\n    \n    // 记录响应时间\n    public void recordResponseTime(Long activityId, long responseTime) {\n        Timer.builder(\u0026quot;seckill.response.time\u0026quot;)\n            .tag(\u0026quot;activity\u0026quot;, activityId.toString())\n            .register(meterRegistry)\n            .record(responseTime, TimeUnit.MILLISECONDS);\n    }\n    \n    // 记录错误率\n    public void recordErrorRate(Long activityId, double errorRate) {\n        Gauge.builder(\u0026quot;seckill.error.rate\u0026quot;)\n            .tag(\u0026quot;activity\u0026quot;, activityId.toString())\n            .register(meterRegistry, this, obj -\u0026gt; errorRate);\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003e总结\u003c/h2\u003e\n\u003cp\u003e秒杀系统设计的关键点：\u003c/p\u003e\n\u003col\u003e\n\u003cli\u003e\u003cstrong\u003e高并发处理\u003c/strong\u003e：通过限流、缓存、异步等方式处理高并发\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e数据一致性\u003c/strong\u003e：使用分布式锁、事务保证数据一致性\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e系统稳定性\u003c/strong\u003e：通过降级、熔断保证系统稳定\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e用户体验\u003c/strong\u003e：通过页面静态化、前端优化提升用户体验\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e监控告警\u003c/strong\u003e：完善的监控体系及时发现问题\u003c/li\u003e\n\u003c/ol\u003e\n\u003cp\u003e通过合理的技术选型和架构设计，可以构建稳定高效的秒杀系统。\u003c/p\u003e\n"])</script><script>self.__next_f.push([1,"4:[\"$\",\"div\",null,{\"children\":[[\"$\",\"$Ld\",null,{\"href\":\"/notes\",\"className\":\"back-button\",\"style\":{\"display\":\"inline-block\",\"background\":\"var(--primary-color)\",\"color\":\"white\",\"border\":\"none\",\"padding\":\"10px 20px\",\"borderRadius\":\"6px\",\"cursor\":\"pointer\",\"marginBottom\":\"20px\",\"textDecoration\":\"none\"},\"children\":[\"← 返回\",\"笔记\",\"列表\"]}],[\"$\",\"article\",null,{\"className\":\"section\",\"children\":[[\"$\",\"header\",null,{\"className\":\"article-header\",\"children\":[[\"$\",\"h1\",null,{\"className\":\"article-title\",\"children\":\"秒杀系统设计详解\"}],[\"$\",\"div\",null,{\"className\":\"article-meta\",\"children\":[[\"$\",\"div\",null,{\"className\":\"article-meta-info\",\"children\":[[\"$\",\"span\",null,{\"className\":\"article-date\",\"children\":\"2024-10-14\"}],[\"$\",\"span\",null,{\"className\":\"article-category\",\"children\":[\"• \",\"笔记\"]}]]}],[\"$\",\"div\",null,{\"className\":\"article-tags\",\"children\":[[\"$\",\"span\",\"秒杀系统\",{\"className\":\"tag\",\"children\":\"秒杀系统\"}],[\"$\",\"span\",\"高并发\",{\"className\":\"tag\",\"children\":\"高并发\"}],[\"$\",\"span\",\"分布式锁\",{\"className\":\"tag\",\"children\":\"分布式锁\"}],[\"$\",\"span\",\"缓存\",{\"className\":\"tag\",\"children\":\"缓存\"}],[\"$\",\"span\",\"性能优化\",{\"className\":\"tag\",\"children\":\"性能优化\"}]]}]]}]]}],[\"$\",\"div\",null,{\"className\":\"card markdown-content\",\"dangerouslySetInnerHTML\":{\"__html\":\"$e\"}}]]}]]}]\n"])</script><script>self.__next_f.push([1,"9:[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css\"}],[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css\"}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"div\",null,{\"className\":\"app\",\"children\":[[\"$\",\"$Lf\",null,{\"siteConfig\":{\"name\":\"Rudy Yang\",\"bio\":\"JAVA | AI | WEB3\",\"social\":[{\"name\":\"github\",\"icon\":\"fab fa-github\",\"url\":\"https://github.com/suogongy\"},{\"name\":\"twitter\",\"icon\":\"fab fa-twitter\",\"url\":\"https://twitter.com/suogongy\"},{\"name\":\"email\",\"icon\":\"fas fa-envelope\",\"url\":\"mailto:haiyuan1832@163.com\"}]}}],[\"$\",\"main\",null,{\"className\":\"main-content\",\"children\":[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]]}]}]]}]\n"])</script><script>self.__next_f.push([1,"a:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"秒杀系统设计详解 - Personal GitHub Page\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"深入分析秒杀系统的架构设计、核心技术难点、性能优化方案和实际实现，包括库存管理、流量控制、分布式锁等关键技术。\"}]]\n3:null\n"])</script></body></html>

@@ -1,0 +1,53 @@
+3:I[4707,[],""]
+4:I[6423,[],""]
+0:["build",[[["",{"children":["about",{"children":["__PAGE__",{}]}]},"$undefined","$undefined",true],["",{"children":["about",{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","about","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L5"],null],null],["$L6",null]]]]
+8:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-8486db2c9a537bdb.js"],"default"]
+7:T17be,<h1>关于我</h1>
+<p>你好！欢迎来到我的个人主页。</p>
+<h2>基本信息</h2>
+<blockquote>
+<p>籍贯: 安徽安庆<br>定居: 上海浦东</p>
+</blockquote>
+<hr>
+<h2>教育背景</h2>
+<p><strong>中国科学技术大学</strong> 💻 软件工程 🎓 硕士 ⏰ 2012.09-2015.01<br><strong>洛阳师范学院</strong> 💻 计算机科学与技术 🎓 学士 ⏰ 2007.09-2011.06</p>
+<hr>
+<h2>工作经历</h2>
+<h3>上海喜马拉雅科技有限公司 (2015.04-2025.08)</h3>
+<hr>
+<h2>专业技能</h2>
+<ul>
+<li><strong>开发语言与框架</strong>：熟练掌握Java、MyBatis、Spring系列等,有一定python、node.js、solidity、fastapi、foundry、wagmi等经验</li>
+<li><strong>系统架构</strong>：分布式系统架构与设计，DDD、TDD、EDA、CQRS等，常用分布式中间件，微服务架构，大数据量、高并发、高性能、高可用系统</li>
+<li><strong>系统设计</strong>：熟悉常用设计模式，有较丰富的系统分析、设计和重构经验</li>
+<li><strong>其他</strong>：对云原生、LLM、AIGC、Web3、Vibe Coding等有一定了解</li>
+</ul>
+<hr>
+<h2>项目经验</h2>
+<h3>🚀 AI多模态内容生成系统(2024.09-2025.03)</h3>
+<p><strong>背景介绍：</strong> AI基建能力逐渐成熟，公司流量增长缓慢，希望提供制作类似AI漫画推文视频的工具，让业务人员制作内容去站外推广引流<br><strong>任务描述：</strong> 设计实现一套系统，能够基于用户创意或者现有的小说内容，结合LLM生成剧本、场景、分镜以及AI绘画提示词和场景解说词，再结合文生图模型和TTS模型制作图片和音频，最终将图片、音频和文字组装成视频<br><strong>主要工作：</strong> 基本独立负责相关业务和技术调研、系统搭建和自测等，通过插件式开发集成不同的LLM、文生图模型和TTS模型等，通过LangGraph实现多智能体架构，主要采用Vibe Coding实现<br><strong>结果说明：</strong> 初版提示词效果还有基建（文生图）能力不及预期，最终没有推广</p>
+<h3>💎 会员精细化运营系统(2022.08-2023.01)</h3>
+<p><strong>背景介绍：</strong> 会员营收指标陷入增长瓶颈，希望通过精细化的运营策略，提升会员业务的收入指标<br><strong>任务描述：</strong> 在缺乏产品经理支持的情况下，对接运营，梳理业务痛点，从0-1搭建会员精细化运营系统<br><strong>主要工作：</strong> 完成整体运营系统的设计，与团队人员共同完成系统的开发，并编写运营SOP文档<br><strong>结果说明：</strong> 为会员精细化运营提供了基础能力支撑，并对新场景的精细化运营提供了较好的扩展性，一定程度上提升了会员业务收入指标</p>
+<h3>👨‍👩‍👧‍👦 家庭会员业务系统(2021.02-2022.12)</h3>
+<p><strong>背景介绍：</strong> 伴随公司&quot;做一家人一辈子的精神食粮&quot;的战略，开始推出家庭会员业务<br><strong>任务描述：</strong> 跟产品运营密切协作，从0到1搭建并持续迭代家庭会员业务系统<br><strong>主要工作：</strong> 作为技术负责人，配合产品业务梳理需求，负责系统的设计和前期核心系统的主要开发工作，带领团队支持迭代优化相关系统<br><strong>结果说明：</strong> 较好地支持了家庭会员业务的发展和探索，支持了基础的家庭组建、成员管理、权益管理、家庭书房、家庭AI定制音频等功能，累计有100多万用户加入</p>
+<h3>🔧 商品系统性能和高可用性重构(2020.01-2020.09)</h3>
+<p><strong>背景介绍：</strong> 原商品系统部分接口职责过大,缓存设置不合理,可用性主要依赖单级的 Redis。性能较差,可用性不高<br><strong>任务描述：</strong> 梳理并细化商品服务接口,简化接口职责,提供多级缓存机制,提高系统性能和可用性<br><strong>主要工作：</strong> 作为技术负责人,基于原系统实现和高性能,高可用,单一职责等原则,完成系统重构方案的设计和代码编写,自测<br><strong>结果说明：</strong> 显著提高接口性能,支持在主备双 Redis 都不可用时提供正确的查询服务  </p>
+<h3>💰 内容付费相关核心系统(2016.02-2019.12)</h3>
+<p><strong>背景介绍：</strong> 从0到1搭建内容付费业务核心系统，并持续迭代，优化<br><strong>任务描述：</strong> 探索内容付费业务，搭建简易的闭环电商系统，支持专栏、有声书、付费问答和会员等付费业务<br><strong>主要工作：</strong> 作为核心研发和技术负责人，参与了虚拟币系统，基础的商品、交易、支付、履约等电商系统，以及专栏、有声书、付费问答、会员等相关业务系统的设计与实现<br><strong>结果说明：</strong> 较好支持了公司早期付费业务的探索和推进</p>
+<h3>💳 分成结算系统（2015.05-2019.12）</h3>
+<p><strong>背景介绍：</strong> 从0到1搭建收益分成及结算系统，并随着业务发展，持续迭代、优化<br><strong>任务描述：</strong> 对线上付费收入进行收益的分成处理，并对相关主播、机构等的收益进行结算和提现支持，并持续支持新业态发展<br><strong>主要工作：</strong> 先后作为核心研发和技术负责人，参与系统设计、开发、迭代和优化<br><strong>结果说明：</strong> 较好支持了公司付费业务的良性发展</p>
+<hr>
+<h2>兴趣爱好</h2>
+<p>📚 读书 &nbsp;  💭 思考 &nbsp;🎵 音乐 &nbsp; 🎬 影视 &nbsp; 🔬 钻研</p>
+<h2>联系方式</h2>
+<p>如果你想与我交流技术或合作，欢迎通过以下方式联系我：</p>
+<ul>
+<li>📧 Email:<a href="mailto:haiyuan1832@163.com">haiyuan1832@163.com</a></li>
+<li>🐦 X: <a href="https://x.com/suogongy">@suogongy</a></li>
+<li>🐙 GitHub: <a href="https://github.com/suogongy">github.com/suogongy</a></li>
+</ul>
+<p>感谢访问我的个人主页！期待与你的交流。</p>
+2:["$","section",null,{"className":"section","children":[["$","h2",null,{"className":"section-title","children":"关于我"}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$7"}}]]}]
+5:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$L8",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L4",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+6:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"A modern personal GitHub Page built with Next.js"}]]
+1:null
