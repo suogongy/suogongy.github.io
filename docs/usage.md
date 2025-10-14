@@ -26,8 +26,8 @@ your-repo/
 │   ├── config.json         # 网站全局配置
 │   ├── about.md            # 个人简介内容
 │   ├── projects/           # 项目展示数据
-│   ├── notes/              # 技术笔记内容
-│   └── articles/           # 随笔文章内容
+│   ├── notes/              # 笔记内容
+│   └── articles/           # 随笔内容
 ├── public/                 # 静态资源目录
 ├── next.config.js          # Next.js 配置文件
 ├── vercel.json             # Vercel 部署配置
@@ -182,7 +182,7 @@ npm run deploy:github   # 部署到 GitHub Pages
 - `githubUrl`: GitHub 仓库链接（可选）
 - `features`: 项目特点列表（可选）
 
-### 4. 技术笔记配置
+### 4. 笔记配置
 
 #### 4.1 编辑索引文件
 
@@ -259,7 +259,7 @@ function Counter() {
 
 ### 5. 随笔文章配置
 
-随笔的配置方式与技术笔记相同，操作 `content/articles/` 目录即可：
+随笔的配置方式与笔记相同，操作 `content/articles/` 目录即可：
 
 #### 5.1 编辑索引
 

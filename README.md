@@ -64,10 +64,10 @@ your-repo/
 │   ├── about.md            # 个人简介
 │   ├── projects/           # 项目展示
 │   │   └── index.json      # 项目数据文件
-│   ├── notes/              # 技术笔记
+│   ├── notes/              # 笔记
 │   │   ├── index.json      # 笔记索引文件
 │   │   └── *.md            # 笔记内容文件
-│   └── articles/           # 随笔文章
+│   └── articles/           # 随笔
 │       ├── index.json      # 文章索引文件
 │       └── *.md            # 文章内容文件
 ├── public/                 # 静态资源

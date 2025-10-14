@@ -42,7 +42,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     notFound()
   }
 
-  const categoryTitle = params.category === 'notes' ? '技术笔记' : '随笔'
+  const categoryTitle = params.category === 'notes' ? '笔记' : '随笔'
 
   return (
     <div>

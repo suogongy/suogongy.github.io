@@ -7,19 +7,19 @@ export default async function NotesPage() {
 
   return (
     <section className="section">
-      <h2 className="section-title">技术笔记</h2>
+      <h2 className="section-title">笔记</h2>
       <div className="articles-list">
         {pagination.articles.length > 0 ? (
           pagination.articles.map((article, index) => (
             <ArticleCard
               key={`${article.name}-page1-${index}`}
               article={article}
-              category="技术笔记"
+              category="笔记"
             />
           ))
         ) : (
           <div className="card">
-            暂无技术笔记，请在 content/notes/ 目录下添加 Markdown 文件。
+            暂无笔记，请在 content/notes/ 目录下添加 Markdown 文件。
           </div>
         )}
       </div>

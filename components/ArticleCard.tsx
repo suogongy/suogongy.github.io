@@ -10,7 +10,7 @@ export default function ArticleCard({ article, category }: ArticleCardProps) {
   // 根据category确定正确的路径
   const getCategoryPath = (category: string) => {
     switch (category) {
-      case '技术笔记':
+      case '笔记':
         return 'notes'
       case '随笔':
         return 'articles'

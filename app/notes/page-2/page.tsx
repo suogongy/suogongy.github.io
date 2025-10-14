@@ -8,19 +8,19 @@ export default async function NotesPage2() {
 
   return (
     <section className="section">
-      <h2 className="section-title">技术笔记 - 第 2 页</h2>
+      <h2 className="section-title">笔记 - 第 2 页</h2>
       <div className="articles-list">
         {pagination.articles.length > 0 ? (
           pagination.articles.map((article, index) => (
             <ArticleCard
               key={`${article.name}-page2-${index}`}
               article={article}
-              category="技术笔记"
+              category="笔记"
             />
           ))
         ) : (
           <div className="card">
-            暂无更多技术笔记。
+            暂无更多笔记。
           </div>
         )}
       </div>
