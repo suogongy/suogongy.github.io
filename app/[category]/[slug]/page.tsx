@@ -70,10 +70,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         <header className="article-header">
           <h1 className="article-title">{article.title}</h1>
           <div className="article-meta">
-            <div className="article-meta-info">
-              <span className="article-date">{article.date}</span>
-              <span className="article-category">• {categoryTitle}</span>
-            </div>
             {article.tags && article.tags.length > 0 && (
               <div className="article-tags">
                 {article.tags.map(tag => (

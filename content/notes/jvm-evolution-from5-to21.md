@@ -1,7 +1,6 @@
 ---
 title: "JVM的发展之路，从5到21"
 description: "详细介绍JVM从Java 5到Java 21的发展历程和重要特性"
-date: "2024-10-14"
 excerpt: "Java虚拟机(JVM)作为Java技术的核心，从Java 5到Java 21经历了巨大的发展和变化。本文详细介绍JVM的重要演进历程、关键特性改进和性能优化。"
 tags: ["JVM", "Java", "虚拟机", "性能优化", "垃圾回收"]
 category: "notes"

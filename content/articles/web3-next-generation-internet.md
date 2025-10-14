@@ -1,7 +1,6 @@
 ---
 title: "Web3为什么被称为下一代互联网"
 description: "深入解析Web3的概念、特性和为什么它被认为是互联网的下一个发展阶段"
-date: "2024-10-14"
 excerpt: "从Web1到Web3的演进，探讨Web3如何通过去中心化、区块链技术重塑互联网的未来"
 tags: ["Web3", "区块链", "去中心化", "互联网演进"]
 category: "articles"

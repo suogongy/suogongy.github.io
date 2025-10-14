@@ -1,7 +1,6 @@
 ---
 title: "我的编程之路"
 description: "回顾从零基础到成为全栈开发者的成长历程"
-date: "2024-01-20"
 excerpt: "从文科生到全栈开发者的转变，记录学习编程的心路历程"
 tags: ["成长", "回顾", "思考"]
 category: "articles"

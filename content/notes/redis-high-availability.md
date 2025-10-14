@@ -1,7 +1,6 @@
 ---
 title: "Redis高可用实战"
 description: "Redis集群、哨兵等高可用方案详解"
-date: "2024-10-14"
 excerpt: "详细介绍Redis高可用架构的设计原理、实现方案和最佳实践，包括主从复制、哨兵模式、集群模式等核心技术的深入解析。"
 tags: ["Redis", "高可用", "集群", "哨兵", "分布式缓存"]
 category: "notes"

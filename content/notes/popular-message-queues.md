@@ -1,7 +1,6 @@
 ---
 title: "热门MQ详解"
 description: "Kafka、RocketMQ等消息队列对比和选型"
-date: "2024-10-14"
 excerpt: "深入分析主流消息队列的技术特点、架构设计、性能差异和选型建议，帮助开发者选择合适的消息中间件。"
 tags: ["消息队列", "Kafka", "RocketMQ", "RabbitMQ", "技术选型"]
 category: "notes"

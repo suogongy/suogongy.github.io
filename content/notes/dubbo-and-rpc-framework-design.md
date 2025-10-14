@@ -1,7 +1,6 @@
 ---
 title: "Dubbo详解及RPC框架的设计"
 description: "Dubbo框架原理和RPC设计思想"
-date: "2024-10-14"
 excerpt: "深入解析Dubbo框架的核心原理、架构设计和实现细节，以及RPC框架的设计思想和最佳实践。"
 tags: ["Dubbo", "RPC", "分布式系统", "微服务", "架构设计"]
 category: "notes"

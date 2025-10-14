@@ -1,7 +1,6 @@
 ---
 title: "Java项目线上问题排查"
 description: "Java应用常见问题诊断和解决方案"
-date: "2024-10-14"
 excerpt: "详细介绍Java项目在线上环境中常见的问题排查方法、诊断工具和解决方案，包括CPU、内存、线程、网络等方面的故障排查。"
 tags: ["Java", "线上排查", "性能调优", "故障诊断", "JVM"]
 category: "notes"
