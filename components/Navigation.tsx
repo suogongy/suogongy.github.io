@@ -12,14 +12,29 @@ interface NavigationProps {
 
 export default function Navigation({ siteConfig }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50)
     }
+    
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    
+    // 初始检查
+    checkMobile()
+    
     window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('resize', checkMobile)
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', checkMobile)
+    }
   }, [])
 
   const navItems = [
@@ -30,19 +45,39 @@ export default function Navigation({ siteConfig }: NavigationProps) {
     { id: '/articles', label: '随笔', icon: 'fas fa-pen' }
   ]
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
+
   return (
     <header className={`header ${isScrolled ? 'scrolled' : ''}`}>
       <nav className="nav-container">
-        <Link href="/" className="nav-brand">
+        <Link href="/" className="nav-brand" onClick={closeMobileMenu}>
           <i className="fas fa-terminal" />
           {siteConfig?.name || 'DevPortfolio'}
         </Link>
-        <ul className="nav-menu">
+        
+        {isMobile && (
+          <button 
+            className="mobile-menu-toggle"
+            onClick={toggleMobileMenu}
+            aria-label="Toggle navigation menu"
+          >
+            <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'}`} />
+          </button>
+        )}
+        
+        <ul className={`nav-menu ${isMobile ? (isMobileMenuOpen ? 'mobile-open' : 'mobile-closed') : ''}`}>
           {navItems.map(item => (
             <li key={item.id}>
               <Link
                 href={item.id}
                 className={`nav-link ${pathname === item.id ? 'active' : ''}`}
+                onClick={closeMobileMenu}
               >
                 <i className={item.icon} />
                 {` ${item.label}`}

@@ -95,7 +95,7 @@ export async function getAboutContent(): Promise<string> {
 // 获取项目列表
 export async function getProjects(): Promise<Project[]> {
   try {
-    const projectsPath = path.join(process.cwd(), 'content', 'projects', 'index.json')
+    const projectsPath = path.join(process.cwd(), 'content', 'projects', '_index.json')
     const projectsData = fs.readFileSync(projectsPath, 'utf8')
     return JSON.parse(projectsData)
   } catch (error) {
@@ -149,7 +149,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
 // 获取文章列表
 export async function getArticles(category: 'notes' | 'articles'): Promise<Article[]> {
   try {
-    const indexPath = path.join(process.cwd(), 'content', category, 'index.json')
+    const indexPath = path.join(process.cwd(), 'content', category, '_index.json')
     const indexData = fs.readFileSync(indexPath, 'utf8')
     return JSON.parse(indexData)
   } catch (error) {

@@ -1,5 +1,77 @@
 [
   {
+    "name": "blockchain-core-concepts.md",
+    "title": "区块链核心概念原理详解",
+    "excerpt": "深入解析区块链的核心概念和原理，包括区块结构、共识机制、密码学基础等",
+    "tags": [
+      "区块链",
+      "共识机制",
+      "密码学",
+      "分布式系统",
+      "去中心化"
+    ]
+  },
+  {
+    "name": "solidity-core-concepts.md",
+    "title": "Solidity语言核心概念精讲",
+    "excerpt": "深入讲解Solidity智能合约开发的核心概念、数据类型、函数设计和安全机制",
+    "tags": [
+      "Solidity",
+      "智能合约",
+      "以太坊",
+      "编程语言",
+      "DeFi开发"
+    ]
+  },
+  {
+    "name": "evm-account-model.md",
+    "title": "EVM账户模型详解",
+    "excerpt": "详细解析以太坊虚拟机账户模型，包括外部账户、合约账户、状态存储机制等",
+    "tags": [
+      "EVM",
+      "以太坊",
+      "账户模型",
+      "虚拟机",
+      "区块链架构"
+    ]
+  },
+  {
+    "name": "uniswap-v2-explained.md",
+    "title": "Uniswap V2详解",
+    "excerpt": "深入解析Uniswap V2的AMM机制、流动性模型、价格预言机和核心合约实现",
+    "tags": [
+      "Uniswap",
+      "DEX",
+      "AMM",
+      "DeFi",
+      "流动性挖矿"
+    ]
+  },
+  {
+    "name": "defi-core-concepts.md",
+    "title": "DeFi核心概念详解",
+    "excerpt": "全面介绍去中心化金融的核心概念、关键协议、风险管理和未来发展趋势",
+    "tags": [
+      "DeFi",
+      "去中心化金融",
+      "借贷协议",
+      "流动性挖矿",
+      "跨链DeFi"
+    ]
+  },
+  {
+    "name": "compound-protocol-explained.md",
+    "title": "Compound协议详解",
+    "excerpt": "深入解析Compound借贷协议的cToken机制、利率模型、清算机制和治理结构",
+    "tags": [
+      "Compound",
+      "借贷协议",
+      "DeFi",
+      "利率模型",
+      "清算机制"
+    ]
+  },
+  {
     "name": "jvm-evolution-from5-to21.md",
     "title": "JVM的发展之路，从5到21",
     "excerpt": "详细介绍JVM从Java 5到Java 21的发展历程和重要特性",
