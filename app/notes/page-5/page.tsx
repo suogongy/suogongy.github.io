@@ -3,29 +3,29 @@ import ArticleCard from '@/components/ArticleCard'
 import StaticPagination from '@/components/StaticPagination'
 import Link from 'next/link'
 
-export default async function ArticlesPage2() {
-  const pagination = await getArticlesPaginated('articles', 2, 4)
+export default async function NotesPage2() {
+  const pagination = await getArticlesPaginated('notes', 5, 3)
 
   return (
     <section className="section">
-      <h2 className="section-title">随笔 - 第 2 页</h2>
+      <h2 className="section-title">笔记 - 第 5 页</h2>
       <div className="articles-list">
         {pagination.articles.length > 0 ? (
           pagination.articles.map((article, index) => (
             <ArticleCard
               key={`${article.name}-page2-${index}`}
               article={article}
-              category="随笔"
+              category="笔记"
             />
           ))
         ) : (
           <div className="card">
-            暂无更多随笔。
+            暂无更多笔记。
           </div>
         )}
       </div>
 
-      <StaticPagination pagination={pagination} baseUrl="/articles" />
+      <StaticPagination pagination={pagination} baseUrl="/notes" />
     </section>
   )
 }

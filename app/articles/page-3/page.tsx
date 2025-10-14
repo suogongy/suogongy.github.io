@@ -4,11 +4,11 @@ import StaticPagination from '@/components/StaticPagination'
 import Link from 'next/link'
 
 export default async function ArticlesPage2() {
-  const pagination = await getArticlesPaginated('articles', 2, 4)
+  const pagination = await getArticlesPaginated('articles', 3, 4)
 
   return (
     <section className="section">
-      <h2 className="section-title">随笔 - 第 2 页</h2>
+      <h2 className="section-title">随笔 - 第 3 页</h2>
       <div className="articles-list">
         {pagination.articles.length > 0 ? (
           pagination.articles.map((article, index) => (

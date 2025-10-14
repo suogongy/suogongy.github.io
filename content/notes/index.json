@@ -96,40 +96,5 @@
     "date": "2024-10-14",
     "excerpt": "秒杀系统架构设计和技术要点",
     "tags": ["秒杀系统", "高并发", "分布式锁", "缓存", "性能优化"]
-  },
-  {
-    "name": "react-hooks-guide.md",
-    "title": "React Hooks 完全指南",
-    "date": "2024-01-15",
-    "excerpt": "深入解析 React Hooks 的使用方法和最佳实践",
-    "tags": ["React", "JavaScript", "前端"]
-  },
-  {
-    "name": "javascript-async-patterns.md",
-    "title": "JavaScript 异步编程模式",
-    "date": "2024-01-10",
-    "excerpt": "掌握 JavaScript 中的 Promise、async/await 和事件循环机制",
-    "tags": ["JavaScript", "异步编程", "面试"]
-  },
-  {
-    "name": "css-grid-layout.md",
-    "title": "CSS Grid 布局完全指南",
-    "date": "2024-01-05",
-    "excerpt": "使用 CSS Grid 创建复杂的响应式布局",
-    "tags": ["CSS", "布局", "前端"]
-  },
-  {
-    "name": "nodejs-best-practices.md",
-    "title": "Node.js 开发最佳实践",
-    "date": "2023-12-28",
-    "excerpt": "Node.js 项目开发的性能优化和安全实践",
-    "tags": ["Node.js", "后端", "性能优化"]
-  },
-  {
-    "name": "typescript-advanced-types.md",
-    "title": "TypeScript 高级类型系统",
-    "date": "2023-12-20",
-    "excerpt": "深入理解 TypeScript 的高级类型和泛型编程",
-    "tags": ["TypeScript", "类型系统", "前端"]
   }
 ]
