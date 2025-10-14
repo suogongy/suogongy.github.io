@@ -1,30 +1,31 @@
 import { getArticlesPaginated } from '@/lib/content'
 import ArticleCard from '@/components/ArticleCard'
 import StaticPagination from '@/components/StaticPagination'
+import Link from 'next/link'
 
-export default async function ArticlesPage() {
-  const pagination = await getArticlesPaginated('articles', 1, 6)
+export default async function NotesPage2() {
+  const pagination = await getArticlesPaginated('notes', 2, 6)
 
   return (
     <section className="section">
-      <h2 className="section-title">随笔</h2>
+      <h2 className="section-title">技术笔记 - 第 2 页</h2>
       <div className="articles-list">
         {pagination.articles.length > 0 ? (
           pagination.articles.map((article, index) => (
             <ArticleCard
-              key={`${article.name}-page1-${index}`}
+              key={`${article.name}-page2-${index}`}
               article={article}
-              category="随笔"
+              category="技术笔记"
             />
           ))
         ) : (
           <div className="card">
-            暂无随笔，请在 content/articles/ 目录下添加 Markdown 文件。
+            暂无更多技术笔记。
           </div>
         )}
       </div>
 
-      <StaticPagination pagination={pagination} baseUrl="/articles" />
+      <StaticPagination pagination={pagination} baseUrl="/notes" />
     </section>
   )
 }

@@ -1,18 +1,18 @@
-import { getArticles } from '@/lib/content'
+import { getArticlesPaginated } from '@/lib/content'
 import ArticleCard from '@/components/ArticleCard'
-import Link from 'next/link'
+import StaticPagination from '@/components/StaticPagination'
 
 export default async function NotesPage() {
-  const articles = await getArticles('notes')
+  const pagination = await getArticlesPaginated('notes', 1, 6)
 
   return (
     <section className="section">
       <h2 className="section-title">技术笔记</h2>
       <div className="articles-list">
-        {articles.length > 0 ? (
-          articles.map((article, index) => (
+        {pagination.articles.length > 0 ? (
+          pagination.articles.map((article, index) => (
             <ArticleCard
-              key={index}
+              key={`${article.name}-page1-${index}`}
               article={article}
               category="技术笔记"
             />
@@ -23,6 +23,8 @@ export default async function NotesPage() {
           </div>
         )}
       </div>
+
+      <StaticPagination pagination={pagination} baseUrl="/notes" />
     </section>
   )
 }

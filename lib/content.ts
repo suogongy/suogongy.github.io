@@ -49,6 +49,15 @@ export interface Article {
   content?: string
 }
 
+export interface PaginationResult {
+  articles: Article[]
+  currentPage: number
+  totalPages: number
+  totalItems: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
+
 // 获取站点配置
 export async function getSiteConfig(): Promise<SiteConfig> {
   try {
@@ -145,6 +154,47 @@ export async function getArticles(category: 'notes' | 'articles'): Promise<Artic
   } catch (error) {
     console.warn(`Could not load ${category} index, using empty array`)
     return []
+  }
+}
+
+// 获取分页文章列表
+export async function getArticlesPaginated(
+  category: 'notes' | 'articles',
+  page: number = 1,
+  limit: number = 6
+): Promise<PaginationResult> {
+  try {
+    const articles = await getArticles(category)
+    const totalItems = articles.length
+    const totalPages = Math.ceil(totalItems / limit)
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+
+    // 确保页码在有效范围内
+    const validPage = Math.max(1, Math.min(page, totalPages || 1))
+    const validStartIndex = (validPage - 1) * limit
+    const validEndIndex = validStartIndex + limit
+
+    const paginatedArticles = articles.slice(validStartIndex, validEndIndex)
+
+    return {
+      articles: paginatedArticles,
+      currentPage: validPage,
+      totalPages,
+      totalItems,
+      hasNextPage: validPage < totalPages,
+      hasPrevPage: validPage > 1
+    }
+  } catch (error) {
+    console.error(`Error getting paginated articles for ${category}:`, error)
+    return {
+      articles: [],
+      currentPage: 1,
+      totalPages: 0,
+      totalItems: 0,
+      hasNextPage: false,
+      hasPrevPage: false
+    }
   }
 }
 
