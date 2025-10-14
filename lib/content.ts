@@ -47,6 +47,7 @@ export interface Article {
   excerpt?: string
   tags?: string[]
   content?: string
+  rawContent?: string
 }
 
 export interface PaginationResult {
@@ -211,7 +212,8 @@ export async function getArticle(category: 'notes' | 'articles', fileName: strin
       date: data.date || new Date().toISOString().split('T')[0],
       excerpt: data.excerpt || content.slice(0, 150) + '...',
       tags: data.tags || [],
-      content: marked.parse(content)
+      content: marked.parse(content),
+      rawContent: content // 保留原始Markdown内容用于客户端渲染
     }
   } catch (error) {
     console.error(`Could not load article ${fileName}:`, error)

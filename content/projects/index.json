@@ -2,7 +2,13 @@
   {
     "title": "个人作品集网站",
     "description": "基于 Next.js 14 和 React 18 构建的现代化个人作品集网站，支持 Markdown 内容管理、响应式设计、暗色模式和多页面导航。",
-    "tags": ["Next.js", "React", "TypeScript", "Markdown", "CSS"],
+    "tags": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Markdown",
+      "CSS"
+    ],
     "icon": "fas fa-rocket",
     "demoUrl": "https://suogongy.github.io",
     "githubUrl": "https://github.com/suogongy/suogongy.github.io",
@@ -20,7 +26,15 @@
   {
     "title": "AI内容创作平台后端",
     "description": "基于多智能体架构的自动化内容创作系统，通过AI技术实现从剧本创作到视频制作的全流程自动化，支持剧本生成、分镜设计、图像生成、音频合成等功能。",
-    "tags": ["Python", "FastAPI", "LangChain", "LangGraph", "MongoDB", "Sqllite", "AI/ML"],
+    "tags": [
+      "Python",
+      "FastAPI",
+      "LangChain",
+      "LangGraph",
+      "MongoDB",
+      "Sqllite",
+      "AI/ML"
+    ],
     "icon": "fas fa-video",
     "demoUrl": null,
     "githubUrl": "https://github.com/suogongy/ai-content-generator-backend",
@@ -40,7 +54,15 @@
   {
     "title": "AI内容创作平台前端",
     "description": "基于人工智能的智能内容创作平台，支持剧本生成、分镜制作、角色管理、场景设计、音频合成和视频制作，提供从创意到成品的完整创作流程。",
-    "tags": ["Next.js", "React", "TypeScript", "Tailwind CSS", "AI", "内容创作", "视频制作"],
+    "tags": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Tailwind CSS",
+      "AI",
+      "内容创作",
+      "视频制作"
+    ],
     "icon": "fas fa-video",
     "demoUrl": "https://ai-content-generator-navy-phi.vercel.app",
     "githubUrl": "https://github.com/suogongy/ai-content-generator",
@@ -60,7 +82,14 @@
   {
     "title": "PP-Event异步事件框架",
     "description": "基于Spring Boot的高性能异步事件处理框架，采用事件驱动架构模式，支持事务一致性保证、失败重试机制和分布式任务调度。",
-    "tags": ["Spring Boot", "MyBatis", "XXL-Job", "Disruptor", "MySQL", "异步事件"],
+    "tags": [
+      "Spring Boot",
+      "MyBatis",
+      "XXL-Job",
+      "Disruptor",
+      "MySQL",
+      "异步事件"
+    ],
     "icon": "fas fa-exchange-alt",
     "demoUrl": "http://github.com/suogongy/pp-event",
     "githubUrl": "http://github.com/suogongy/pp-event",
@@ -78,7 +107,18 @@
   {
     "title": "PP-RWA 数字资产市场",
     "description": "基于区块链技术的现实世界资产代币化与交易平台，提供资产登记、交易、质押、治理等完整的DeFi生态服务，支持房地产、债券、商品、艺术品等多种RWA资产的数字化投资。",
-    "tags": ["Next.js", "React", "TypeScript", "Solidity", "Foundry", "wagmi", "The Graph", "Web3", "DeFi", "RWA"],
+    "tags": [
+      "Next.js",
+      "React",
+      "TypeScript",
+      "Solidity",
+      "Foundry",
+      "wagmi",
+      "The Graph",
+      "Web3",
+      "DeFi",
+      "RWA"
+    ],
     "icon": "fas fa-coins",
     "demoUrl": "https://pp-rwa-demo.example.com",
     "githubUrl": "https://github.com/suogongy/pp-rwa",
@@ -97,9 +137,17 @@
   },
   {
     "title": "Be Better Web - 个人生产力与博客平台",
-    "description":
-  "现代化的个人网站平台，结合了博客管理与日常生产力功能。支持任务跟踪、日程管理，并能从完成的日程自动生成博客内容，打造个人数字生活中心。",
-    "tags": ["Next.js 15", "React 19", "TypeScript", "Supabase", "Tailwind CSS", "Framer Motion", "TipTap", "SWR"],
+    "description": "现代化的个人网站平台，结合了博客管理与日常生产力功能。支持任务跟踪、日程管理，并能从完成的日程自动生成博客内容，打造个人数字生活中心。",
+    "tags": [
+      "Next.js 15",
+      "React 19",
+      "TypeScript",
+      "Supabase",
+      "Tailwind CSS",
+      "Framer Motion",
+      "TipTap",
+      "SWR"
+    ],
     "icon": "fas fa-rocket",
     "demoUrl": "https://be-better-web.vercel.app/",
     "githubUrl": "https://github.com/yourusername/be-better-web",

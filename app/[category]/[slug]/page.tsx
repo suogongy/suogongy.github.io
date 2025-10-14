@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getArticle, getArticles } from '@/lib/content'
+import MarkdownRenderer from '@/components/MarkdownRenderer'
+import type { Metadata } from 'next'
 
 interface ArticlePageProps {
   params: {
@@ -84,17 +86,16 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
         </header>
 
-        <div
-          className="card markdown-content"
-          dangerouslySetInnerHTML={{ __html: article.content || '' }}
-        />
+        <div className="card markdown-content">
+          {article.rawContent && <MarkdownRenderer content={article.rawContent} />}
+        </div>
       </article>
     </div>
   )
 }
 
 // 生成页面元数据
-export async function generateMetadata({ params }: ArticlePageProps) {
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
   const fileName = `${params.slug}.md`
   const article = await getArticle(params.category as 'notes' | 'articles', fileName)
   
