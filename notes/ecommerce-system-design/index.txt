@@ -1,0 +1,808 @@
+3:I[4707,[],""]
+6:I[6423,[],""]
+4:["category","notes","d"]
+5:["slug","ecommerce-system-design","d"]
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","ecommerce-system-design","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"ecommerce-system-design\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","ecommerce-system-design","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
+b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
+a:T743b,<h1>电商系统设计详解</h1>
+<blockquote>
+<p>电商系统是复杂业务系统的典型代表，其架构设计涵盖了多个技术领域</p>
+</blockquote>
+<h2>电商系统概述</h2>
+<h3>1. 系统架构图</h3>
+<pre><code>电商系统架构：
+┌─────────────────────────────────────────────────────────────┐
+│                    前端应用层                               │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
+│  │   Web       │ │   Mobile    │ │   Mini      │           │
+│  │   App       │ │   App       │ │   Program   │           │
+│  └─────────────┘  └─────────────┘  └─────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    ┌─────────────┐
+                    │  API        │
+                    │  Gateway    │
+                    └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  User       │ │  Product    │ │  Order      │
+    │  Service    │ │  Service    │ │  Service    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Payment    │ │  Search     │ │  Inventory  │
+    │  Service    │ │  Service    │ │  Service    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  MySQL      │ │  Redis      │ │  MQ         │
+    │  Cluster    │ │  Cluster    │ │  Cluster    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+</code></pre>
+<h3>2. 核心业务模块</h3>
+<pre><code>核心业务模块：
+├── 用户中心
+│   ├── 用户注册登录
+│   ├── 用户信息管理
+│   ├── 地址管理
+│   └── 会员体系
+├── 商品中心
+│   ├── 商品管理
+│   ├── 分类管理
+│   ├── 品牌管理
+│   └── 库存管理
+├── 订单中心
+│   ├── 订单创建
+│   ├── 订单查询
+│   ├── 订单状态管理
+│   └── 订单统计
+├── 支付中心
+│   ├── 支付接口
+│   ├── 支付回调
+│   ├── 退款处理
+│   └── 对账管理
+├── 搜索中心
+│   ├── 商品搜索
+│   ├── 搜索推荐
+│   ├── 搜索统计
+│   └── 搜索优化
+└── 营销中心
+    ├── 优惠券
+    ├── 秒杀活动
+    ├── 拼团活动
+    └── 积分系统
+</code></pre>
+<h2>用户中心设计</h2>
+<h3>1. 用户注册登录</h3>
+<p><strong>用户服务实现</strong></p>
+<pre><code class="language-java">@Service
+@Transactional
+public class UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private JwtAuthenticationService jwtService;
+    
+    @Autowired
+    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    
+    // 用户注册
+    public User register(UserRegistrationRequest request) {
+        // 1. 验证用户名唯一性
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new BusinessException(&quot;用户名已存在&quot;);
+        }
+        
+        // 2. 验证邮箱唯一性
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException(&quot;邮箱已存在&quot;);
+        }
+        
+        // 3. 验证手机号唯一性
+        if (userRepository.existsByPhone(request.getPhone())) {
+            throw new BusinessException(&quot;手机号已存在&quot;);
+        }
+        
+        // 4. 创建用户
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPhone(request.getPhone());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setStatus(UserStatus.ACTIVE);
+        user.setCreateTime(new Date());
+        
+        return userRepository.save(user);
+    }
+    
+    // 用户登录
+    public LoginResponse login(LoginRequest request) {
+        // 1. 验证用户名密码
+        User user = userRepository.findByUsername(request.getUsername())
+            .orElseThrow(() -&gt; new BusinessException(&quot;用户名或密码错误&quot;));
+        
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BusinessException(&quot;用户名或密码错误&quot;);
+        }
+        
+        // 2. 检查用户状态
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(&quot;用户账号已被禁用&quot;);
+        }
+        
+        // 3. 生成JWT Token
+        String token = jwtService.generateToken(createUserDetails(user));
+        
+        // 4. 更新最后登录时间
+        user.setLastLoginTime(new Date());
+        userRepository.save(user);
+        
+        // 5. 记录登录日志
+        recordLoginLog(user.getId(), request.getIp());
+        
+        return new LoginResponse(token, user);
+    }
+    
+    // 发送验证码
+    public void sendVerificationCode(String phone) {
+        // 1. 生成验证码
+        String code = generateVerificationCode();
+        
+        // 2. 存储验证码（5分钟过期）
+        String key = &quot;verification:code:&quot; + phone;
+        redisTemplate.opsForValue().set(key, code, 5, TimeUnit.MINUTES);
+        
+        // 3. 发送短信
+        smsService.sendVerificationCode(phone, code);
+    }
+    
+    // 验证手机号
+    public boolean verifyPhone(String phone, String code) {
+        String key = &quot;verification:code:&quot; + phone;
+        String storedCode = redisTemplate.opsForValue().get(key);
+        
+        if (storedCode != null &amp;&amp; storedCode.equals(code)) {
+            redisTemplate.delete(key);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    private String generateVerificationCode() {
+        Random random = new Random();
+        return String.format(&quot;%06d&quot;, random.nextInt(1000000));
+    }
+    
+    private UserDetails createUserDetails(User user) {
+        return org.springframework.security.core.userdetails.User.builder()
+            .username(user.getUsername())
+            .password(user.getPassword())
+            .authorities(&quot;ROLE_USER&quot;)
+            .build();
+    }
+    
+    private void recordLoginLog(Long userId, String ip) {
+        LoginLog log = new LoginLog();
+        log.setUserId(userId);
+        log.setIp(ip);
+        log.setLoginTime(new Date());
+        loginLogRepository.save(log);
+    }
+}
+</code></pre>
+<h3>2. 用户信息管理</h3>
+<p><strong>用户信息更新</strong></p>
+<pre><code class="language-java">@RestController
+@RequestMapping(&quot;/api/users&quot;)
+public class UserController {
+    
+    @Autowired
+    private UserService userService;
+    
+    @PutMapping(&quot;/profile&quot;)
+    public Result updateUserProfile(@RequestBody UserProfileRequest request,
+                                  @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getCurrentUserId(userDetails);
+        
+        User user = userService.updateUserProfile(userId, request);
+        return Result.success(user);
+    }
+    
+    @PostMapping(&quot;/avatar&quot;)
+    public Result uploadAvatar(@RequestParam(&quot;file&quot;) MultipartFile file,
+                              @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getCurrentUserId(userDetails);
+        
+        String avatarUrl = userService.uploadAvatar(userId, file);
+        return Result.success(avatarUrl);
+    }
+    
+    @GetMapping(&quot;/addresses&quot;)
+    public Result&lt;List&lt;Address&gt;&gt; getUserAddresses(@AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getCurrentUserId(userDetails);
+        
+        List&lt;Address&gt; addresses = userService.getUserAddresses(userId);
+        return Result.success(addresses);
+    }
+    
+    @PostMapping(&quot;/addresses&quot;)
+    public Result&lt;Address&gt; addAddress(@RequestBody AddressRequest request,
+                                      @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getCurrentUserId(userDetails);
+        
+        Address address = userService.addAddress(userId, request);
+        return Result.success(address);
+    }
+    
+    @PutMapping(&quot;/addresses/{addressId}&quot;)
+    public Result&lt;Address&gt; updateAddress(@PathVariable Long addressId,
+                                         @RequestBody AddressRequest request,
+                                         @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getCurrentUserId(userDetails);
+        
+        Address address = userService.updateAddress(userId, addressId, request);
+        return Result.success(address);
+    }
+    
+    @DeleteMapping(&quot;/addresses/{addressId}&quot;)
+    public Result deleteAddress(@PathVariable Long addressId,
+                                @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = getCurrentUserId(userDetails);
+        
+        userService.deleteAddress(userId, addressId);
+        return Result.success();
+    }
+}
+</code></pre>
+<h2>商品中心设计</h2>
+<h3>1. 商品管理</h3>
+<p><strong>商品服务实现</strong></p>
+<pre><code class="language-java">@Service
+@Transactional
+public class ProductService {
+    
+    @Autowired
+    private ProductRepository productRepository;
+    
+    @Autowired
+    private CategoryService categoryService;
+    
+    @Autowired
+    private BrandService brandService;
+    
+    @Autowired
+    private InventoryService inventoryService;
+    
+    @Autowired
+    private SearchService searchService;
+    
+    // 创建商品
+    public Product createProduct(ProductCreateRequest request) {
+        // 1. 验证分类是否存在
+        Category category = categoryService.getCategory(request.getCategoryId());
+        if (category == null) {
+            throw new BusinessException(&quot;分类不存在&quot;);
+        }
+        
+        // 2. 验证品牌是否存在
+        Brand brand = brandService.getBrand(request.getBrandId());
+        if (brand == null) {
+            throw new BusinessException(&quot;品牌不存在&quot;);
+        }
+        
+        // 3. 创建商品
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setCategoryId(request.getCategoryId());
+        product.setBrandId(request.getBrandId());
+        product.setPrice(request.getPrice());
+        product.setOriginalPrice(request.getOriginalPrice());
+        product.setImages(request.getImages());
+        product.setAttributes(request.getAttributes());
+        product.setStatus(ProductStatus.ACTIVE);
+        product.setCreateTime(new Date());
+        
+        product = productRepository.save(product);
+        
+        // 4. 初始化库存
+        inventoryService.initInventory(product.getId(), request.getStock());
+        
+        // 5. 同步到搜索引擎
+        searchService.indexProduct(product);
+        
+        return product;
+    }
+    
+    // 更新商品
+    public Product updateProduct(Long productId, ProductUpdateRequest request) {
+        Product product = getProduct(productId);
+        
+        // 更新商品信息
+        if (request.getName() != null) {
+            product.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            product.setDescription(request.getDescription());
+        }
+        if (request.getPrice() != null) {
+            product.setPrice(request.getPrice());
+        }
+        if (request.getImages() != null) {
+            product.setImages(request.getImages());
+        }
+        if (request.getAttributes() != null) {
+            product.setAttributes(request.getAttributes());
+        }
+        
+        product.setUpdateTime(new Date());
+        product = productRepository.save(product);
+        
+        // 同步到搜索引擎
+        searchService.updateProduct(product);
+        
+        return product;
+    }
+    
+    // 商品上下架
+    public void changeProductStatus(Long productId, ProductStatus status) {
+        Product product = getProduct(productId);
+        product.setStatus(status);
+        product.setUpdateTime(new Date());
+        productRepository.save(product);
+        
+        // 同步到搜索引擎
+        if (status == ProductStatus.ACTIVE) {
+            searchService.indexProduct(product);
+        } else {
+            searchService.deleteProduct(productId);
+        }
+    }
+    
+    // 获取商品详情
+    public Product getProductDetail(Long productId) {
+        Product product = getProduct(productId);
+        
+        // 获取库存信息
+        Integer stock = inventoryService.getStock(productId);
+        product.setStock(stock);
+        
+        return product;
+    }
+    
+    // 商品搜索
+    public Page&lt;Product&gt; searchProducts(ProductSearchRequest request) {
+        return searchService.searchProducts(request);
+    }
+    
+    // 商品推荐
+    public List&lt;Product&gt; recommendProducts(Long userId, int limit) {
+        return searchService.recommendProducts(userId, limit);
+    }
+    
+    private Product getProduct(Long productId) {
+        return productRepository.findById(productId)
+            .orElseThrow(() -&gt; new BusinessException(&quot;商品不存在&quot;));
+    }
+}
+</code></pre>
+<h3>2. 分类管理</h3>
+<p><strong>分类服务实现</strong></p>
+<pre><code class="language-java">@Service
+@Transactional
+public class CategoryService {
+    
+    @Autowired
+    private CategoryRepository categoryRepository;
+    
+    @Autowired
+    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    
+    // 创建分类
+    public Category createCategory(CategoryCreateRequest request) {
+        // 验证父分类是否存在
+        if (request.getParentId() != null) {
+            Category parent = getCategory(request.getParentId());
+            if (parent == null) {
+                throw new BusinessException(&quot;父分类不存在&quot;);
+            }
+        }
+        
+        // 验证分类名称唯一性
+        if (categoryRepository.existsByNameAndParentId(request.getName(), request.getParentId())) {
+            throw new BusinessException(&quot;分类名称已存在&quot;);
+        }
+        
+        Category category = new Category();
+        category.setName(request.getName());
+        category.setParentId(request.getParentId());
+        category.setLevel(request.getParentId() == null ? 1 : 
+            getCategory(request.getParentId()).getLevel() + 1);
+        category.setSort(request.getSort());
+        category.setIcon(request.getIcon());
+        category.setStatus(CategoryStatus.ACTIVE);
+        category.setCreateTime(new Date());
+        
+        category = categoryRepository.save(category);
+        
+        // 清除缓存
+        clearCategoryCache();
+        
+        return category;
+    }
+    
+    // 获取分类树
+    public List&lt;CategoryTree&gt; getCategoryTree() {
+        String cacheKey = &quot;category:tree&quot;;
+        String cached = redisTemplate.opsForValue().get(cacheKey);
+        
+        if (cached != null) {
+            return JSON.parseArray(cached, CategoryTree.class);
+        }
+        
+        List&lt;Category&gt; allCategories = categoryRepository.findAllByStatus(CategoryStatus.ACTIVE);
+        List&lt;CategoryTree&gt; tree = buildCategoryTree(allCategories, 0L);
+        
+        // 缓存结果
+        redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(tree), 1, TimeUnit.HOURS);
+        
+        return tree;
+    }
+    
+    // 获取子分类
+    public List&lt;Category&gt; getChildCategories(Long parentId) {
+        return categoryRepository.findByParentIdAndStatus(parentId, CategoryStatus.ACTIVE);
+    }
+    
+    // 获取分类路径
+    public List&lt;Category&gt; getCategoryPath(Long categoryId) {
+        List&lt;Category&gt; path = new ArrayList&lt;&gt;();
+        Category category = getCategory(categoryId);
+        
+        while (category != null) {
+            path.add(0, category);
+            category = category.getParentId() != null ? 
+                getCategory(category.getParentId()) : null;
+        }
+        
+        return path;
+    }
+    
+    private List&lt;CategoryTree&gt; buildCategoryTree(List&lt;Category&gt; categories, Long parentId) {
+        List&lt;CategoryTree&gt; tree = new ArrayList&lt;&gt;();
+        
+        for (Category category : categories) {
+            if (Objects.equals(category.getParentId(), parentId)) {
+                CategoryTree node = new CategoryTree();
+                node.setId(category.getId());
+                node.setName(category.getName());
+                node.setIcon(category.getIcon());
+                node.setChildren(buildCategoryTree(categories, category.getId()));
+                tree.add(node);
+            }
+        }
+        
+        return tree;
+    }
+    
+    private void clearCategoryCache() {
+        redisTemplate.delete(&quot;category:tree&quot;);
+    }
+    
+    public Category getCategory(Long categoryId) {
+        if (categoryId == null) {
+            return null;
+        }
+        return categoryRepository.findById(categoryId).orElse(null);
+    }
+}
+</code></pre>
+<h2>订单中心设计</h2>
+<h3>1. 订单创建</h3>
+<p><strong>订单服务实现</strong></p>
+<pre><code class="language-java">@Service
+@Transactional
+public class OrderService {
+    
+    @Autowired
+    private OrderRepository orderRepository;
+    
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+    
+    @Autowired
+    private ProductService productService;
+    
+    @Autowired
+    private InventoryService inventoryService;
+    
+    @Autowired
+    private CartService cartService;
+    
+    @Autowired
+    private PaymentService paymentService;
+    
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    
+    // 创建订单
+    public Order createOrder(OrderCreateRequest request, Long userId) {
+        // 1. 验证商品信息
+        List&lt;OrderItem&gt; orderItems = validateOrderItems(request.getItems());
+        
+        // 2. 计算订单金额
+        OrderAmount amount = calculateOrderAmount(orderItems, request.getCouponId());
+        
+        // 3. 检查库存
+        checkInventory(orderItems);
+        
+        // 4. 创建订单
+        Order order = new Order();
+        order.setOrderNo(generateOrderNo());
+        order.setUserId(userId);
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
+        order.setTotalAmount(amount.getTotalAmount());
+        order.setDiscountAmount(amount.getDiscountAmount());
+        order.setPayAmount(amount.getPayAmount());
+        order.setShippingAddress(request.getShippingAddress());
+        order.setRemark(request.getRemark());
+        order.setCreateTime(new Date());
+        
+        order = orderRepository.save(order);
+        
+        // 5. 创建订单项
+        for (OrderItem item : orderItems) {
+            item.setOrderId(order.getId());
+            orderItemRepository.save(item);
+        }
+        
+        // 6. 锁定库存
+        inventoryService.lockInventory(orderItems, order.getOrderNo());
+        
+        // 7. 清空购物车
+        cartService.clearCart(userId, request.getItemIds());
+        
+        // 8. 发送订单创建消息
+        sendOrderCreatedMessage(order);
+        
+        return order;
+    }
+    
+    // 订单支付
+    public PaymentResponse payOrder(Long orderId, PaymentRequest request) {
+        Order order = getOrder(orderId);
+        
+        // 验证订单状态
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new BusinessException(&quot;订单状态不正确&quot;);
+        }
+        
+        // 创建支付
+        Payment payment = paymentService.createPayment(order, request);
+        
+        return new PaymentResponse(payment.getPaymentNo(), payment.getPayUrl());
+    }
+    
+    // 订单支付成功
+    public void handlePaymentSuccess(String paymentNo) {
+        Payment payment = paymentService.getPaymentByNo(paymentNo);
+        Order order = getOrder(payment.getOrderId());
+        
+        // 更新订单状态
+        order.setStatus(OrderStatus.PAID);
+        order.setPayTime(new Date());
+        orderRepository.save(order);
+        
+        // 扣减库存
+        inventoryService.deductInventory(payment.getOrderId());
+        
+        // 发送支付成功消息
+        sendPaymentSuccessMessage(order);
+    }
+    
+    // 订单发货
+    public void shipOrder(Long orderId, ShipOrderRequest request) {
+        Order order = getOrder(orderId);
+        
+        // 验证订单状态
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new BusinessException(&quot;订单状态不正确&quot;);
+        }
+        
+        // 更新订单状态
+        order.setStatus(OrderStatus.SHIPPED);
+        order.setShippingCompany(request.getShippingCompany());
+        order.setShippingNo(request.getShippingNo());
+        order.setShippingTime(new Date());
+        orderRepository.save(order);
+        
+        // 发送发货消息
+        sendOrderShippedMessage(order);
+    }
+    
+    // 确认收货
+    public void confirmReceipt(Long orderId) {
+        Order order = getOrder(orderId);
+        
+        // 验证订单状态
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            throw new BusinessException(&quot;订单状态不正确&quot;);
+        }
+        
+        // 更新订单状态
+        order.setStatus(OrderStatus.COMPLETED);
+        order.setConfirmTime(new Date());
+        orderRepository.save(order);
+        
+        // 发送确认收货消息
+        sendOrderCompletedMessage(order);
+    }
+    
+    // 取消订单
+    public void cancelOrder(Long orderId, String reason) {
+        Order order = getOrder(orderId);
+        
+        // 验证订单状态
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new BusinessException(&quot;订单状态不正确&quot;);
+        }
+        
+        // 更新订单状态
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCancelReason(reason);
+        order.setCancelTime(new Date());
+        orderRepository.save(order);
+        
+        // 释放库存
+        inventoryService.releaseInventory(orderId);
+        
+        // 发送订单取消消息
+        sendOrderCancelledMessage(order);
+    }
+    
+    private List&lt;OrderItem&gt; validateOrderItems(List&lt;OrderItemRequest&gt; items) {
+        List&lt;OrderItem&gt; orderItems = new ArrayList&lt;&gt;();
+        
+        for (OrderItemRequest item : items) {
+            Product product = productService.getProductDetail(item.getProductId());
+            
+            // 验证商品状态
+            if (product.getStatus() != ProductStatus.ACTIVE) {
+                throw new BusinessException(&quot;商品已下架&quot;);
+            }
+            
+            // 验证库存
+            if (product.getStock() &lt; item.getQuantity()) {
+                throw new BusinessException(&quot;商品库存不足&quot;);
+            }
+            
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(product.getId());
+            orderItem.setProductName(product.getName());
+            orderItem.setProductImage(product.getImages().get(0));
+            orderItem.setPrice(product.getPrice());
+            orderItem.setQuantity(item.getQuantity());
+            orderItem.setTotalAmount(product.getPrice() * item.getQuantity());
+            
+            orderItems.add(orderItem);
+        }
+        
+        return orderItems;
+    }
+    
+    private OrderAmount calculateOrderAmount(List&lt;OrderItem&gt; orderItems, Long couponId) {
+        BigDecimal totalAmount = orderItems.stream()
+            .map(OrderItem::getTotalAmount)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        
+        // 计算优惠券折扣
+        if (couponId != null) {
+            discountAmount = couponService.calculateDiscount(couponId, totalAmount);
+        }
+        
+        BigDecimal payAmount = totalAmount.subtract(discountAmount);
+        
+        return new OrderAmount(totalAmount, discountAmount, payAmount);
+    }
+    
+    private void checkInventory(List&lt;OrderItem&gt; orderItems) {
+        for (OrderItem item : orderItems) {
+            Integer stock = inventoryService.getStock(item.getProductId());
+            if (stock &lt; item.getQuantity()) {
+                throw new BusinessException(&quot;商品库存不足&quot;);
+            }
+        }
+    }
+    
+    private String generateOrderNo() {
+        return &quot;ORD&quot; + System.currentTimeMillis() + 
+               String.format(&quot;%04d&quot;, new Random().nextInt(10000));
+    }
+    
+    private void sendOrderCreatedMessage(Order order) {
+        OrderMessage message = new OrderMessage();
+        message.setOrderId(order.getId());
+        message.setOrderNo(order.getOrderNo());
+        message.setUserId(order.getUserId());
+        message.setAction(&quot;ORDER_CREATED&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;order.exchange&quot;, &quot;order.created&quot;, message);
+    }
+    
+    private void sendPaymentSuccessMessage(Order order) {
+        OrderMessage message = new OrderMessage();
+        message.setOrderId(order.getId());
+        message.setOrderNo(order.getOrderNo());
+        message.setUserId(order.getUserId());
+        message.setAction(&quot;PAYMENT_SUCCESS&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;order.exchange&quot;, &quot;payment.success&quot;, message);
+    }
+    
+    private void sendOrderShippedMessage(Order order) {
+        OrderMessage message = new OrderMessage();
+        message.setOrderId(order.getId());
+        message.setOrderNo(order.getOrderNo());
+        message.setUserId(order.getUserId());
+        message.setAction(&quot;ORDER_SHIPPED&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;order.exchange&quot;, &quot;order.shipped&quot;, message);
+    }
+    
+    private void sendOrderCompletedMessage(Order order) {
+        OrderMessage message = new OrderMessage();
+        message.setOrderId(order.getId());
+        message.setOrderNo(order.getOrderNo());
+        message.setUserId(order.getUserId());
+        message.setAction(&quot;ORDER_COMPLETED&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;order.exchange&quot;, &quot;order.completed&quot;, message);
+    }
+    
+    private void sendOrderCancelledMessage(Order order) {
+        OrderMessage message = new OrderMessage();
+        message.setOrderId(order.getId());
+        message.setOrderNo(order.getOrderNo());
+        message.setUserId(order.getUserId());
+        message.setAction(&quot;ORDER_CANCELLED&quot;);
+        
+        rabbitTemplate.convertAndSend(&quot;order.exchange&quot;, &quot;order.cancelled&quot;, message);
+    }
+    
+    private Order getOrder(Long orderId) {
+        return orderRepository.findById(orderId)
+            .orElseThrow(() -&gt; new BusinessException(&quot;订单不存在&quot;));
+    }
+}
+</code></pre>
+<h2>总结</h2>
+<p>电商系统设计是一个复杂的工程，需要考虑：</p>
+<ol>
+<li><strong>业务复杂性</strong>：涵盖用户、商品、订单、支付等多个业务域</li>
+<li><strong>高并发性</strong>：需要支持大量用户同时访问</li>
+<li><strong>数据一致性</strong>：保证订单、库存等数据的一致性</li>
+<li><strong>系统扩展性</strong>：支持业务快速发展和扩展</li>
+<li><strong>用户体验</strong>：提供流畅的购物体验</li>
+</ol>
+<p>通过合理的架构设计和技术选型，可以构建稳定、高效、可扩展的电商系统。</p>
+2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"电商系统设计详解"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","电商系统",{"className":"tag","children":"电商系统"}],["$","span","系统设计",{"className":"tag","children":"系统设计"}],["$","span","架构设计",{"className":"tag","children":"架构设计"}],["$","span","微服务",{"className":"tag","children":"微服务"}],["$","span","高并发",{"className":"tag","children":"高并发"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"电商系统设计详解 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"深入分析电商系统的整体架构设计，包括用户管理、商品管理、订单管理、支付系统、搜索系统等核心模块的设计思路和实现方案。"}]]
+1:null

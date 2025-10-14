@@ -1,0 +1,447 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="/_next/static/css/55b7a9e84b417e65.css" data-precedence="next"/><link rel="preload" as="script" fetchPriority="low" href="/_next/static/chunks/webpack-c81f7fd28659d64f.js"/><script src="/_next/static/chunks/fd9d1056-9f91b5e418130764.js" async=""></script><script src="/_next/static/chunks/117-ee7b0ec54963e50f.js" async=""></script><script src="/_next/static/chunks/main-app-1bdc7b9537d0c130.js" async=""></script><script src="/_next/static/chunks/972-17ea62b17795b286.js" async=""></script><script src="/_next/static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js" async=""></script><script src="/_next/static/chunks/app/layout-ca71fef930ed4111.js" async=""></script><title>JVM的发展之路，从5到21 - Personal GitHub Page</title><meta name="description" content="Java虚拟机(JVM)作为Java技术的核心，从Java 5到Java 21经历了巨大的发展和变化。本文详细介绍JVM的重要演进历程、关键特性改进和性能优化。"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js" noModule=""></script></head><body><div class="app"><header class="header "><nav class="nav-container"><a class="nav-brand" href="/"><i class="fas fa-terminal"></i>Rudy Yang</a><ul class="nav-menu"><li><a class="nav-link " href="/"><i class="fas fa-home"></i> 首页</a></li><li><a class="nav-link " href="/about/"><i class="fas fa-user"></i> 关于</a></li><li><a class="nav-link " href="/projects/"><i class="fas fa-code"></i> 项目</a></li><li><a class="nav-link " href="/notes/"><i class="fas fa-book"></i> 笔记</a></li><li><a class="nav-link " href="/articles/"><i class="fas fa-pen"></i> 随笔</a></li></ul></nav></header><main class="main-content"><div><a class="back-button" style="display:inline-block;background:var(--primary-color);color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;margin-bottom:20px;text-decoration:none" href="/notes/">← 返回<!-- -->笔记<!-- -->列表</a><article class="section"><header class="article-header"><h1 class="article-title">JVM的发展之路，从5到21</h1><div class="article-meta"><div class="article-meta-info"><span class="article-date">2024-10-14</span><span class="article-category">• <!-- -->笔记</span></div><div class="article-tags"><span class="tag">JVM</span><span class="tag">Java</span><span class="tag">虚拟机</span><span class="tag">性能优化</span><span class="tag">垃圾回收</span></div></div></header><div class="card markdown-content"><h1>JVM的发展之路，从5到21</h1>
+<blockquote>
+<p>Java虚拟机的演进历程，是Java技术持续创新和性能提升的重要见证</p>
+</blockquote>
+<h2>引言</h2>
+<p>Java虚拟机（JVM）是Java技术的核心，它为Java程序提供了跨平台的能力。从Java 5到Java 21，JVM在性能、内存管理、垃圾回收、编译优化等方面都取得了巨大的进步。本文将详细介绍JVM在这一时期的重要发展和变化。</p>
+<h2>Java 5 (Tiger, 2004年) - 里程碑式的改进</h2>
+<h3>1. 垃圾回收器改进</h3>
+<p><strong>CMS垃圾回收器</strong></p>
+<ul>
+<li>引入了CMS（Concurrent Mark Sweep）收集器</li>
+<li>以获取最短回收停顿时间为目标</li>
+<li>标记-清除算法，支持并发标记和并发清除</li>
+<li>适用于对响应时间有要求的场景</li>
+</ul>
+<p><strong>内存模型改进</strong></p>
+<ul>
+<li>完善了Java内存模型（JMM）</li>
+<li>引入了happens-before原则</li>
+<li>提供了更好的并发编程支持</li>
+<li>增强了volatile和synchronized的语义</li>
+</ul>
+<h3>2. 编译器优化</h3>
+<p><strong>逃逸分析</strong></p>
+<ul>
+<li>引入逃逸分析技术</li>
+<li>优化对象分配和同步</li>
+<li>支持标量替换和栈上分配</li>
+<li>提升了程序执行效率</li>
+</ul>
+<p><strong>循环优化</strong></p>
+<ul>
+<li>改进了循环优化技术</li>
+<li>支持循环展开和循环不变量外提</li>
+<li>提升了数值计算的性能</li>
+</ul>
+<h3>3. 监控和诊断</h3>
+<p><strong>JMX improvements</strong></p>
+<ul>
+<li>增强了JMX监控能力</li>
+<li>提供了更丰富的运行时信息</li>
+<li>支持更细粒度的监控和管理</li>
+</ul>
+<p><strong>代码示例</strong>：</p>
+<pre><code class="language-java">// Java 5中的泛型和并发编程示例
+import java.util.concurrent.*;
+import java.util.*;
+
+public class Java5Features {
+    private Map&lt;String, List&lt;Integer&gt;&gt; genericMap = new HashMap&lt;&gt;();
+    
+    public void demonstrateConcurrency() {
+        // 使用线程池和并发集合
+        ExecutorService executor = Executors.newFixedThreadPool(4);
+        BlockingQueue&lt;String&gt; queue = new LinkedBlockingQueue&lt;&gt;();
+        
+        // 提交任务
+        Future&lt;String&gt; future = executor.submit(() -&gt; {
+            return &quot;Task completed&quot;;
+        });
+    }
+}
+</code></pre>
+<h2>Java 6 (Mustang, 2006年) - 性能优化年</h2>
+<h3>1. 垃圾回收优化</h3>
+<p><strong>Parallel Old GC</strong></p>
+<ul>
+<li>引入Parallel Old收集器</li>
+<li>支持老年代的并行回收</li>
+<li>提升了多核环境下的回收效率</li>
+<li>适合吞吐量优先的应用</li>
+</ul>
+<p><strong>内存管理改进</strong></p>
+<ul>
+<li>优化了内存分配策略</li>
+<li>改进了TLAB（Thread Local Allocation Buffer）</li>
+<li>提升了多线程内存分配性能</li>
+</ul>
+<h3>2. 编译器升级</h3>
+<p><strong>JIT编译优化</strong></p>
+<ul>
+<li>改进了即时编译器</li>
+<li>支持更多的编译优化技术</li>
+<li>提升了热点代码的执行效率</li>
+<li>增强了分层编译能力</li>
+</ul>
+<h3>3. 监控工具</h3>
+<p><strong>VisualVM</strong></p>
+<ul>
+<li>集成了多种监控工具</li>
+<li>提供了可视化的性能分析</li>
+<li>支持内存、CPU、线程等多维度监控</li>
+<li>简化了性能调优工作</li>
+</ul>
+<p><strong>配置示例</strong>：</p>
+<pre><code class="language-bash"># Java 6 JVM调优参数示例
+-Xms2g -Xmx4g  # 堆内存设置
+-XX:+UseParallelGC  # 使用并行垃圾回收器
+-XX:+PrintGCDetails  # 打印GC详细信息
+-XX:+HeapDumpOnOutOfMemoryError  # OOM时生成堆转储
+</code></pre>
+<h2>Java 7 (Dolphin, 2011年) - 功能增强</h2>
+<h3>1. 垃圾回收器改进</h3>
+<p><strong>G1垃圾回收器</strong></p>
+<ul>
+<li>引入G1（Garbage First）收集器</li>
+<li>基于区域的内存布局</li>
+<li>支持可预测的停顿时间</li>
+<li>适合大内存应用</li>
+</ul>
+<p><strong>JVM启动优化</strong></p>
+<ul>
+<li>改进了JVM启动性能</li>
+<li>优化了类加载过程</li>
+<li>减少了启动时间和内存占用</li>
+</ul>
+<h3>2. 动态语言支持</h3>
+<p><strong>InvokeDynamic</strong></p>
+<ul>
+<li>引入 invokedynamic 指令</li>
+<li>支持动态语言在JVM上运行</li>
+<li>提升了动态语言的执行效率</li>
+<li>为JVM生态系统扩展奠定基础</li>
+</ul>
+<h3>3. 压缩指针</h3>
+<p><strong>Compressed Oops</strong></p>
+<ul>
+<li>引入压缩普通对象指针</li>
+<li>在64位系统上节省内存</li>
+<li>提升了内存利用效率</li>
+<li>减少了GC压力</li>
+</ul>
+<p><strong>G1配置示例</strong>：</p>
+<pre><code class="language-bash"># G1垃圾回收器配置
+-XX:+UseG1GC  # 启用G1收集器
+-XX:MaxGCPauseMillis=200  # 最大GC停顿时间
+-XX:G1HeapRegionSize=16m  # G1区域大小
+-XX:G1NewSizePercent=30  # 新生代比例
+</code></pre>
+<h2>Java 8 (Spider, 2014年) - 里程碑式更新</h2>
+<h3>1. Metaspace取代PermGen</h3>
+<p><strong>永久代移除</strong></p>
+<ul>
+<li>移除了永久代（PermGen）</li>
+<li>引入Metaspace（元空间）</li>
+<li>使用本地内存存储类元数据</li>
+<li>解决了永久代的内存溢出问题</li>
+</ul>
+<p><strong>内存管理改进</strong></p>
+<ul>
+<li>自动调整Metaspace大小</li>
+<li>支持更灵活的内存管理</li>
+<li>减少了内存相关的配置</li>
+</ul>
+<h3>2. Lambda表达式支持</h3>
+<p><strong>函数式编程</strong></p>
+<ul>
+<li>支持Lambda表达式</li>
+<li>引入函数式接口</li>
+<li>提升了代码的简洁性和可读性</li>
+<li>为Stream API奠定基础</li>
+</ul>
+<p><strong>性能优化</strong></p>
+<ul>
+<li>优化了Lambda表达式的执行</li>
+<li>引入 invokedynamic 指令优化</li>
+<li>提升了函数式编程的性能</li>
+</ul>
+<h3>3. 并发增强</h3>
+<p><strong>CompletableFuture</strong></p>
+<ul>
+<li>引入CompletableFuture类</li>
+<li>支持异步编程的新模式</li>
+<li>提供了更强大的异步组合能力</li>
+<li>简化了并发编程</li>
+</ul>
+<p><strong>代码示例</strong>：</p>
+<pre><code class="language-java">// Java 8新特性示例
+import java.util.stream.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.*;
+
+public class Java8Features {
+    
+    public void demonstrateStreams() {
+        List&lt;String&gt; list = Arrays.asList(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;);
+        
+        // Stream API使用
+        List&lt;String&gt; result = list.stream()
+            .filter(s -&gt; s.startsWith(&quot;a&quot;))
+            .map(String::toUpperCase)
+            .collect(Collectors.toList());
+    }
+    
+    public void demonstrateAsync() {
+        // CompletableFuture异步编程
+        CompletableFuture&lt;String&gt; future = CompletableFuture
+            .supplyAsync(() -&gt; &quot;Hello&quot;)
+            .thenApply(s -&gt; s + &quot; World&quot;)
+            .thenAccept(System.out::println);
+    }
+}
+</code></pre>
+<h2>Java 9-11 - 模块化和持续优化</h2>
+<h3>1. Java 9 (2017年)</h3>
+<p><strong>模块化系统</strong></p>
+<ul>
+<li>引入Jigsaw模块系统</li>
+<li>提供了更好的封装性</li>
+<li>减少了内存占用</li>
+<li>提升了启动性能</li>
+</ul>
+<p><strong>G1默认GC</strong></p>
+<ul>
+<li>G1成为默认垃圾回收器</li>
+<li>改进了G1的性能和稳定性</li>
+<li>提供了更好的GC日志</li>
+</ul>
+<p><strong>JShell</strong></p>
+<ul>
+<li>引入Java REPL工具</li>
+<li>支持交互式编程</li>
+<li>简化了Java学习和测试</li>
+</ul>
+<h3>2. Java 10 (2018年)</h3>
+<p><strong>局部变量类型推断</strong></p>
+<ul>
+<li>引入var关键字</li>
+<li>支持局部变量类型推断</li>
+<li>提升了代码的简洁性</li>
+<li>保持了类型安全</li>
+</ul>
+<p><strong>性能优化</strong></p>
+<ul>
+<li>改进了G1垃圾回收器</li>
+<li>优化了JIT编译</li>
+<li>提升了容器环境的性能</li>
+</ul>
+<h3>3. Java 11 (2018年) - LTS版本</h3>
+<p><strong>ZGC引入</strong></p>
+<ul>
+<li>引入ZGC（Z Garbage Collector）</li>
+<li>支持TB级堆内存</li>
+<li>停顿时间控制在毫秒级</li>
+<li>适合大内存、低延迟应用</li>
+</ul>
+<p><strong>HTTP Client</strong></p>
+<ul>
+<li>标准化HTTP Client API</li>
+<li>支持HTTP/2和WebSocket</li>
+<li>提供了现代化的HTTP编程接口</li>
+</ul>
+<p><strong>性能提升</strong></p>
+<ul>
+<li>进一步优化了G1收集器</li>
+<li>改进了字符串操作性能</li>
+<li>增强了JIT编译优化</li>
+</ul>
+<p><strong>ZGC配置示例</strong>：</p>
+<pre><code class="language-bash"># ZGC配置参数
+-XX:+UseZGC  # 启用ZGC收集器
+-XX:+UnlockExperimentalVMOptions  # 解锁实验性选项
+-Xms4g -Xmx4g  # 堆内存设置
+-XX:ZAllocationSpikeTolerance=5  # 分配峰值容忍度
+</code></pre>
+<h2>Java 12-17 - 新特性持续涌现</h2>
+<h3>1. Java 12 (2019年)</h3>
+<p><strong>Shenandoah GC</strong></p>
+<ul>
+<li>引入Shenandoah收集器</li>
+<li>支持并发垃圾回收</li>
+<li>提供更短的停顿时间</li>
+<li>适合低延迟应用</li>
+</ul>
+<p><strong>JVM常量API</strong></p>
+<ul>
+<li>引入JVM常量API</li>
+<li>提供了更好的字节码操作能力</li>
+<li>支持动态语言实现</li>
+</ul>
+<h3>2. Java 13-17的重要改进</h3>
+<p><strong>记录类型（Records）</strong></p>
+<ul>
+<li>Java 14引入记录类型</li>
+<li>简化了数据载体类的编写</li>
+<li>提供了不可变性保证</li>
+<li>减少了样板代码</li>
+</ul>
+<p><strong>模式匹配</strong></p>
+<ul>
+<li>引入模式匹配特性</li>
+<li>简化了instanceof操作</li>
+<li>增强了代码可读性</li>
+<li>逐步完善中</li>
+</ul>
+<p><strong>密封类（Sealed Classes）</strong></p>
+<ul>
+<li>Java 17引入密封类</li>
+<li>提供了更好的继承控制</li>
+<li>增强了类型系统的表达能力</li>
+<li>支持更精确的建模</li>
+</ul>
+<p><strong>代码示例</strong>：</p>
+<pre><code class="language-java">// Java 14+ 新特性示例
+public record Point(int x, int y) {}  // 记录类型
+
+// 模式匹配示例
+if (obj instanceof String s) {
+    System.out.println(s.toUpperCase());
+}
+
+// 密封类示例
+public sealed interface Shape 
+    permits Circle, Rectangle, Triangle {}
+    
+final class Circle implements Shape {
+    private final double radius;
+}
+</code></pre>
+<h2>Java 21 (2023年) - 最新LTS版本</h2>
+<h3>1. 虚拟线程（Virtual Threads）</h3>
+<p><strong>Project Loom</strong></p>
+<ul>
+<li>引入虚拟线程技术</li>
+<li>轻量级线程实现</li>
+<li>大幅提升并发编程能力</li>
+<li>支持百万级并发连接</li>
+</ul>
+<p><strong>性能优势</strong></p>
+<ul>
+<li>减少了线程创建和切换开销</li>
+<li>提升了I/O密集型应用性能</li>
+<li>简化了并发编程模型</li>
+<li>更好的资源利用率</li>
+</ul>
+<h3>2. 分代ZGC</h3>
+<p><strong>Generational ZGC</strong></p>
+<ul>
+<li>引入分代ZGC</li>
+<li>支持分代垃圾回收</li>
+<li>提升了垃圾回收效率</li>
+<li>减少了GC停顿时间</li>
+</ul>
+<h3>3. 向量API（第四轮孵化）</h3>
+<p><strong>Vector API</strong></p>
+<ul>
+<li>提供了向量计算能力</li>
+<li>支持SIMD指令优化</li>
+<li>提升了数值计算性能</li>
+<li>适合科学计算应用</li>
+</ul>
+<p><strong>虚拟线程示例</strong>：</p>
+<pre><code class="language-java">// Java 21虚拟线程示例
+import java.util.concurrent.*;
+import java.util.stream.*;
+
+public class VirtualThreads {
+    
+    public void demonstrateVirtualThreads() {
+        // 创建虚拟线程
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            
+            // 提交大量任务
+            List&lt;Future&lt;String&gt;&gt; futures = IntStream.range(0, 1_000_000)
+                .mapToObj(i -&gt; executor.submit(() -&gt; {
+                    Thread.sleep(Duration.ofMillis(10));
+                    return &quot;Task &quot; + i + &quot; completed&quot;;
+                }))
+                .toList();
+                
+            // 等待所有任务完成
+            futures.forEach(future -&gt; {
+                try {
+                    future.get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+}
+</code></pre>
+<h2>JVM性能调优最佳实践</h2>
+<h3>1. 内存配置</h3>
+<p><strong>堆内存设置</strong></p>
+<pre><code class="language-bash"># 基础内存配置
+-Xms4g -Xmx4g  # 初始和最大堆内存
+-XX:NewRatio=2  # 新生代与老年代比例
+-XX:SurvivorRatio=8  # Eden与Survivor比例
+</code></pre>
+<p><strong>元空间配置</strong></p>
+<pre><code class="language-bash"># Metaspace配置
+-XX:MetaspaceSize=256m  # 初始元空间大小
+-XX:MaxMetaspaceSize=512m  # 最大元空间大小
+</code></pre>
+<h3>2. 垃圾回收选择</h3>
+<p><strong>不同场景的GC选择</strong></p>
+<pre><code class="language-bash"># 吞吐量优先 - Parallel GC
+-XX:+UseParallelGC
+
+# 低延迟优先 - G1 GC
+-XX:+UseG1GC -XX:MaxGCPauseMillis=200
+
+# 超低延迟 - ZGC
+-XX:+UseZGC -Xmx8g
+
+# 极低延迟 - Shenandoah GC
+-XX:+UseShenandoahGC
+</code></pre>
+<h3>3. 监控和诊断</h3>
+<p><strong>JVM监控参数</strong></p>
+<pre><code class="language-bash"># GC日志配置
+-XX:+PrintGCDetails
+-XX:+PrintGCDateStamps
+-XX:+PrintGCTimeStamps
+-Xloggc:/path/to/gc.log
+
+# OOM处理
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:HeapDumpPath=/path/to/dump.hprof
+</code></pre>
+<h3>4. 性能优化建议</h3>
+<p><strong>代码优化</strong></p>
+<ul>
+<li>减少对象创建和内存分配</li>
+<li>使用对象池和缓存机制</li>
+<li>避免内存泄漏和资源浪费</li>
+<li>合理使用集合类和数据结构</li>
+</ul>
+<p><strong>并发优化</strong></p>
+<ul>
+<li>合理使用线程池和并发工具</li>
+<li>避免过度同步和锁竞争</li>
+<li>利用无锁数据结构和算法</li>
+<li>考虑使用虚拟线程提升并发性能</li>
+</ul>
+<h2>总结</h2>
+<p>从Java 5到Java 21，JVM经历了巨大的发展和变化。主要改进包括：</p>
+<ol>
+<li><strong>垃圾回收技术</strong>：从简单的Serial GC到先进的ZGC和Shenandoah，停顿时间从秒级降低到毫秒级</li>
+<li><strong>内存管理</strong>：从永久代到元空间，从压缩指针到更高效的内存布局</li>
+<li><strong>编译优化</strong>：JIT编译器不断优化，支持更多的编译技术和优化策略</li>
+<li><strong>并发支持</strong>：从基础的synchronized到虚拟线程，并发编程能力大幅提升</li>
+<li><strong>监控诊断</strong>：从基础的JMX到丰富的监控工具和诊断能力</li>
+</ol>
+<p>这些改进使得Java在现代应用场景中保持了强大的竞争力，无论是传统企业应用还是云原生应用，都能找到合适的JVM配置和优化方案。随着Java技术的持续发展，JVM将继续演进，为开发者提供更好的性能和更丰富的功能。</p>
+</div></article></div></main></div><script src="/_next/static/chunks/webpack-c81f7fd28659d64f.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:HL[\"/_next/static/css/55b7a9e84b417e65.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"2:I[2846,[],\"\"]\n5:I[4707,[],\"\"]\n8:I[6423,[],\"\"]\nb:I[1060,[],\"\"]\n6:[\"category\",\"notes\",\"d\"]\n7:[\"slug\",\"jvm-evolution-from5-to21\",\"d\"]\nc:[]\n0:[\"$\",\"$L2\",null,{\"buildId\":\"build\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"notes\",\"jvm-evolution-from5-to21\",\"\"],\"initialTree\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"jvm-evolution-from5-to21\",\"d\"],{\"children\":[\"__PAGE__?{\\\"category\\\":\\\"notes\\\",\\\"slug\\\":\\\"jvm-evolution-from5-to21\\\"}\",{}]}]}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"jvm-evolution-from5-to21\",\"d\"],{\"children\":[\"__PAGE__\",{},[[\"$L3\",\"$L4\",null],null],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\",\"$7\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/55b7a9e84b417e65.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}]],\"$L9\"],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$La\"],\"globalErrorComponent\":\"$b\",\"missingSlots\":\"$Wc\"}]\n"])</script><script>self.__next_f.push([1,"d:I[2972,[\"972\",\"static/chunks/972-17ea62b17795b286.js\",\"621\",\"static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js\"],\"\"]\nf:I[7140,[\"972\",\"static/chunks/972-17ea62b17795b286.js\",\"185\",\"static/chunks/app/layout-ca71fef930ed4111.js\"],\"default\"]\ne:T39cb,"])</script><script>self.__next_f.push([1,"\u003ch1\u003eJVM的发展之路，从5到21\u003c/h1\u003e\n\u003cblockquote\u003e\n\u003cp\u003eJava虚拟机的演进历程，是Java技术持续创新和性能提升的重要见证\u003c/p\u003e\n\u003c/blockquote\u003e\n\u003ch2\u003e引言\u003c/h2\u003e\n\u003cp\u003eJava虚拟机（JVM）是Java技术的核心，它为Java程序提供了跨平台的能力。从Java 5到Java 21，JVM在性能、内存管理、垃圾回收、编译优化等方面都取得了巨大的进步。本文将详细介绍JVM在这一时期的重要发展和变化。\u003c/p\u003e\n\u003ch2\u003eJava 5 (Tiger, 2004年) - 里程碑式的改进\u003c/h2\u003e\n\u003ch3\u003e1. 垃圾回收器改进\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eCMS垃圾回收器\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入了CMS（Concurrent Mark Sweep）收集器\u003c/li\u003e\n\u003cli\u003e以获取最短回收停顿时间为目标\u003c/li\u003e\n\u003cli\u003e标记-清除算法，支持并发标记和并发清除\u003c/li\u003e\n\u003cli\u003e适用于对响应时间有要求的场景\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e内存模型改进\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e完善了Java内存模型（JMM）\u003c/li\u003e\n\u003cli\u003e引入了happens-before原则\u003c/li\u003e\n\u003cli\u003e提供了更好的并发编程支持\u003c/li\u003e\n\u003cli\u003e增强了volatile和synchronized的语义\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e2. 编译器优化\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e逃逸分析\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入逃逸分析技术\u003c/li\u003e\n\u003cli\u003e优化对象分配和同步\u003c/li\u003e\n\u003cli\u003e支持标量替换和栈上分配\u003c/li\u003e\n\u003cli\u003e提升了程序执行效率\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e循环优化\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e改进了循环优化技术\u003c/li\u003e\n\u003cli\u003e支持循环展开和循环不变量外提\u003c/li\u003e\n\u003cli\u003e提升了数值计算的性能\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e3. 监控和诊断\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eJMX improvements\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e增强了JMX监控能力\u003c/li\u003e\n\u003cli\u003e提供了更丰富的运行时信息\u003c/li\u003e\n\u003cli\u003e支持更细粒度的监控和管理\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e代码示例\u003c/strong\u003e：\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e// Java 5中的泛型和并发编程示例\nimport java.util.concurrent.*;\nimport java.util.*;\n\npublic class Java5Features {\n    private Map\u0026lt;String, List\u0026lt;Integer\u0026gt;\u0026gt; genericMap = new HashMap\u0026lt;\u0026gt;();\n    \n    public void demonstrateConcurrency() {\n        // 使用线程池和并发集合\n        ExecutorService executor = Executors.newFixedThreadPool(4);\n        BlockingQueue\u0026lt;String\u0026gt; queue = new LinkedBlockingQueue\u0026lt;\u0026gt;();\n        \n        // 提交任务\n        Future\u0026lt;String\u0026gt; future = executor.submit(() -\u0026gt; {\n            return \u0026quot;Task completed\u0026quot;;\n        });\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003eJava 6 (Mustang, 2006年) - 性能优化年\u003c/h2\u003e\n\u003ch3\u003e1. 垃圾回收优化\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eParallel Old GC\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入Parallel Old收集器\u003c/li\u003e\n\u003cli\u003e支持老年代的并行回收\u003c/li\u003e\n\u003cli\u003e提升了多核环境下的回收效率\u003c/li\u003e\n\u003cli\u003e适合吞吐量优先的应用\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e内存管理改进\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e优化了内存分配策略\u003c/li\u003e\n\u003cli\u003e改进了TLAB（Thread Local Allocation Buffer）\u003c/li\u003e\n\u003cli\u003e提升了多线程内存分配性能\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e2. 编译器升级\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eJIT编译优化\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e改进了即时编译器\u003c/li\u003e\n\u003cli\u003e支持更多的编译优化技术\u003c/li\u003e\n\u003cli\u003e提升了热点代码的执行效率\u003c/li\u003e\n\u003cli\u003e增强了分层编译能力\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e3. 监控工具\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eVisualVM\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e集成了多种监控工具\u003c/li\u003e\n\u003cli\u003e提供了可视化的性能分析\u003c/li\u003e\n\u003cli\u003e支持内存、CPU、线程等多维度监控\u003c/li\u003e\n\u003cli\u003e简化了性能调优工作\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e配置示例\u003c/strong\u003e：\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-bash\"\u003e# Java 6 JVM调优参数示例\n-Xms2g -Xmx4g  # 堆内存设置\n-XX:+UseParallelGC  # 使用并行垃圾回收器\n-XX:+PrintGCDetails  # 打印GC详细信息\n-XX:+HeapDumpOnOutOfMemoryError  # OOM时生成堆转储\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003eJava 7 (Dolphin, 2011年) - 功能增强\u003c/h2\u003e\n\u003ch3\u003e1. 垃圾回收器改进\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eG1垃圾回收器\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入G1（Garbage First）收集器\u003c/li\u003e\n\u003cli\u003e基于区域的内存布局\u003c/li\u003e\n\u003cli\u003e支持可预测的停顿时间\u003c/li\u003e\n\u003cli\u003e适合大内存应用\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eJVM启动优化\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e改进了JVM启动性能\u003c/li\u003e\n\u003cli\u003e优化了类加载过程\u003c/li\u003e\n\u003cli\u003e减少了启动时间和内存占用\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e2. 动态语言支持\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eInvokeDynamic\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入 invokedynamic 指令\u003c/li\u003e\n\u003cli\u003e支持动态语言在JVM上运行\u003c/li\u003e\n\u003cli\u003e提升了动态语言的执行效率\u003c/li\u003e\n\u003cli\u003e为JVM生态系统扩展奠定基础\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e3. 压缩指针\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eCompressed Oops\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入压缩普通对象指针\u003c/li\u003e\n\u003cli\u003e在64位系统上节省内存\u003c/li\u003e\n\u003cli\u003e提升了内存利用效率\u003c/li\u003e\n\u003cli\u003e减少了GC压力\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eG1配置示例\u003c/strong\u003e：\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-bash\"\u003e# G1垃圾回收器配置\n-XX:+UseG1GC  # 启用G1收集器\n-XX:MaxGCPauseMillis=200  # 最大GC停顿时间\n-XX:G1HeapRegionSize=16m  # G1区域大小\n-XX:G1NewSizePercent=30  # 新生代比例\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003eJava 8 (Spider, 2014年) - 里程碑式更新\u003c/h2\u003e\n\u003ch3\u003e1. Metaspace取代PermGen\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e永久代移除\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e移除了永久代（PermGen）\u003c/li\u003e\n\u003cli\u003e引入Metaspace（元空间）\u003c/li\u003e\n\u003cli\u003e使用本地内存存储类元数据\u003c/li\u003e\n\u003cli\u003e解决了永久代的内存溢出问题\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e内存管理改进\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e自动调整Metaspace大小\u003c/li\u003e\n\u003cli\u003e支持更灵活的内存管理\u003c/li\u003e\n\u003cli\u003e减少了内存相关的配置\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e2. Lambda表达式支持\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e函数式编程\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e支持Lambda表达式\u003c/li\u003e\n\u003cli\u003e引入函数式接口\u003c/li\u003e\n\u003cli\u003e提升了代码的简洁性和可读性\u003c/li\u003e\n\u003cli\u003e为Stream API奠定基础\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e性能优化\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e优化了Lambda表达式的执行\u003c/li\u003e\n\u003cli\u003e引入 invokedynamic 指令优化\u003c/li\u003e\n\u003cli\u003e提升了函数式编程的性能\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e3. 并发增强\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eCompletableFuture\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入CompletableFuture类\u003c/li\u003e\n\u003cli\u003e支持异步编程的新模式\u003c/li\u003e\n\u003cli\u003e提供了更强大的异步组合能力\u003c/li\u003e\n\u003cli\u003e简化了并发编程\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e代码示例\u003c/strong\u003e：\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e// Java 8新特性示例\nimport java.util.stream.*;\nimport java.util.concurrent.CompletableFuture;\nimport java.util.*;\n\npublic class Java8Features {\n    \n    public void demonstrateStreams() {\n        List\u0026lt;String\u0026gt; list = Arrays.asList(\u0026quot;a\u0026quot;, \u0026quot;b\u0026quot;, \u0026quot;c\u0026quot;, \u0026quot;d\u0026quot;);\n        \n        // Stream API使用\n        List\u0026lt;String\u0026gt; result = list.stream()\n            .filter(s -\u0026gt; s.startsWith(\u0026quot;a\u0026quot;))\n            .map(String::toUpperCase)\n            .collect(Collectors.toList());\n    }\n    \n    public void demonstrateAsync() {\n        // CompletableFuture异步编程\n        CompletableFuture\u0026lt;String\u0026gt; future = CompletableFuture\n            .supplyAsync(() -\u0026gt; \u0026quot;Hello\u0026quot;)\n            .thenApply(s -\u0026gt; s + \u0026quot; World\u0026quot;)\n            .thenAccept(System.out::println);\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003eJava 9-11 - 模块化和持续优化\u003c/h2\u003e\n\u003ch3\u003e1. Java 9 (2017年)\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e模块化系统\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入Jigsaw模块系统\u003c/li\u003e\n\u003cli\u003e提供了更好的封装性\u003c/li\u003e\n\u003cli\u003e减少了内存占用\u003c/li\u003e\n\u003cli\u003e提升了启动性能\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eG1默认GC\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eG1成为默认垃圾回收器\u003c/li\u003e\n\u003cli\u003e改进了G1的性能和稳定性\u003c/li\u003e\n\u003cli\u003e提供了更好的GC日志\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eJShell\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入Java REPL工具\u003c/li\u003e\n\u003cli\u003e支持交互式编程\u003c/li\u003e\n\u003cli\u003e简化了Java学习和测试\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e2. Java 10 (2018年)\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e局部变量类型推断\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入var关键字\u003c/li\u003e\n\u003cli\u003e支持局部变量类型推断\u003c/li\u003e\n\u003cli\u003e提升了代码的简洁性\u003c/li\u003e\n\u003cli\u003e保持了类型安全\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e性能优化\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e改进了G1垃圾回收器\u003c/li\u003e\n\u003cli\u003e优化了JIT编译\u003c/li\u003e\n\u003cli\u003e提升了容器环境的性能\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e3. Java 11 (2018年) - LTS版本\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eZGC引入\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入ZGC（Z Garbage Collector）\u003c/li\u003e\n\u003cli\u003e支持TB级堆内存\u003c/li\u003e\n\u003cli\u003e停顿时间控制在毫秒级\u003c/li\u003e\n\u003cli\u003e适合大内存、低延迟应用\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eHTTP Client\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e标准化HTTP Client API\u003c/li\u003e\n\u003cli\u003e支持HTTP/2和WebSocket\u003c/li\u003e\n\u003cli\u003e提供了现代化的HTTP编程接口\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e性能提升\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e进一步优化了G1收集器\u003c/li\u003e\n\u003cli\u003e改进了字符串操作性能\u003c/li\u003e\n\u003cli\u003e增强了JIT编译优化\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eZGC配置示例\u003c/strong\u003e：\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-bash\"\u003e# ZGC配置参数\n-XX:+UseZGC  # 启用ZGC收集器\n-XX:+UnlockExperimentalVMOptions  # 解锁实验性选项\n-Xms4g -Xmx4g  # 堆内存设置\n-XX:ZAllocationSpikeTolerance=5  # 分配峰值容忍度\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003eJava 12-17 - 新特性持续涌现\u003c/h2\u003e\n\u003ch3\u003e1. Java 12 (2019年)\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eShenandoah GC\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入Shenandoah收集器\u003c/li\u003e\n\u003cli\u003e支持并发垃圾回收\u003c/li\u003e\n\u003cli\u003e提供更短的停顿时间\u003c/li\u003e\n\u003cli\u003e适合低延迟应用\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003eJVM常量API\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入JVM常量API\u003c/li\u003e\n\u003cli\u003e提供了更好的字节码操作能力\u003c/li\u003e\n\u003cli\u003e支持动态语言实现\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e2. Java 13-17的重要改进\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e记录类型（Records）\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eJava 14引入记录类型\u003c/li\u003e\n\u003cli\u003e简化了数据载体类的编写\u003c/li\u003e\n\u003cli\u003e提供了不可变性保证\u003c/li\u003e\n\u003cli\u003e减少了样板代码\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e模式匹配\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入模式匹配特性\u003c/li\u003e\n\u003cli\u003e简化了instanceof操作\u003c/li\u003e\n\u003cli\u003e增强了代码可读性\u003c/li\u003e\n\u003cli\u003e逐步完善中\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e密封类（Sealed Classes）\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003eJava 17引入密封类\u003c/li\u003e\n\u003cli\u003e提供了更好的继承控制\u003c/li\u003e\n\u003cli\u003e增强了类型系统的表达能力\u003c/li\u003e\n\u003cli\u003e支持更精确的建模\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e代码示例\u003c/strong\u003e：\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e// Java 14+ 新特性示例\npublic record Point(int x, int y) {}  // 记录类型\n\n// 模式匹配示例\nif (obj instanceof String s) {\n    System.out.println(s.toUpperCase());\n}\n\n// 密封类示例\npublic sealed interface Shape \n    permits Circle, Rectangle, Triangle {}\n    \nfinal class Circle implements Shape {\n    private final double radius;\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003eJava 21 (2023年) - 最新LTS版本\u003c/h2\u003e\n\u003ch3\u003e1. 虚拟线程（Virtual Threads）\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eProject Loom\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入虚拟线程技术\u003c/li\u003e\n\u003cli\u003e轻量级线程实现\u003c/li\u003e\n\u003cli\u003e大幅提升并发编程能力\u003c/li\u003e\n\u003cli\u003e支持百万级并发连接\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e性能优势\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e减少了线程创建和切换开销\u003c/li\u003e\n\u003cli\u003e提升了I/O密集型应用性能\u003c/li\u003e\n\u003cli\u003e简化了并发编程模型\u003c/li\u003e\n\u003cli\u003e更好的资源利用率\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e2. 分代ZGC\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eGenerational ZGC\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e引入分代ZGC\u003c/li\u003e\n\u003cli\u003e支持分代垃圾回收\u003c/li\u003e\n\u003cli\u003e提升了垃圾回收效率\u003c/li\u003e\n\u003cli\u003e减少了GC停顿时间\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch3\u003e3. 向量API（第四轮孵化）\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eVector API\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e提供了向量计算能力\u003c/li\u003e\n\u003cli\u003e支持SIMD指令优化\u003c/li\u003e\n\u003cli\u003e提升了数值计算性能\u003c/li\u003e\n\u003cli\u003e适合科学计算应用\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e虚拟线程示例\u003c/strong\u003e：\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-java\"\u003e// Java 21虚拟线程示例\nimport java.util.concurrent.*;\nimport java.util.stream.*;\n\npublic class VirtualThreads {\n    \n    public void demonstrateVirtualThreads() {\n        // 创建虚拟线程\n        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {\n            \n            // 提交大量任务\n            List\u0026lt;Future\u0026lt;String\u0026gt;\u0026gt; futures = IntStream.range(0, 1_000_000)\n                .mapToObj(i -\u0026gt; executor.submit(() -\u0026gt; {\n                    Thread.sleep(Duration.ofMillis(10));\n                    return \u0026quot;Task \u0026quot; + i + \u0026quot; completed\u0026quot;;\n                }))\n                .toList();\n                \n            // 等待所有任务完成\n            futures.forEach(future -\u0026gt; {\n                try {\n                    future.get();\n                } catch (Exception e) {\n                    e.printStackTrace();\n                }\n            });\n        }\n    }\n}\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch2\u003eJVM性能调优最佳实践\u003c/h2\u003e\n\u003ch3\u003e1. 内存配置\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e堆内存设置\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-bash\"\u003e# 基础内存配置\n-Xms4g -Xmx4g  # 初始和最大堆内存\n-XX:NewRatio=2  # 新生代与老年代比例\n-XX:SurvivorRatio=8  # Eden与Survivor比例\n\u003c/code\u003e\u003c/pre\u003e\n\u003cp\u003e\u003cstrong\u003e元空间配置\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-bash\"\u003e# Metaspace配置\n-XX:MetaspaceSize=256m  # 初始元空间大小\n-XX:MaxMetaspaceSize=512m  # 最大元空间大小\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e2. 垃圾回收选择\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e不同场景的GC选择\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-bash\"\u003e# 吞吐量优先 - Parallel GC\n-XX:+UseParallelGC\n\n# 低延迟优先 - G1 GC\n-XX:+UseG1GC -XX:MaxGCPauseMillis=200\n\n# 超低延迟 - ZGC\n-XX:+UseZGC -Xmx8g\n\n# 极低延迟 - Shenandoah GC\n-XX:+UseShenandoahGC\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e3. 监控和诊断\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003eJVM监控参数\u003c/strong\u003e\u003c/p\u003e\n\u003cpre\u003e\u003ccode class=\"language-bash\"\u003e# GC日志配置\n-XX:+PrintGCDetails\n-XX:+PrintGCDateStamps\n-XX:+PrintGCTimeStamps\n-Xloggc:/path/to/gc.log\n\n# OOM处理\n-XX:+HeapDumpOnOutOfMemoryError\n-XX:HeapDumpPath=/path/to/dump.hprof\n\u003c/code\u003e\u003c/pre\u003e\n\u003ch3\u003e4. 性能优化建议\u003c/h3\u003e\n\u003cp\u003e\u003cstrong\u003e代码优化\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e减少对象创建和内存分配\u003c/li\u003e\n\u003cli\u003e使用对象池和缓存机制\u003c/li\u003e\n\u003cli\u003e避免内存泄漏和资源浪费\u003c/li\u003e\n\u003cli\u003e合理使用集合类和数据结构\u003c/li\u003e\n\u003c/ul\u003e\n\u003cp\u003e\u003cstrong\u003e并发优化\u003c/strong\u003e\u003c/p\u003e\n\u003cul\u003e\n\u003cli\u003e合理使用线程池和并发工具\u003c/li\u003e\n\u003cli\u003e避免过度同步和锁竞争\u003c/li\u003e\n\u003cli\u003e利用无锁数据结构和算法\u003c/li\u003e\n\u003cli\u003e考虑使用虚拟线程提升并发性能\u003c/li\u003e\n\u003c/ul\u003e\n\u003ch2\u003e总结\u003c/h2\u003e\n\u003cp\u003e从Java 5到Java 21，JVM经历了巨大的发展和变化。主要改进包括：\u003c/p\u003e\n\u003col\u003e\n\u003cli\u003e\u003cstrong\u003e垃圾回收技术\u003c/strong\u003e：从简单的Serial GC到先进的ZGC和Shenandoah，停顿时间从秒级降低到毫秒级\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e内存管理\u003c/strong\u003e：从永久代到元空间，从压缩指针到更高效的内存布局\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e编译优化\u003c/strong\u003e：JIT编译器不断优化，支持更多的编译技术和优化策略\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e并发支持\u003c/strong\u003e：从基础的synchronized到虚拟线程，并发编程能力大幅提升\u003c/li\u003e\n\u003cli\u003e\u003cstrong\u003e监控诊断\u003c/strong\u003e：从基础的JMX到丰富的监控工具和诊断能力\u003c/li\u003e\n\u003c/ol\u003e\n\u003cp\u003e这些改进使得Java在现代应用场景中保持了强大的竞争力，无论是传统企业应用还是云原生应用，都能找到合适的JVM配置和优化方案。随着Java技术的持续发展，JVM将继续演进，为开发者提供更好的性能和更丰富的功能。\u003c/p\u003e\n"])</script><script>self.__next_f.push([1,"4:[\"$\",\"div\",null,{\"children\":[[\"$\",\"$Ld\",null,{\"href\":\"/notes\",\"className\":\"back-button\",\"style\":{\"display\":\"inline-block\",\"background\":\"var(--primary-color)\",\"color\":\"white\",\"border\":\"none\",\"padding\":\"10px 20px\",\"borderRadius\":\"6px\",\"cursor\":\"pointer\",\"marginBottom\":\"20px\",\"textDecoration\":\"none\"},\"children\":[\"← 返回\",\"笔记\",\"列表\"]}],[\"$\",\"article\",null,{\"className\":\"section\",\"children\":[[\"$\",\"header\",null,{\"className\":\"article-header\",\"children\":[[\"$\",\"h1\",null,{\"className\":\"article-title\",\"children\":\"JVM的发展之路，从5到21\"}],[\"$\",\"div\",null,{\"className\":\"article-meta\",\"children\":[[\"$\",\"div\",null,{\"className\":\"article-meta-info\",\"children\":[[\"$\",\"span\",null,{\"className\":\"article-date\",\"children\":\"2024-10-14\"}],[\"$\",\"span\",null,{\"className\":\"article-category\",\"children\":[\"• \",\"笔记\"]}]]}],[\"$\",\"div\",null,{\"className\":\"article-tags\",\"children\":[[\"$\",\"span\",\"JVM\",{\"className\":\"tag\",\"children\":\"JVM\"}],[\"$\",\"span\",\"Java\",{\"className\":\"tag\",\"children\":\"Java\"}],[\"$\",\"span\",\"虚拟机\",{\"className\":\"tag\",\"children\":\"虚拟机\"}],[\"$\",\"span\",\"性能优化\",{\"className\":\"tag\",\"children\":\"性能优化\"}],[\"$\",\"span\",\"垃圾回收\",{\"className\":\"tag\",\"children\":\"垃圾回收\"}]]}]]}]]}],[\"$\",\"div\",null,{\"className\":\"card markdown-content\",\"dangerouslySetInnerHTML\":{\"__html\":\"$e\"}}]]}]]}]\n"])</script><script>self.__next_f.push([1,"9:[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css\"}],[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css\"}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"div\",null,{\"className\":\"app\",\"children\":[[\"$\",\"$Lf\",null,{\"siteConfig\":{\"name\":\"Rudy Yang\",\"bio\":\"JAVA | AI | WEB3\",\"social\":[{\"name\":\"github\",\"icon\":\"fab fa-github\",\"url\":\"https://github.com/suogongy\"},{\"name\":\"twitter\",\"icon\":\"fab fa-twitter\",\"url\":\"https://twitter.com/suogongy\"},{\"name\":\"email\",\"icon\":\"fas fa-envelope\",\"url\":\"mailto:haiyuan1832@163.com\"}]}}],[\"$\",\"main\",null,{\"className\":\"main-content\",\"children\":[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]]}]}]]}]\n"])</script><script>self.__next_f.push([1,"a:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"JVM的发展之路，从5到21 - Personal GitHub Page\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"Java虚拟机(JVM)作为Java技术的核心，从Java 5到Java 21经历了巨大的发展和变化。本文详细介绍JVM的重要演进历程、关键特性改进和性能优化。\"}]]\n3:null\n"])</script></body></html>
