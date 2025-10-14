@@ -1,6 +1,6 @@
 [
   {
-    "title": "Next.js 个人作品集网站",
+    "title": "个人作品集网站",
     "description": "基于 Next.js 14 和 React 18 构建的现代化个人作品集网站，支持 Markdown 内容管理、响应式设计、暗色模式和多页面导航。",
     "tags": ["Next.js", "React", "TypeScript", "Markdown", "CSS"],
     "icon": "fas fa-rocket",
@@ -42,7 +42,7 @@
     "description": "基于人工智能的智能内容创作平台，支持剧本生成、分镜制作、角色管理、场景设计、音频合成和视频制作，提供从创意到成品的完整创作流程。",
     "tags": ["Next.js", "React", "TypeScript", "Tailwind CSS", "AI", "内容创作", "视频制作"],
     "icon": "fas fa-video",
-    "demoUrl": "https://ai-content-platform.vercel.app",
+    "demoUrl": "https://ai-content-generator-navy-phi.vercel.app",
     "githubUrl": "https://github.com/suogongy/ai-content-generator",
     "features": [
       "AI剧本生成",
