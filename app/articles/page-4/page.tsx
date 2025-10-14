@@ -4,7 +4,7 @@ import StaticPagination from '@/components/StaticPagination'
 import Link from 'next/link'
 
 export default async function ArticlesPage2() {
-  const pagination = await getArticlesPaginated('articles', 4, 4)
+  const pagination = await getArticlesPaginated('articles', 4, 10)
 
   return (
     <section className="section">

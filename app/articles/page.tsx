@@ -3,7 +3,7 @@ import ArticleCard from '@/components/ArticleCard'
 import StaticPagination from '@/components/StaticPagination'
 
 export default async function ArticlesPage() {
-  const pagination = await getArticlesPaginated('articles', 1, 4)
+  const pagination = await getArticlesPaginated('articles', 1, 10)
 
   return (
     <section className="section">
