@@ -101,7 +101,7 @@
   "现代化的个人网站平台，结合了博客管理与日常生产力功能。支持任务跟踪、日程管理，并能从完成的日程自动生成博客内容，打造个人数字生活中心。",
     "tags": ["Next.js 15", "React 19", "TypeScript", "Supabase", "Tailwind CSS", "Framer Motion", "TipTap", "SWR"],
     "icon": "fas fa-rocket",
-    "demoUrl": "https://be-better-web.example.com",
+    "demoUrl": "https://be-better-web.vercel.app/",
     "githubUrl": "https://github.com/yourusername/be-better-web",
     "features": [
       "富文本博客编辑器",
