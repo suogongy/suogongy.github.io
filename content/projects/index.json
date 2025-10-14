@@ -91,7 +91,7 @@
       "异步事件"
     ],
     "icon": "fas fa-exchange-alt",
-    "demoUrl": "http://github.com/suogongy/pp-event",
+    "demoUrl": null,
     "githubUrl": "http://github.com/suogongy/pp-event",
     "features": [
       "异步事件处理",
@@ -120,7 +120,7 @@
       "RWA"
     ],
     "icon": "fas fa-coins",
-    "demoUrl": "https://pp-rwa-demo.example.com",
+    "demoUrl": null,
     "githubUrl": "https://github.com/suogongy/pp-rwa",
     "features": [
       "资产代币化",
