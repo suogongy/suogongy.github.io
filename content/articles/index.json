@@ -1,5 +1,47 @@
 [
   {
+    "name": "parenting-costs-and-sweetness.md",
+    "title": "育儿的代价与甜蜜",
+    "date": "2024-10-14",
+    "excerpt": "探讨现代父母在育儿过程中面临的挑战、付出的代价以及收获的甜蜜和成就感",
+    "tags": ["育儿", "家庭教育", "亲子关系", "成长", "生活方式"]
+  },
+  {
+    "name": "china-new-energy-vehicles.md",
+    "title": "中国为什么要发展新能源汽车",
+    "date": "2024-10-14",
+    "excerpt": "分析中国发展新能源汽车的战略意义、技术路径和市场前景",
+    "tags": ["新能源汽车", "产业发展", "技术创新", "环境保护", "能源安全"]
+  },
+  {
+    "name": "traditional-chinese-culture-importance.md",
+    "title": "传统国学的重要性",
+    "date": "2024-10-14",
+    "excerpt": "探讨在现代社会中传承和学习传统文化的重要性",
+    "tags": ["传统文化", "国学", "文化传承", "价值观", "精神文明"]
+  },
+  {
+    "name": "era-opportunities-and-personal-development.md",
+    "title": "时代机遇与个人发展",
+    "date": "2024-10-14",
+    "excerpt": "分析当前时代背景下个人如何把握机遇实现自身发展",
+    "tags": ["时代机遇", "个人发展", "职业规划", "成长思维", "未来趋势"]
+  },
+  {
+    "name": "ai-era-risks-and-opportunities.md",
+    "title": "AI时代个人的风险与机遇",
+    "date": "2024-10-14",
+    "excerpt": "探讨人工智能时代个人面临的挑战与机遇，以及如何应对",
+    "tags": ["人工智能", "职业发展", "技术变革", "风险管理"]
+  },
+  {
+    "name": "mid-career-reflection.md",
+    "title": "中年打工者的思变",
+    "date": "2024-10-14",
+    "excerpt": "探讨中年职场人士面临的挑战与转型思考",
+    "tags": ["职业发展", "中年危机", "职场思考", "人生规划"]
+  },
+  {
     "name": "my-programming-journey.md",
     "title": "我的编程之路",
     "date": "2024-01-20",

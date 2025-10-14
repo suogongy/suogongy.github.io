@@ -1,0 +1,1199 @@
+---
+title: "热门算法数据结构详解"
+description: "核心算法和数据结构原理与应用"
+date: "2024-10-14"
+excerpt: "深入解析程序员必须掌握的核心算法和数据结构，包括时间复杂度、空间复杂度分析，以及实际应用场景。"
+tags: ["算法", "数据结构", "时间复杂度", "空间复杂度", "面试"]
+category: "notes"
+---
+
+# 热门算法数据结构详解
+
+> 掌握算法和数据结构是程序员的核心技能，也是技术面试的重点
+
+## 时间复杂度和空间复杂度
+
+### 1. 复杂度分析
+
+```
+时间复杂度等级：
+O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(n³) < O(2^n) < O(n!)
+
+常见复杂度分析：
+├── O(1) - 常数时间
+│   ├── 数组访问：arr[i]
+│   ├── 哈希表查找：map.get(key)
+│   └── 栈操作：push/pop
+├── O(log n) - 对数时间
+│   ├── 二分查找
+│   ├── 平衡二叉树操作
+│   └── 堆操作
+├── O(n) - 线性时间
+│   ├── 数组遍历
+│   ├── 链表遍历
+│   └── 哈希表遍历
+├── O(n log n) - 线性对数时间
+│   ├── 快速排序
+│   ├── 归并排序
+│   └── 堆排序
+└── O(n²) - 平方时间
+    ├── 冒泡排序
+    ├── 选择排序
+    └── 插入排序
+```
+
+### 2. 复杂度计算示例
+
+```java
+// 时间复杂度分析示例
+public class ComplexityAnalysis {
+    
+    // O(1) - 常数时间
+    public int getFirst(int[] arr) {
+        return arr[0]; // 只执行一次操作
+    }
+    
+    // O(n) - 线性时间
+    public int findMax(int[] arr) {
+        int max = arr[0];
+        for (int i = 1; i < arr.length; i++) { // 执行n次
+            if (arr[i] > max) {
+                max = arr[i];
+            }
+        }
+        return max;
+    }
+    
+    // O(n²) - 平方时间
+    public void bubbleSort(int[] arr) {
+        for (int i = 0; i < arr.length; i++) { // 外层循环n次
+            for (int j = 0; j < arr.length - 1 - i; j++) { // 内层循环n次
+                if (arr[j] > arr[j + 1]) {
+                    swap(arr, j, j + 1);
+                }
+            }
+        }
+    }
+    
+    // O(log n) - 对数时间
+    public int binarySearch(int[] arr, int target) {
+        int left = 0, right = arr.length - 1;
+        while (left <= right) { // 每次循环范围减半
+            int mid = left + (right - left) / 2;
+            if (arr[mid] == target) {
+                return mid;
+            } else if (arr[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return -1;
+    }
+}
+```
+
+## 核心数据结构
+
+### 1. 数组（Array）
+
+**基本操作**
+```java
+public class ArrayOperations {
+    
+    // 动态数组实现
+    public class DynamicArray {
+        private int[] data;
+        private int size;
+        private int capacity;
+        
+        public DynamicArray(int initialCapacity) {
+            this.capacity = initialCapacity;
+            this.data = new int[capacity];
+            this.size = 0;
+        }
+        
+        // 添加元素 - O(1)平均，O(n)最坏
+        public void add(int element) {
+            if (size == capacity) {
+                resize();
+            }
+            data[size++] = element;
+        }
+        
+        // 在指定位置插入 - O(n)
+        public void insert(int index, int element) {
+            if (index < 0 || index > size) {
+                throw new IndexOutOfBoundsException();
+            }
+            
+            if (size == capacity) {
+                resize();
+            }
+            
+            // 向后移动元素
+            for (int i = size - 1; i >= index; i--) {
+                data[i + 1] = data[i];
+            }
+            
+            data[index] = element;
+            size++;
+        }
+        
+        // 删除元素 - O(n)
+        public int remove(int index) {
+            if (index < 0 || index >= size) {
+                throw new IndexOutOfBoundsException();
+            }
+            
+            int removed = data[index];
+            
+            // 向前移动元素
+            for (int i = index; i < size - 1; i++) {
+                data[i] = data[i + 1];
+            }
+            
+            size--;
+            return removed;
+        }
+        
+        // 扩容 - O(n)
+        private void resize() {
+            capacity *= 2;
+            int[] newData = new int[capacity];
+            System.arraycopy(data, 0, newData, 0, size);
+            data = newData;
+        }
+    }
+}
+```
+
+### 2. 链表（Linked List）
+
+**单链表实现**
+```java
+public class LinkedList {
+    
+    private class Node {
+        int data;
+        Node next;
+        
+        Node(int data) {
+            this.data = data;
+            this.next = null;
+        }
+    }
+    
+    private Node head;
+    private int size;
+    
+    // 头部插入 - O(1)
+    public void addFirst(int data) {
+        Node newNode = new Node(data);
+        newNode.next = head;
+        head = newNode;
+        size++;
+    }
+    
+    // 尾部插入 - O(n)
+    public void addLast(int data) {
+        Node newNode = new Node(data);
+        
+        if (head == null) {
+            head = newNode;
+        } else {
+            Node current = head;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+        }
+        size++;
+    }
+    
+    // 在指定位置插入 - O(n)
+    public void insert(int index, int data) {
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException();
+        }
+        
+        if (index == 0) {
+            addFirst(data);
+        } else {
+            Node newNode = new Node(data);
+            Node prev = getNode(index - 1);
+            newNode.next = prev.next;
+            prev.next = newNode;
+            size++;
+        }
+    }
+    
+    // 删除节点 - O(n)
+    public int remove(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException();
+        }
+        
+        if (index == 0) {
+            return removeFirst();
+        } else {
+            Node prev = getNode(index - 1);
+            Node removed = prev.next;
+            prev.next = removed.next;
+            size--;
+            return removed.data;
+        }
+    }
+    
+    // 反转链表 - O(n)
+    public void reverse() {
+        Node prev = null;
+        Node current = head;
+        Node next = null;
+        
+        while (current != null) {
+            next = current.next;
+            current.next = prev;
+            prev = current;
+            current = next;
+        }
+        
+        head = prev;
+    }
+    
+    // 检测环 - Floyd算法
+    public boolean hasCycle() {
+        Node slow = head;
+        Node fast = head;
+        
+        while (fast != null && fast.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            
+            if (slow == fast) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private Node getNode(int index) {
+        Node current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.next;
+        }
+        return current;
+    }
+}
+```
+
+### 3. 栈和队列（Stack & Queue）
+
+**栈实现**
+```java
+public class Stack {
+    private int[] data;
+    private int top;
+    private int capacity;
+    
+    public Stack(int capacity) {
+        this.capacity = capacity;
+        this.data = new int[capacity];
+        this.top = -1;
+    }
+    
+    // 入栈 - O(1)
+    public void push(int element) {
+        if (isFull()) {
+            throw new StackOverflowError();
+        }
+        data[++top] = element;
+    }
+    
+    // 出栈 - O(1)
+    public int pop() {
+        if (isEmpty()) {
+            throw new EmptyStackException();
+        }
+        return data[top--];
+    }
+    
+    // 查看栈顶元素 - O(1)
+    public int peek() {
+        if (isEmpty()) {
+            throw new EmptyStackException();
+        }
+        return data[top];
+    }
+    
+    public boolean isEmpty() {
+        return top == -1;
+    }
+    
+    public boolean isFull() {
+        return top == capacity - 1;
+    }
+}
+```
+
+**队列实现**
+```java
+public class Queue {
+    private int[] data;
+    private int front;
+    private int rear;
+    private int size;
+    private int capacity;
+    
+    public Queue(int capacity) {
+        this.capacity = capacity;
+        this.data = new int[capacity];
+        this.front = 0;
+        this.rear = -1;
+        this.size = 0;
+    }
+    
+    // 入队 - O(1)
+    public void enqueue(int element) {
+        if (isFull()) {
+            throw new IllegalStateException("Queue is full");
+        }
+        
+        rear = (rear + 1) % capacity;
+        data[rear] = element;
+        size++;
+    }
+    
+    // 出队 - O(1)
+    public int dequeue() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Queue is empty");
+        }
+        
+        int element = data[front];
+        front = (front + 1) % capacity;
+        size--;
+        return element;
+    }
+    
+    // 查看队首元素 - O(1)
+    public int peek() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Queue is empty");
+        }
+        return data[front];
+    }
+    
+    public boolean isEmpty() {
+        return size == 0;
+    }
+    
+    public boolean isFull() {
+        return size == capacity;
+    }
+}
+```
+
+### 4. 哈希表（Hash Table）
+
+**哈希表实现**
+```java
+public class HashMap<K, V> {
+    
+    private class Entry<K, V> {
+        K key;
+        V value;
+        Entry<K, V> next;
+        
+        Entry(K key, V value) {
+            this.key = key;
+            this.value = value;
+            this.next = null;
+        }
+    }
+    
+    private Entry<K, V>[] table;
+    private int size;
+    private int capacity;
+    
+    public HashMap(int capacity) {
+        this.capacity = capacity;
+        this.table = new Entry[capacity];
+        this.size = 0;
+    }
+    
+    // 哈希函数
+    private int hash(K key) {
+        return Math.abs(key.hashCode()) % capacity;
+    }
+    
+    // 插入键值对 - O(1)平均，O(n)最坏
+    public void put(K key, V value) {
+        int index = hash(key);
+        Entry<K, V> entry = table[index];
+        
+        // 检查是否已存在
+        while (entry != null) {
+            if (entry.key.equals(key)) {
+                entry.value = value;
+                return;
+            }
+            entry = entry.next;
+        }
+        
+        // 插入新节点
+        Entry<K, V> newEntry = new Entry<>(key, value);
+        newEntry.next = table[index];
+        table[index] = newEntry;
+        size++;
+        
+        // 检查是否需要扩容
+        if (size > capacity * 0.75) {
+            resize();
+        }
+    }
+    
+    // 获取值 - O(1)平均，O(n)最坏
+    public V get(K key) {
+        int index = hash(key);
+        Entry<K, V> entry = table[index];
+        
+        while (entry != null) {
+            if (entry.key.equals(key)) {
+                return entry.value;
+            }
+            entry = entry.next;
+        }
+        
+        return null;
+    }
+    
+    // 删除键值对 - O(1)平均，O(n)最坏
+    public V remove(K key) {
+        int index = hash(key);
+        Entry<K, V> entry = table[index];
+        Entry<K, V> prev = null;
+        
+        while (entry != null) {
+            if (entry.key.equals(key)) {
+                if (prev == null) {
+                    table[index] = entry.next;
+                } else {
+                    prev.next = entry.next;
+                }
+                size--;
+                return entry.value;
+            }
+            prev = entry;
+            entry = entry.next;
+        }
+        
+        return null;
+    }
+    
+    // 扩容 - O(n)
+    private void resize() {
+        capacity *= 2;
+        Entry<K, V>[] oldTable = table;
+        table = new Entry[capacity];
+        size = 0;
+        
+        for (Entry<K, V> entry : oldTable) {
+            while (entry != null) {
+                put(entry.key, entry.value);
+                entry = entry.next;
+            }
+        }
+    }
+}
+```
+
+### 5. 二叉树（Binary Tree）
+
+**二叉搜索树实现**
+```java
+public class BinarySearchTree {
+    
+    private class Node {
+        int data;
+        Node left;
+        Node right;
+        
+        Node(int data) {
+            this.data = data;
+            this.left = null;
+            this.right = null;
+        }
+    }
+    
+    private Node root;
+    
+    // 插入节点 - O(h)，h为树的高度
+    public void insert(int data) {
+        root = insert(root, data);
+    }
+    
+    private Node insert(Node node, int data) {
+        if (node == null) {
+            return new Node(data);
+        }
+        
+        if (data < node.data) {
+            node.left = insert(node.left, data);
+        } else if (data > node.data) {
+            node.right = insert(node.right, data);
+        }
+        
+        return node;
+    }
+    
+    // 查找节点 - O(h)
+    public boolean search(int data) {
+        return search(root, data);
+    }
+    
+    private boolean search(Node node, int data) {
+        if (node == null) {
+            return false;
+        }
+        
+        if (data == node.data) {
+            return true;
+        } else if (data < node.data) {
+            return search(node.left, data);
+        } else {
+            return search(node.right, data);
+        }
+    }
+    
+    // 删除节点 - O(h)
+    public void delete(int data) {
+        root = delete(root, data);
+    }
+    
+    private Node delete(Node node, int data) {
+        if (node == null) {
+            return null;
+        }
+        
+        if (data < node.data) {
+            node.left = delete(node.left, data);
+        } else if (data > node.data) {
+            node.right = delete(node.right, data);
+        } else {
+            // 找到要删除的节点
+            
+            // 情况1：没有子节点
+            if (node.left == null && node.right == null) {
+                return null;
+            }
+            
+            // 情况2：只有一个子节点
+            if (node.left == null) {
+                return node.right;
+            }
+            if (node.right == null) {
+                return node.left;
+            }
+            
+            // 情况3：有两个子节点
+            Node minNode = findMin(node.right);
+            node.data = minNode.data;
+            node.right = delete(node.right, minNode.data);
+        }
+        
+        return node;
+    }
+    
+    private Node findMin(Node node) {
+        while (node.left != null) {
+            node = node.left;
+        }
+        return node;
+    }
+    
+    // 中序遍历 - O(n)
+    public void inorderTraversal() {
+        inorderTraversal(root);
+        System.out.println();
+    }
+    
+    private void inorderTraversal(Node node) {
+        if (node != null) {
+            inorderTraversal(node.left);
+            System.out.print(node.data + " ");
+            inorderTraversal(node.right);
+        }
+    }
+    
+    // 前序遍历 - O(n)
+    public void preorderTraversal() {
+        preorderTraversal(root);
+        System.out.println();
+    }
+    
+    private void preorderTraversal(Node node) {
+        if (node != null) {
+            System.out.print(node.data + " ");
+            preorderTraversal(node.left);
+            preorderTraversal(node.right);
+        }
+    }
+    
+    // 后序遍历 - O(n)
+    public void postorderTraversal() {
+        postorderTraversal(root);
+        System.out.println();
+    }
+    
+    private void postorderTraversal(Node node) {
+        if (node != null) {
+            postorderTraversal(node.left);
+            postorderTraversal(node.right);
+            System.out.print(node.data + " ");
+        }
+    }
+}
+```
+
+### 6. 堆（Heap）
+
+**最大堆实现**
+```java
+public class MaxHeap {
+    private int[] heap;
+    private int size;
+    private int capacity;
+    
+    public MaxHeap(int capacity) {
+        this.capacity = capacity;
+        this.heap = new int[capacity];
+        this.size = 0;
+    }
+    
+    // 获取父节点索引
+    private int parent(int i) {
+        return (i - 1) / 2;
+    }
+    
+    // 获取左子节点索引
+    private int left(int i) {
+        return 2 * i + 1;
+    }
+    
+    // 获取右子节点索引
+    private int right(int i) {
+        return 2 * i + 2;
+    }
+    
+    // 插入元素 - O(log n)
+    public void insert(int data) {
+        if (size >= capacity) {
+            throw new IllegalStateException("Heap is full");
+        }
+        
+        heap[size] = data;
+        int current = size;
+        
+        // 向上调整
+        while (current > 0 && heap[current] > heap[parent(current)]) {
+            swap(current, parent(current));
+            current = parent(current);
+        }
+        
+        size++;
+    }
+    
+    // 删除最大元素 - O(log n)
+    public int extractMax() {
+        if (size <= 0) {
+            throw new IllegalStateException("Heap is empty");
+        }
+        
+        int max = heap[0];
+        heap[0] = heap[size - 1];
+        size--;
+        
+        // 向下调整
+        heapify(0);
+        
+        return max;
+    }
+    
+    // 堆化 - O(log n)
+    private void heapify(int i) {
+        int largest = i;
+        int left = left(i);
+        int right = right(i);
+        
+        if (left < size && heap[left] > heap[largest]) {
+            largest = left;
+        }
+        
+        if (right < size && heap[right] > heap[largest]) {
+            largest = right;
+        }
+        
+        if (largest != i) {
+            swap(i, largest);
+            heapify(largest);
+        }
+    }
+    
+    // 构建堆 - O(n)
+    public void buildHeap(int[] array) {
+        this.heap = array;
+        this.size = array.length;
+        this.capacity = array.length;
+        
+        // 从最后一个非叶子节点开始堆化
+        for (int i = size / 2 - 1; i >= 0; i--) {
+            heapify(i);
+        }
+    }
+    
+    // 堆排序 - O(n log n)
+    public void heapSort() {
+        // 构建最大堆
+        buildHeap(heap);
+        
+        // 逐个提取最大元素
+        for (int i = size - 1; i > 0; i--) {
+            swap(0, i);
+            size--;
+            heapify(0);
+        }
+    }
+    
+    private void swap(int i, int j) {
+        int temp = heap[i];
+        heap[i] = heap[j];
+        heap[j] = temp;
+    }
+}
+```
+
+## 核心算法
+
+### 1. 排序算法
+
+**快速排序**
+```java
+public class QuickSort {
+    
+    // 快速排序 - O(n log n)平均，O(n²)最坏
+    public void sort(int[] arr) {
+        quickSort(arr, 0, arr.length - 1);
+    }
+    
+    private void quickSort(int[] arr, int low, int high) {
+        if (low < high) {
+            int pivotIndex = partition(arr, low, high);
+            quickSort(arr, low, pivotIndex - 1);
+            quickSort(arr, pivotIndex + 1, high);
+        }
+    }
+    
+    private int partition(int[] arr, int low, int high) {
+        int pivot = arr[high];
+        int i = low - 1;
+        
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                swap(arr, i, j);
+            }
+        }
+        
+        swap(arr, i + 1, high);
+        return i + 1;
+    }
+    
+    private void swap(int[] arr, int i, int j) {
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+```
+
+**归并排序**
+```java
+public class MergeSort {
+    
+    // 归并排序 - O(n log n)
+    public void sort(int[] arr) {
+        if (arr.length < 2) {
+            return;
+        }
+        
+        int[] temp = new int[arr.length];
+        mergeSort(arr, temp, 0, arr.length - 1);
+    }
+    
+    private void mergeSort(int[] arr, int[] temp, int left, int right) {
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+            mergeSort(arr, temp, left, mid);
+            mergeSort(arr, temp, mid + 1, right);
+            merge(arr, temp, left, mid, right);
+        }
+    }
+    
+    private void merge(int[] arr, int[] temp, int left, int mid, int right) {
+        // 复制到临时数组
+        for (int i = left; i <= right; i++) {
+            temp[i] = arr[i];
+        }
+        
+        int i = left, j = mid + 1, k = left;
+        
+        // 合并两个有序数组
+        while (i <= mid && j <= right) {
+            if (temp[i] <= temp[j]) {
+                arr[k++] = temp[i++];
+            } else {
+                arr[k++] = temp[j++];
+            }
+        }
+        
+        // 复制剩余元素
+        while (i <= mid) {
+            arr[k++] = temp[i++];
+        }
+    }
+}
+```
+
+### 2. 搜索算法
+
+**二分查找**
+```java
+public class BinarySearch {
+    
+    // 递归实现 - O(log n)
+    public int searchRecursive(int[] arr, int target) {
+        return searchRecursive(arr, target, 0, arr.length - 1);
+    }
+    
+    private int searchRecursive(int[] arr, int target, int left, int right) {
+        if (left > right) {
+            return -1;
+        }
+        
+        int mid = left + (right - left) / 2;
+        
+        if (arr[mid] == target) {
+            return mid;
+        } else if (arr[mid] < target) {
+            return searchRecursive(arr, target, mid + 1, right);
+        } else {
+            return searchRecursive(arr, target, left, mid - 1);
+        }
+    }
+    
+    // 迭代实现 - O(log n)
+    public int searchIterative(int[] arr, int target) {
+        int left = 0, right = arr.length - 1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (arr[mid] == target) {
+                return mid;
+            } else if (arr[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return -1;
+    }
+    
+    // 查找第一个等于target的元素
+    public int findFirst(int[] arr, int target) {
+        int left = 0, right = arr.length - 1;
+        int result = -1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (arr[mid] == target) {
+                result = mid;
+                right = mid - 1; // 继续向左查找
+            } else if (arr[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return result;
+    }
+    
+    // 查找最后一个等于target的元素
+    public int findLast(int[] arr, int target) {
+        int left = 0, right = arr.length - 1;
+        int result = -1;
+        
+        while (left <= right) {
+            int mid = left + (right - left) / 2;
+            
+            if (arr[mid] == target) {
+                result = mid;
+                left = mid + 1; // 继续向右查找
+            } else if (arr[mid] < target) {
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        
+        return result;
+    }
+}
+```
+
+### 3. 动态规划
+
+**斐波那契数列**
+```java
+public class Fibonacci {
+    
+    // 递归实现 - O(2^n)
+    public int fibonacciRecursive(int n) {
+        if (n <= 1) {
+            return n;
+        }
+        return fibonacciRecursive(n - 1) + fibonacciRecursive(n - 2);
+    }
+    
+    // 记忆化递归 - O(n)
+    public int fibonacciMemoization(int n) {
+        int[] memo = new int[n + 1];
+        return fibonacciMemoization(n, memo);
+    }
+    
+    private int fibonacciMemoization(int n, int[] memo) {
+        if (n <= 1) {
+            return n;
+        }
+        
+        if (memo[n] != 0) {
+            return memo[n];
+        }
+        
+        memo[n] = fibonacciMemoization(n - 1, memo) + 
+                 fibonacciMemoization(n - 2, memo);
+        return memo[n];
+    }
+    
+    // 动态规划 - O(n)
+    public int fibonacciDP(int n) {
+        if (n <= 1) {
+            return n;
+        }
+        
+        int[] dp = new int[n + 1];
+        dp[0] = 0;
+        dp[1] = 1;
+        
+        for (int i = 2; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        
+        return dp[n];
+    }
+    
+    // 空间优化 - O(n)
+    public int fibonacciOptimized(int n) {
+        if (n <= 1) {
+            return n;
+        }
+        
+        int prev = 0, curr = 1;
+        
+        for (int i = 2; i <= n; i++) {
+            int next = prev + curr;
+            prev = curr;
+            curr = next;
+        }
+        
+        return curr;
+    }
+}
+```
+
+**最长公共子序列**
+```java
+public class LongestCommonSubsequence {
+    
+    // 动态规划实现 - O(m*n)
+    public int lcs(String text1, String text2) {
+        int m = text1.length();
+        int n = text2.length();
+        
+        int[][] dp = new int[m + 1][n + 1];
+        
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {
+                    dp[i][j] = dp[i - 1][j - 1] + 1;
+                } else {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+        
+        return dp[m][n];
+    }
+    
+    // 空间优化 - O(min(m,n))
+    public int lcsOptimized(String text1, String text2) {
+        if (text1.length() < text2.length()) {
+            return lcsOptimized(text2, text1);
+        }
+        
+        int m = text1.length();
+        int n = text2.length();
+        
+        int[] dp = new int[n + 1];
+        
+        for (int i = 1; i <= m; i++) {
+            int prev = 0;
+            for (int j = 1; j <= n; j++) {
+                int temp = dp[j];
+                if (text1.charAt(i - 1) == text2.charAt(j - 1)) {
+                    dp[j] = prev + 1;
+                } else {
+                    dp[j] = Math.max(dp[j], dp[j - 1]);
+                }
+                prev = temp;
+            }
+        }
+        
+        return dp[n];
+    }
+}
+```
+
+### 4. 贪心算法
+
+**活动选择问题**
+```java
+public class ActivitySelection {
+    
+    static class Activity {
+        int start;
+        int end;
+        
+        Activity(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+    }
+    
+    // 贪心算法实现 - O(n log n)
+    public List<Integer> activitySelection(Activity[] activities) {
+        // 按结束时间排序
+        Arrays.sort(activities, (a, b) -> a.end - b.end);
+        
+        List<Integer> selected = new ArrayList<>();
+        selected.add(0); // 选择第一个活动
+        
+        int lastEnd = activities[0].end;
+        
+        for (int i = 1; i < activities.length; i++) {
+            if (activities[i].start >= lastEnd) {
+                selected.add(i);
+                lastEnd = activities[i].end;
+            }
+        }
+        
+        return selected;
+    }
+}
+```
+
+**霍夫曼编码**
+```java
+public class HuffmanCoding {
+    
+    static class HuffmanNode implements Comparable<HuffmanNode> {
+        char data;
+        int frequency;
+        HuffmanNode left, right;
+        
+        HuffmanNode(char data, int frequency) {
+            this.data = data;
+            this.frequency = frequency;
+        }
+        
+        @Override
+        public int compareTo(HuffmanNode other) {
+            return this.frequency - other.frequency;
+        }
+    }
+    
+    // 构建霍夫曼树 - O(n log n)
+    public HuffmanNode buildHuffmanTree(Map<Character, Integer> frequencyMap) {
+        PriorityQueue<HuffmanNode> pq = new PriorityQueue<>();
+        
+        // 创建叶子节点
+        for (Map.Entry<Character, Integer> entry : frequencyMap.entrySet()) {
+            pq.add(new HuffmanNode(entry.getKey(), entry.getValue()));
+        }
+        
+        // 构建霍夫曼树
+        while (pq.size() > 1) {
+            HuffmanNode left = pq.poll();
+            HuffmanNode right = pq.poll();
+            
+            HuffmanNode parent = new HuffmanNode('\0', 
+                left.frequency + right.frequency);
+            parent.left = left;
+            parent.right = right;
+            
+            pq.add(parent);
+        }
+        
+        return pq.poll();
+    }
+    
+    // 生成霍夫曼编码 - O(n)
+    public Map<Character, String> generateHuffmanCodes(HuffmanNode root) {
+        Map<Character, String> codes = new HashMap<>();
+        generateHuffmanCodes(root, "", codes);
+        return codes;
+    }
+    
+    private void generateHuffmanCodes(HuffmanNode node, String code, 
+                                    Map<Character, String> codes) {
+        if (node == null) {
+            return;
+        }
+        
+        if (node.data != '\0') {
+            codes.put(node.data, code);
+            return;
+        }
+        
+        generateHuffmanCodes(node.left, code + "0", codes);
+        generateHuffmanCodes(node.right, code + "1", codes);
+    }
+}
+```
+
+## 总结
+
+掌握算法和数据结构需要：
+
+1. **理论基础**：理解各种算法的原理和复杂度
+2. **实践练习**：通过编码实现加深理解
+3. **应用场景**：了解不同算法的适用场景
+4. **优化技巧**：学会优化算法的时间和空间复杂度
+5. **持续学习**：关注算法领域的新发展和最佳实践
+
+通过系统学习和大量练习，可以逐步提升算法能力，在面试和实际工作中都能游刃有余。

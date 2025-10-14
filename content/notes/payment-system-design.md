@@ -1,0 +1,1054 @@
+---
+title: "支付系统设计详解"
+description: "支付系统架构和核心流程"
+date: "2024-10-14"
+excerpt: "深入分析支付系统的架构设计、核心业务流程、安全机制、对账系统等关键模块，帮助构建安全可靠的支付系统。"
+tags: ["支付系统", "系统设计", "金融安全", "第三方支付", "对账系统"]
+category: "notes"
+---
+
+# 支付系统设计详解
+
+> 支付系统是电商平台的核心，其安全性和可靠性直接影响整个平台的信誉
+
+## 支付系统概述
+
+### 1. 系统架构
+
+```
+支付系统架构：
+┌─────────────────────────────────────────────────────────────┐
+│                    前端应用层                               │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
+│  │   Web       │ │   Mobile    │ │   API       │           │
+│  │   App       │ │   App       │ │   Client    │           │
+│  └─────────────┘  └─────────────┘  └─────────────┘           │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    ┌─────────────┐
+                    │  Gateway    │
+                    │  (负载均衡)  │
+                    └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Payment    │ │  Account    │ │  Risk       │
+    │  Service    │ │  Service    │ │  Control    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Third      │ │  Reconcile  │ │  Notify     │
+    │  Party      │ │  Service    │ │  Service    │
+    │  Payment    │ │             │ │             │
+    └─────────────┘ └─────────────┘ └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  MySQL      │ │  Redis      │ │  MQ         │
+    │  Master     │ │  Cluster    │ │  Cluster    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+```
+
+### 2. 核心业务流程
+
+```
+支付流程：
+├── 创建支付
+│   ├── 验证订单
+│   ├── 选择支付方式
+│   ├── 生成支付单
+│   └── 调用第三方支付
+├── 支付处理
+│   ├── 用户支付
+│   ├── 支付结果回调
+│   ├── 更新支付状态
+│   └── 业务处理
+├── 支付通知
+│   ├── 异步通知
+│   ├── 验证签名
+│   ├── 更新订单状态
+│   └── 发送通知
+└── 对账处理
+    ├── 获取账单
+    ├── 对比账单
+    ├── 处理差异
+    └── 生成报告
+```
+
+## 支付核心服务
+
+### 1. 支付创建
+
+**支付服务实现**
+```java
+@Service
+@Transactional
+public class PaymentService {
+    
+    @Autowired
+    private PaymentRepository paymentRepository;
+    
+    @Autowired
+    private OrderService orderService;
+    
+    @Autowired
+    private PaymentChannelService channelService;
+    
+    @Autowired
+    private RiskControlService riskControlService;
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    // 创建支付
+    public PaymentResponse createPayment(PaymentRequest request) {
+        // 1. 验证订单
+        Order order = orderService.getOrder(request.getOrderId());
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        
+        // 2. 验证订单状态
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new BusinessException("订单状态不正确");
+        }
+        
+        // 3. 验证支付金额
+        if (!order.getPayAmount().equals(request.getAmount())) {
+            throw new BusinessException("支付金额不匹配");
+        }
+        
+        // 4. 风险控制检查
+        RiskCheckResult riskResult = riskControlService.checkPaymentRisk(
+            order.getUserId(), request.getAmount(), request.getIp());
+        
+        if (riskResult.isHighRisk()) {
+            throw new BusinessException("支付风险过高");
+        }
+        
+        // 5. 创建支付记录
+        Payment payment = new Payment();
+        payment.setPaymentNo(generatePaymentNo());
+        payment.setOrderId(request.getOrderId());
+        payment.setUserId(order.getUserId());
+        payment.setAmount(request.getAmount());
+        payment.setChannel(request.getChannel());
+        payment.setStatus(PaymentStatus.PENDING);
+        payment.setCreateTime(new Date());
+        
+        payment = paymentRepository.save(payment);
+        
+        // 6. 调用第三方支付
+        PaymentChannel channel = channelService.getChannel(request.getChannel());
+        ThirdPartyPaymentRequest thirdPartyRequest = buildThirdPartyRequest(payment, request);
+        ThirdPartyPaymentResponse thirdPartyResponse = channel.createPayment(thirdPartyRequest);
+        
+        // 7. 更新支付记录
+        payment.setThirdPartyPaymentNo(thirdPartyResponse.getPaymentNo());
+        payment.setPayUrl(thirdPartyResponse.getPayUrl());
+        payment.setQrCode(thirdPartyResponse.getQrCode());
+        paymentRepository.save(payment);
+        
+        // 8. 返回支付信息
+        PaymentResponse response = new PaymentResponse();
+        response.setPaymentNo(payment.getPaymentNo());
+        response.setPayUrl(payment.getPayUrl());
+        response.setQrCode(payment.getQrCode());
+        response.setExpireTime(thirdPartyResponse.getExpireTime());
+        
+        return response;
+    }
+    
+    // 支付回调处理
+    @Transactional
+    public void handlePaymentCallback(String channel, PaymentCallbackRequest request) {
+        // 1. 验证签名
+        PaymentChannel paymentChannel = channelService.getChannel(channel);
+        if (!paymentChannel.verifyCallback(request)) {
+            throw new BusinessException("回调签名验证失败");
+        }
+        
+        // 2. 查找支付记录
+        Payment payment = paymentRepository.findByThirdPartyPaymentNo(
+            request.getThirdPartyPaymentNo());
+        
+        if (payment == null) {
+            throw new BusinessException("支付记录不存在");
+        }
+        
+        // 3. 防止重复处理
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            return;
+        }
+        
+        // 4. 更新支付状态
+        if (request.isSuccess()) {
+            payment.setStatus(PaymentStatus.SUCCESS);
+            payment.setPayTime(new Date());
+            payment.setThirdPartyTradeNo(request.getThirdPartyTradeNo());
+            
+            // 更新订单状态
+            orderService.handlePaymentSuccess(payment.getOrderId());
+            
+            // 发送支付成功消息
+            sendPaymentSuccessMessage(payment);
+        } else {
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setFailReason(request.getFailReason());
+            
+            // 发送支付失败消息
+            sendPaymentFailedMessage(payment);
+        }
+        
+        payment.setUpdateTime(new Date());
+        paymentRepository.save(payment);
+    }
+    
+    // 查询支付状态
+    public PaymentStatus queryPaymentStatus(String paymentNo) {
+        Payment payment = getPayment(paymentNo);
+        
+        // 如果支付还在处理中，查询第三方状态
+        if (payment.getStatus() == PaymentStatus.PENDING) {
+            PaymentChannel channel = channelService.getChannel(payment.getChannel());
+            ThirdPartyPaymentStatus status = channel.queryPaymentStatus(
+                payment.getThirdPartyPaymentNo());
+            
+            if (status == ThirdPartyPaymentStatus.SUCCESS) {
+                payment.setStatus(PaymentStatus.SUCCESS);
+                payment.setPayTime(new Date());
+                paymentRepository.save(payment);
+                
+                // 更新订单状态
+                orderService.handlePaymentSuccess(payment.getOrderId());
+            } else if (status == ThirdPartyPaymentStatus.FAILED) {
+                payment.setStatus(PaymentStatus.FAILED);
+                paymentRepository.save(payment);
+            }
+        }
+        
+        return payment.getStatus();
+    }
+    
+    // 申请退款
+    public RefundResponse createRefund(RefundRequest request) {
+        Payment payment = getPayment(request.getPaymentNo());
+        
+        // 验证支付状态
+        if (payment.getStatus() != PaymentStatus.SUCCESS) {
+            throw new BusinessException("支付状态不正确");
+        }
+        
+        // 验证退款金额
+        if (request.getAmount().compareTo(payment.getAmount()) > 0) {
+            throw new BusinessException("退款金额不能大于支付金额");
+        }
+        
+        // 创建退款记录
+        Refund refund = new Refund();
+        refund.setRefundNo(generateRefundNo());
+        refund.setPaymentNo(payment.getPaymentNo());
+        refund.setAmount(request.getAmount());
+        refund.setReason(request.getReason());
+        refund.setStatus(RefundStatus.PENDING);
+        refund.setCreateTime(new Date());
+        
+        refund = refundRepository.save(refund);
+        
+        // 调用第三方退款
+        PaymentChannel channel = channelService.getChannel(payment.getChannel());
+        ThirdPartyRefundRequest thirdPartyRequest = buildThirdPartyRefundRequest(refund);
+        ThirdPartyRefundResponse thirdPartyResponse = channel.createRefund(thirdPartyRequest);
+        
+        // 更新退款状态
+        if (thirdPartyResponse.isSuccess()) {
+            refund.setStatus(RefundStatus.SUCCESS);
+            refund.setRefundTime(new Date());
+            
+            // 更新支付状态
+            if (request.getAmount().equals(payment.getAmount())) {
+                payment.setStatus(PaymentStatus.REFUNDED);
+            } else {
+                payment.setStatus(PaymentStatus.PARTIAL_REFUNDED);
+            }
+            paymentRepository.save(payment);
+        } else {
+            refund.setStatus(RefundStatus.FAILED);
+            refund.setFailReason(thirdPartyResponse.getFailReason());
+        }
+        
+        refund.setUpdateTime(new Date());
+        refundRepository.save(refund);
+        
+        // 发送退款消息
+        sendRefundMessage(refund);
+        
+        RefundResponse response = new RefundResponse();
+        response.setRefundNo(refund.getRefundNo());
+        response.setStatus(refund.getStatus());
+        response.setAmount(refund.getAmount());
+        
+        return response;
+    }
+    
+    private String generatePaymentNo() {
+        return "PAY" + System.currentTimeMillis() + 
+               String.format("%04d", new Random().nextInt(10000));
+    }
+    
+    private String generateRefundNo() {
+        return "REF" + System.currentTimeMillis() + 
+               String.format("%04d", new Random().nextInt(10000));
+    }
+    
+    private ThirdPartyPaymentRequest buildThirdPartyRequest(Payment payment, PaymentRequest request) {
+        ThirdPartyPaymentRequest thirdPartyRequest = new ThirdPartyPaymentRequest();
+        thirdPartyRequest.setOutTradeNo(payment.getPaymentNo());
+        thirdPartyRequest.setAmount(payment.getAmount());
+        thirdPartyRequest.setSubject("订单支付");
+        thirdPartyRequest.setNotifyUrl(getNotifyUrl(payment.getChannel()));
+        thirdPartyRequest.setReturnUrl(getReturnUrl(payment.getChannel()));
+        thirdPartyRequest.setExpireTime(30); // 30分钟过期
+        return thirdPartyRequest;
+    }
+    
+    private ThirdPartyRefundRequest buildThirdPartyRefundRequest(Refund refund) {
+        ThirdPartyRefundRequest request = new ThirdPartyRefundRequest();
+        request.setOutRefundNo(refund.getRefundNo());
+        request.setAmount(refund.getAmount());
+        request.setReason(refund.getReason());
+        return request;
+    }
+    
+    private String getNotifyUrl(String channel) {
+        return "https://api.example.com/payment/callback/" + channel;
+    }
+    
+    private String getReturnUrl(String channel) {
+        return "https://www.example.com/payment/return/" + channel;
+    }
+    
+    private void sendPaymentSuccessMessage(Payment payment) {
+        PaymentMessage message = new PaymentMessage();
+        message.setPaymentNo(payment.getPaymentNo());
+        message.setOrderId(payment.getOrderId());
+        message.setUserId(payment.getUserId());
+        message.setAmount(payment.getAmount());
+        message.setAction("PAYMENT_SUCCESS");
+        
+        rabbitTemplate.convertAndSend("payment.exchange", "payment.success", message);
+    }
+    
+    private void sendPaymentFailedMessage(Payment payment) {
+        PaymentMessage message = new PaymentMessage();
+        message.setPaymentNo(payment.getPaymentNo());
+        message.setOrderId(payment.getOrderId());
+        message.setUserId(payment.getUserId());
+        message.setAmount(payment.getAmount());
+        message.setAction("PAYMENT_FAILED");
+        
+        rabbitTemplate.convertAndSend("payment.exchange", "payment.failed", message);
+    }
+    
+    private void sendRefundMessage(Refund refund) {
+        PaymentMessage message = new PaymentMessage();
+        message.setRefundNo(refund.getRefundNo());
+        message.setPaymentNo(refund.getPaymentNo());
+        message.setAmount(refund.getAmount());
+        message.setAction("REFUND");
+        
+        rabbitTemplate.convertAndSend("payment.exchange", "refund.created", message);
+    }
+    
+    private Payment getPayment(String paymentNo) {
+        return paymentRepository.findByPaymentNo(paymentNo)
+            .orElseThrow(() -> new BusinessException("支付记录不存在"));
+    }
+}
+```
+
+### 2. 支付渠道管理
+
+**支付渠道服务**
+```java
+@Service
+public class PaymentChannelService {
+    
+    @Autowired
+    private Map<String, PaymentChannel> channelMap;
+    
+    @PostConstruct
+    public void initChannels() {
+        channelMap.put("ALIPAY", new AlipayChannel());
+        channelMap.put("WECHAT", new WechatChannel());
+        channelMap.put("UNIONPAY", new UnionpayChannel());
+    }
+    
+    public PaymentChannel getChannel(String channel) {
+        PaymentChannel paymentChannel = channelMap.get(channel.toUpperCase());
+        if (paymentChannel == null) {
+            throw new BusinessException("不支持的支付渠道");
+        }
+        return paymentChannel;
+    }
+    
+    public List<PaymentChannel> getAvailableChannels() {
+        return new ArrayList<>(channelMap.values());
+    }
+}
+
+// 支付渠道接口
+public interface PaymentChannel {
+    
+    ThirdPartyPaymentResponse createPayment(ThirdPartyPaymentRequest request);
+    
+    ThirdPartyPaymentStatus queryPaymentStatus(String thirdPartyPaymentNo);
+    
+    ThirdPartyRefundResponse createRefund(ThirdPartyRefundRequest request);
+    
+    boolean verifyCallback(PaymentCallbackRequest request);
+}
+
+// 支付宝渠道实现
+@Component
+public class AlipayChannel implements PaymentChannel {
+    
+    @Value("${alipay.app.id}")
+    private String appId;
+    
+    @Value("${alipay.private.key}")
+    private String privateKey;
+    
+    @Value("${alipay.public.key}")
+    private String publicKey;
+    
+    @Override
+    public ThirdPartyPaymentResponse createPayment(ThirdPartyPaymentRequest request) {
+        try {
+            AlipayClient alipayClient = new DefaultAlipayClient(
+                "https://openapi.alipay.com/gateway.do",
+                appId,
+                privateKey,
+                "json",
+                "UTF-8",
+                publicKey,
+                "RSA2"
+            );
+            
+            AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
+            alipayRequest.setReturnUrl(request.getReturnUrl());
+            alipayRequest.setNotifyUrl(request.getNotifyUrl());
+            
+            alipayRequest.setBizContent(String.format(
+                "{\"out_trade_no\":\"%s\",\"total_amount\":\"%s\",\"subject\":\"%s\"}",
+                request.getOutTradeNo(),
+                request.getAmount(),
+                request.getSubject()
+            ));
+            
+            AlipayTradePagePayResponse response = alipayClient.pageExecute(alipayRequest);
+            
+            ThirdPartyPaymentResponse result = new ThirdPartyPaymentResponse();
+            result.setSuccess(response.isSuccess());
+            result.setPaymentNo(response.getOutTradeNo());
+            result.setPayUrl(response.getBody());
+            
+            return result;
+        } catch (AlipayApiException e) {
+            throw new BusinessException("支付宝支付失败");
+        }
+    }
+    
+    @Override
+    public ThirdPartyPaymentStatus queryPaymentStatus(String thirdPartyPaymentNo) {
+        try {
+            AlipayClient alipayClient = new DefaultAlipayClient(
+                "https://openapi.alipay.com/gateway.do",
+                appId,
+                privateKey,
+                "json",
+                "UTF-8",
+                publicKey,
+                "RSA2"
+            );
+            
+            AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
+            request.setBizContent(String.format(
+                "{\"out_trade_no\":\"%s\"}",
+                thirdPartyPaymentNo
+            ));
+            
+            AlipayTradeQueryResponse response = alipayClient.execute(request);
+            
+            if (response.isSuccess()) {
+                if ("TRADE_SUCCESS".equals(response.getTradeStatus()) || 
+                    "TRADE_FINISHED".equals(response.getTradeStatus())) {
+                    return ThirdPartyPaymentStatus.SUCCESS;
+                } else if ("WAIT_BUYER_PAY".equals(response.getTradeStatus())) {
+                    return ThirdPartyPaymentStatus.PENDING;
+                } else {
+                    return ThirdPartyPaymentStatus.FAILED;
+                }
+            } else {
+                return ThirdPartyPaymentStatus.FAILED;
+            }
+        } catch (AlipayApiException e) {
+            throw new BusinessException("查询支付状态失败");
+        }
+    }
+    
+    @Override
+    public ThirdPartyRefundResponse createRefund(ThirdPartyRefundRequest request) {
+        try {
+            AlipayClient alipayClient = new DefaultAlipayClient(
+                "https://openapi.alipay.com/gateway.do",
+                appId,
+                privateKey,
+                "json",
+                "UTF-8",
+                publicKey,
+                "RSA2"
+            );
+            
+            AlipayTradeRefundRequest alipayRequest = new AlipayTradeRefundRequest();
+            alipayRequest.setBizContent(String.format(
+                "{\"out_trade_no\":\"%s\",\"refund_amount\":\"%s\",\"refund_reason\":\"%s\"}",
+                request.getOutRefundNo(),
+                request.getAmount(),
+                request.getReason()
+            ));
+            
+            AlipayTradeRefundResponse response = alipayClient.execute(alipayRequest);
+            
+            ThirdPartyRefundResponse result = new ThirdPartyRefundResponse();
+            result.setSuccess(response.isSuccess());
+            result.setRefundNo(response.getOutTradeNo());
+            
+            return result;
+        } catch (AlipayApiException e) {
+            throw new BusinessException("支付宝退款失败");
+        }
+    }
+    
+    @Override
+    public boolean verifyCallback(PaymentCallbackRequest request) {
+        try {
+            Map<String, String> params = request.getParams();
+            
+            // 验证签名
+            return AlipaySignature.rsaCheckV1(
+                params,
+                publicKey,
+                "UTF-8",
+                "RSA2"
+            );
+        } catch (AlipayApiException e) {
+            return false;
+        }
+    }
+}
+```
+
+## 风险控制
+
+### 1. 风险评估
+
+**风险控制服务**
+```java
+@Service
+public class RiskControlService {
+    
+    @Autowired
+    private RiskRuleRepository riskRuleRepository;
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    // 支付风险检查
+    public RiskCheckResult checkPaymentRisk(Long userId, BigDecimal amount, String ip) {
+        RiskCheckResult result = new RiskCheckResult();
+        
+        // 1. 用户风险检查
+        int userRiskScore = checkUserRisk(userId);
+        
+        // 2. 金额风险检查
+        int amountRiskScore = checkAmountRisk(userId, amount);
+        
+        // 3. IP风险检查
+        int ipRiskScore = checkIpRisk(ip);
+        
+        // 4. 频率风险检查
+        int frequencyRiskScore = checkFrequencyRisk(userId);
+        
+        // 5. 设备风险检查
+        int deviceRiskScore = checkDeviceRisk(userId, request.getDeviceId());
+        
+        // 计算总风险分数
+        int totalRiskScore = userRiskScore + amountRiskScore + ipRiskScore + 
+                           frequencyRiskScore + deviceRiskScore;
+        
+        result.setRiskScore(totalRiskScore);
+        result.setHighRisk(totalRiskScore > 80);
+        
+        // 记录风险检查日志
+        recordRiskCheck(userId, amount, ip, totalRiskScore);
+        
+        return result;
+    }
+    
+    // 用户风险检查
+    private int checkUserRisk(Long userId) {
+        UserRiskProfile profile = getUserRiskProfile(userId);
+        
+        int riskScore = 0;
+        
+        // 检查用户注册时间
+        if (profile.getRegisterTime().after(DateUtils.addDays(new Date(), -7))) {
+            riskScore += 20;
+        }
+        
+        // 检查用户认证状态
+        if (!profile.isRealNameVerified()) {
+            riskScore += 15;
+        }
+        
+        // 检查用户历史风险记录
+        if (profile.getRiskCount() > 0) {
+            riskScore += 10 * profile.getRiskCount();
+        }
+        
+        // 检查用户支付频率
+        if (profile.getPaymentCount() > 100) {
+            riskScore += 5;
+        }
+        
+        return riskScore;
+    }
+    
+    // 金额风险检查
+    private int checkAmountRisk(Long userId, BigDecimal amount) {
+        int riskScore = 0;
+        
+        // 获取用户历史支付金额
+        BigDecimal avgAmount = getUserAveragePaymentAmount(userId);
+        
+        // 检查支付金额是否异常
+        if (amount.compareTo(avgAmount.multiply(new BigDecimal("5"))) > 0) {
+            riskScore += 25;
+        } else if (amount.compareTo(avgAmount.multiply(new BigDecimal("3"))) > 0) {
+            riskScore += 15;
+        }
+        
+        // 检查大额支付
+        if (amount.compareTo(new BigDecimal("10000")) > 0) {
+            riskScore += 20;
+        }
+        
+        return riskScore;
+    }
+    
+    // IP风险检查
+    private int checkIpRisk(String ip) {
+        int riskScore = 0;
+        
+        // 检查IP是否在黑名单中
+        if (isIpInBlacklist(ip)) {
+            riskScore += 50;
+        }
+        
+        // 检查IP地理位置
+        String location = getIpLocation(ip);
+        if (isHighRiskLocation(location)) {
+            riskScore += 20;
+        }
+        
+        // 检查IP代理
+        if (isProxyIp(ip)) {
+            riskScore += 30;
+        }
+        
+        return riskScore;
+    }
+    
+    // 频率风险检查
+    private int checkFrequencyRisk(Long userId) {
+        int riskScore = 0;
+        
+        // 检查最近1小时内的支付次数
+        int hourCount = getPaymentCount(userId, 1);
+        if (hourCount > 10) {
+            riskScore += 20;
+        }
+        
+        // 检查最近24小时内的支付次数
+        int dayCount = getPaymentCount(userId, 24);
+        if (dayCount > 50) {
+            riskScore += 15;
+        }
+        
+        return riskScore;
+    }
+    
+    // 设备风险检查
+    private int checkDeviceRisk(Long userId, String deviceId) {
+        int riskScore = 0;
+        
+        // 检查设备是否为新设备
+        if (!isKnownDevice(userId, deviceId)) {
+            riskScore += 10;
+        }
+        
+        // 检查设备风险等级
+        int deviceRiskLevel = getDeviceRiskLevel(deviceId);
+        riskScore += deviceRiskLevel * 5;
+        
+        return riskScore;
+    }
+    
+    // 记录风险检查日志
+    private void recordRiskCheck(Long userId, BigDecimal amount, String ip, int riskScore) {
+        RiskCheckLog log = new RiskCheckLog();
+        log.setUserId(userId);
+        log.setAmount(amount);
+        log.setIp(ip);
+        log.setRiskScore(riskScore);
+        log.setCheckTime(new Date());
+        
+        riskCheckLogRepository.save(log);
+        
+        // 如果风险分数过高，发送告警
+        if (riskScore > 80) {
+            sendRiskAlert(userId, amount, ip, riskScore);
+        }
+    }
+    
+    private void sendRiskAlert(Long userId, BigDecimal amount, String ip, int riskScore) {
+        RiskAlert alert = new RiskAlert();
+        alert.setUserId(userId);
+        alert.setAmount(amount);
+        alert.setIp(ip);
+        alert.setRiskScore(riskScore);
+        alert.setAlertTime(new Date());
+        
+        // 发送告警通知
+        notificationService.sendRiskAlert(alert);
+    }
+    
+    private UserRiskProfile getUserRiskProfile(Long userId) {
+        // 从数据库获取用户风险档案
+        return userRiskProfileRepository.findByUserId(userId);
+    }
+    
+    private BigDecimal getUserAveragePaymentAmount(Long userId) {
+        // 计算用户平均支付金额
+        return paymentRepository.calculateAverageAmountByUserId(userId);
+    }
+    
+    private boolean isIpInBlacklist(String ip) {
+        String key = "risk:ip:blacklist";
+        return redisTemplate.opsForSet().isMember(key, ip);
+    }
+    
+    private String getIpLocation(String ip) {
+        // 调用IP地理位置服务
+        return ipLocationService.getLocation(ip);
+    }
+    
+    private boolean isHighRiskLocation(String location) {
+        List<String> highRiskLocations = Arrays.asList("XX", "YY", "ZZ");
+        return highRiskLocations.contains(location);
+    }
+    
+    private boolean isProxyIp(String ip) {
+        // 检查是否为代理IP
+        return ipDetectionService.isProxyIp(ip);
+    }
+    
+    private int getPaymentCount(Long userId, int hours) {
+        // 获取指定小时内的支付次数
+        return paymentRepository.countByUserIdAndTimeRange(userId, hours);
+    }
+    
+    private boolean isKnownDevice(Long userId, String deviceId) {
+        String key = "user:device:" + userId;
+        return redisTemplate.opsForSet().isMember(key, deviceId);
+    }
+    
+    private int getDeviceRiskLevel(String deviceId) {
+        // 获取设备风险等级
+        return deviceRiskService.getRiskLevel(deviceId);
+    }
+}
+```
+
+## 对账系统
+
+### 1. 对账服务
+
+**对账服务实现**
+```java
+@Service
+public class ReconciliationService {
+    
+    @Autowired
+    private ReconciliationRepository reconciliationRepository;
+    
+    @Autowired
+    private PaymentRepository paymentRepository;
+    
+    @Scheduled(cron = "0 0 2 * * ?") // 每天凌晨2点执行
+    public void dailyReconciliation() {
+        String yesterday = DateUtils.formatDate(DateUtils.addDays(new Date(), -1));
+        
+        // 1. 获取内部账单
+        List<InternalBill> internalBills = getInternalBills(yesterday);
+        
+        // 2. 获取第三方账单
+        List<ThirdPartyBill> thirdPartyBills = getThirdPartyBills(yesterday);
+        
+        // 3. 执行对账
+        ReconciliationResult result = reconcile(internalBills, thirdPartyBills);
+        
+        // 4. 保存对账结果
+        saveReconciliationResult(yesterday, result);
+        
+        // 5. 处理差异
+        if (result.hasDiscrepancy()) {
+            handleDiscrepancies(result.getDiscrepancies());
+        }
+    }
+    
+    // 获取内部账单
+    private List<InternalBill> getInternalBills(String date) {
+        return paymentRepository.findByDate(date)
+            .stream()
+            .map(this::convertToInternalBill)
+            .collect(Collectors.toList());
+    }
+    
+    // 获取第三方账单
+    private List<ThirdPartyBill> getThirdPartyBills(String date) {
+        List<ThirdPartyBill> bills = new ArrayList<>();
+        
+        // 获取支付宝账单
+        bills.addAll(getAlipayBills(date));
+        
+        // 获取微信账单
+        bills.addAll(getWechatBills(date));
+        
+        // 获取银联账单
+        bills.addAll(getUnionpayBills(date));
+        
+        return bills;
+    }
+    
+    // 执行对账
+    private ReconciliationResult reconcile(List<InternalBill> internalBills, 
+                                         List<ThirdPartyBill> thirdPartyBills) {
+        ReconciliationResult result = new ReconciliationResult();
+        
+        // 按支付单号分组
+        Map<String, InternalBill> internalBillMap = internalBills.stream()
+            .collect(Collectors.toMap(InternalBill::getPaymentNo, Function.identity()));
+        
+        Map<String, ThirdPartyBill> thirdPartyBillMap = thirdPartyBills.stream()
+            .collect(Collectors.toMap(ThirdPartyBill::getPaymentNo, Function.identity()));
+        
+        // 检查内部账单在第三方账单中是否存在
+        for (InternalBill internalBill : internalBills) {
+            ThirdPartyBill thirdPartyBill = thirdPartyBillMap.get(internalBill.getPaymentNo());
+            
+            if (thirdPartyBill == null) {
+                // 第三方账单缺失
+                result.addDiscrepancy(new Discrepancy(
+                    internalBill.getPaymentNo(),
+                    DiscrepancyType.THIRD_PARTY_MISSING,
+                    internalBill.getAmount(),
+                    BigDecimal.ZERO
+                ));
+            } else {
+                // 检查金额是否一致
+                if (!internalBill.getAmount().equals(thirdPartyBill.getAmount())) {
+                    result.addDiscrepancy(new Discrepancy(
+                        internalBill.getPaymentNo(),
+                        DiscrepancyType.AMOUNT_MISMATCH,
+                        internalBill.getAmount(),
+                        thirdPartyBill.getAmount()
+                    ));
+                }
+                
+                // 检查状态是否一致
+                if (!internalBill.getStatus().equals(thirdPartyBill.getStatus())) {
+                    result.addDiscrepancy(new Discrepancy(
+                        internalBill.getPaymentNo(),
+                        DiscrepancyType.STATUS_MISMATCH,
+                        internalBill.getStatus(),
+                        thirdPartyBill.getStatus()
+                    ));
+                }
+                
+                // 从第三方账单中移除已匹配的账单
+                thirdPartyBillMap.remove(internalBill.getPaymentNo());
+            }
+        }
+        
+        // 检查第三方账单中多余的账单
+        for (ThirdPartyBill thirdPartyBill : thirdPartyBillMap.values()) {
+            result.addDiscrepancy(new Discrepancy(
+                thirdPartyBill.getPaymentNo(),
+                DiscrepancyType.INTERNAL_MISSING,
+                BigDecimal.ZERO,
+                thirdPartyBill.getAmount()
+            ));
+        }
+        
+        return result;
+    }
+    
+    // 处理差异
+    private void handleDiscrepancies(List<Discrepancy> discrepancies) {
+        for (Discrepancy discrepancy : discrepancies) {
+            switch (discrepancy.getType()) {
+                case THIRD_PARTY_MISSING:
+                    handleThirdPartyMissing(discrepancy);
+                    break;
+                case INTERNAL_MISSING:
+                    handleInternalMissing(discrepancy);
+                    break;
+                case AMMOUNT_MISMATCH:
+                    handleAmountMismatch(discrepancy);
+                    break;
+                case STATUS_MISMATCH:
+                    handleStatusMismatch(discrepancy);
+                    break;
+            }
+        }
+    }
+    
+    // 处理第三方账单缺失
+    private void handleThirdPartyMissing(Discrepancy discrepancy) {
+        // 查询第三方支付状态
+        Payment payment = paymentRepository.findByPaymentNo(discrepancy.getPaymentNo());
+        
+        PaymentChannel channel = channelService.getChannel(payment.getChannel());
+        ThirdPartyPaymentStatus status = channel.queryPaymentStatus(
+            payment.getThirdPartyPaymentNo());
+        
+        if (status == ThirdPartyPaymentStatus.SUCCESS) {
+            // 更新支付状态
+            payment.setStatus(PaymentStatus.SUCCESS);
+            payment.setPayTime(new Date());
+            paymentRepository.save(payment);
+            
+            // 更新订单状态
+            orderService.handlePaymentSuccess(payment.getOrderId());
+        } else if (status == ThirdPartyPaymentStatus.FAILED) {
+            // 更新支付状态
+            payment.setStatus(PaymentStatus.FAILED);
+            paymentRepository.save(payment);
+        }
+    }
+    
+    // 处理内部账单缺失
+    private void handleInternalMissing(Discrepancy discrepancy) {
+        // 创建缺失的内部账单
+        Payment payment = new Payment();
+        payment.setPaymentNo(discrepancy.getPaymentNo());
+        payment.setAmount(discrepancy.getThirdPartyAmount());
+        payment.setStatus(PaymentStatus.SUCCESS);
+        payment.setCreateTime(new Date());
+        
+        paymentRepository.save(payment);
+        
+        // 记录异常
+        recordReconciliationException(discrepancy, "内部账单缺失");
+    }
+    
+    // 处理金额不匹配
+    private void handleAmountMismatch(Discrepancy discrepancy) {
+        // 记录异常
+        recordReconciliationException(discrepancy, "金额不匹配");
+        
+        // 发送告警
+        sendReconciliationAlert(discrepancy);
+    }
+    
+    // 处理状态不匹配
+    private void handleStatusMismatch(Discrepancy discrepancy) {
+        // 更新内部状态
+        Payment payment = paymentRepository.findByPaymentNo(discrepancy.getPaymentNo());
+        payment.setStatus(PaymentStatus.SUCCESS);
+        payment.setPayTime(new Date());
+        paymentRepository.save(payment);
+        
+        // 更新订单状态
+        orderService.handlePaymentSuccess(payment.getOrderId());
+    }
+    
+    // 记录对账异常
+    private void recordReconciliationException(Discrepancy discrepancy, String reason) {
+        ReconciliationException exception = new ReconciliationException();
+        exception.setPaymentNo(discrepancy.getPaymentNo());
+        exception.setReason(reason);
+        exception.setInternalAmount(discrepancy.getInternalAmount());
+        exception.setThirdPartyAmount(discrepancy.getThirdPartyAmount());
+        exception.setCreateTime(new Date());
+        
+        reconciliationExceptionRepository.save(exception);
+    }
+    
+    // 发送对账告警
+    private void sendReconciliationAlert(Discrepancy discrepancy) {
+        ReconciliationAlert alert = new ReconciliationAlert();
+        alert.setPaymentNo(discrepancy.getPaymentNo());
+        alert.setType(discrepancy.getType());
+        alert.setInternalAmount(discrepancy.getInternalAmount());
+        alert.setThirdPartyAmount(discrepancy.getThirdPartyAmount());
+        alert.setAlertTime(new Date());
+        
+        notificationService.sendReconciliationAlert(alert);
+    }
+    
+    private InternalBill convertToInternalBill(Payment payment) {
+        InternalBill bill = new InternalBill();
+        bill.setPaymentNo(payment.getPaymentNo());
+        bill.setAmount(payment.getAmount());
+        bill.setStatus(payment.getStatus());
+        bill.setPayTime(payment.getPayTime());
+        return bill;
+    }
+    
+    private List<ThirdPartyBill> getAlipayBills(String date) {
+        // 调用支付宝账单接口
+        return alipayService.getBills(date);
+    }
+    
+    private List<ThirdPartyBill> getWechatBills(String date) {
+        // 调用微信账单接口
+        return wechatService.getBills(date);
+    }
+    
+    private List<ThirdPartyBill> getUnionpayBills(String date) {
+        // 调用银联账单接口
+        return unionpayService.getBills(date);
+    }
+}
+```
+
+## 总结
+
+支付系统设计需要考虑以下关键点：
+
+1. **安全性**：确保支付过程的安全可靠
+2. **一致性**：保证支付状态与业务状态的一致性
+3. **可靠性**：确保支付流程的稳定运行
+4. **扩展性**：支持多种支付渠道的接入
+5. **监控性**：完善的监控和对账机制
+
+通过合理的架构设计和严格的流程控制，可以构建安全、可靠的支付系统。

@@ -1,0 +1,757 @@
+---
+title: "热门系统设计题及解题思路"
+description: "常见系统设计面试题分析"
+date: "2024-10-14"
+excerpt: "深入分析常见的系统设计面试题，包括设计思路、架构方案和技术选型，帮助开发者掌握系统设计的核心方法。"
+tags: ["系统设计", "面试", "架构设计", "分布式系统", "技术方案"]
+category: "notes"
+---
+
+# 热门系统设计题及解题思路
+
+> 系统设计面试是技术面试的重要环节，掌握解题方法是关键
+
+## 系统设计方法论
+
+### 1. 设计流程
+
+```
+系统设计流程：
+├── 需求分析
+│   ├── 功能需求
+│   ├── 非功能需求
+│   └── 约束条件
+├── 估算
+│   ├── QPS估算
+│   ├── 存储估算
+│   └── 带宽估算
+├── 架构设计
+│   ├── 分层架构
+│   ├── 服务拆分
+│   └── 数据流设计
+├── 技术选型
+│   ├── 数据库选型
+│   ├── 缓存选型
+│   └── 消息队列选型
+├── 优化
+│   ├── 性能优化
+│   ├── 可用性优化
+│   └── 扩展性优化
+└── 总结
+    ├── 设计回顾
+    ├── 权衡取舍
+    └── 后续优化
+```
+
+### 2. 通用设计原则
+
+```
+设计原则：
+├── 简单性
+│   ├── KISS原则
+│   ├── 避免过度设计
+│   └── 逐步迭代
+├── 可扩展性
+│   ├── 水平扩展
+│   ├── 垂直扩展
+│   └── 数据分片
+├── 可用性
+│   ├── 冗余设计
+│   ├── 故障隔离
+│   └── 自动恢复
+├── 性能
+│   ├── 缓存策略
+│   ├── 异步处理
+│   └── 负载均衡
+└── 一致性
+    ├── 强一致性
+    ├── 最终一致性
+    └── 一致性级别选择
+```
+
+## 经典题目分析
+
+### 1. 设计短链接系统
+
+#### 1.1 需求分析
+
+```
+功能需求：
+- 用户输入长URL，生成短链接
+- 用户访问短链接，重定向到长URL
+- 支持自定义短链接
+- 支持链接过期时间
+- 支持访问统计
+
+非功能需求：
+- 高可用性：99.9%
+- 低延迟：生成<100ms，访问<50ms
+- 高并发：支持1000 QPS
+- 可扩展：支持水平扩展
+
+约束条件：
+- 短链接长度：6-8位
+- 字符集：a-zA-Z0-9
+- 短链接有效期：1年
+```
+
+#### 1.2 系统架构
+
+```
+系统架构图：
+┌─────────────────────────────────────────────────────────────┐
+│                    CDN                                     │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    ┌─────────────┐
+                    │  Load        │
+                    │  Balancer    │
+                    └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Web        │ │  Web        │ │  Web        │
+    │  Server     │ │  Server     │ │  Server     │
+    └─────────────┘ └─────────────┘ └─────────────┘
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Redis      │ │  MySQL      │ │  Analytics  │
+    │  Cluster    │ │  Master     │ │  Service    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+```
+
+#### 1.3 核心算法
+
+**Base62编码算法**
+```java
+public class Base62Encoder {
+    private static final String BASE62_CHARS = 
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    
+    public static String encode(long num) {
+        if (num == 0) {
+            return "a";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        while (num > 0) {
+            sb.append(BASE62_CHARS.charAt((int)(num % 62)));
+            num /= 62;
+        }
+        
+        return sb.reverse().toString();
+    }
+    
+    public static long decode(String str) {
+        long num = 0;
+        for (int i = 0; i < str.length(); i++) {
+            num = num * 62 + BASE62_CHARS.indexOf(str.charAt(i));
+        }
+        return num;
+    }
+}
+
+// 短链接生成服务
+@Service
+public class ShortLinkService {
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    @Autowired
+    private ShortLinkMapper shortLinkMapper;
+    
+    private final AtomicLong idGenerator = new AtomicLong(1000000);
+    
+    public String generateShortLink(String longUrl) {
+        // 1. 检查是否已存在
+        String shortLink = getExistingShortLink(longUrl);
+        if (shortLink != null) {
+            return shortLink;
+        }
+        
+        // 2. 生成新的短链接
+        long id = idGenerator.getAndIncrement();
+        String code = Base62Encoder.encode(id);
+        
+        // 3. 存储映射关系
+        storeMapping(code, longUrl);
+        
+        return "https://short.ly/" + code;
+    }
+    
+    private String getExistingShortLink(String longUrl) {
+        String key = "url:hash:" + DigestUtils.md5Hex(longUrl);
+        return redisTemplate.opsForValue().get(key);
+    }
+    
+    private void storeMapping(String code, String longUrl) {
+        // 存储到Redis
+        redisTemplate.opsForValue().set("code:" + code, longUrl, 365, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("url:hash:" + 
+            DigestUtils.md5Hex(longUrl), code, 365, TimeUnit.DAYS);
+        
+        // 异步存储到MySQL
+        asyncStoreToMySQL(code, longUrl);
+    }
+}
+```
+
+**重定向服务**
+```java
+@RestController
+public class RedirectController {
+    
+    @Autowired
+    private ShortLinkService shortLinkService;
+    
+    @GetMapping("/{code}")
+    public RedirectView redirect(@PathVariable String code, 
+                               HttpServletRequest request) {
+        String longUrl = shortLinkService.getLongUrl(code);
+        if (longUrl == null) {
+            throw new NotFoundException("Short link not found");
+        }
+        
+        // 记录访问日志
+        shortLinkService.recordAccess(code, request);
+        
+        RedirectView redirectView = new RedirectView();
+        redirectView.setUrl(longUrl);
+        return redirectView;
+    }
+}
+
+@Service
+public class ShortLinkService {
+    
+    public String getLongUrl(String code) {
+        // 先从Redis获取
+        String longUrl = redisTemplate.opsForValue().get("code:" + code);
+        if (longUrl != null) {
+            return longUrl;
+        }
+        
+        // 从数据库获取
+        ShortLinkEntity entity = shortLinkMapper.selectByCode(code);
+        if (entity != null) {
+            // 回写Redis
+            redisTemplate.opsForValue().set("code:" + code, 
+                entity.getLongUrl(), 365, TimeUnit.DAYS);
+            return entity.getLongUrl();
+        }
+        
+        return null;
+    }
+    
+    public void recordAccess(String code, HttpServletRequest request) {
+        AccessLog log = new AccessLog();
+        log.setCode(code);
+        log.setIp(getClientIp(request));
+        log.setUserAgent(request.getHeader("User-Agent"));
+        log.setAccessTime(new Date());
+        
+        // 异步记录访问日志
+        asyncRecordAccess(log);
+    }
+}
+```
+
+### 2. 设计Feed流系统
+
+#### 2.1 需求分析
+
+```
+功能需求：
+- 用户发布动态
+- 查看关注人的动态
+- 点赞、评论、转发
+- 推荐热门内容
+
+非功能需求：
+- 支持千万级用户
+- 实时性：延迟<1秒
+- 高并发：写1000 QPS，读10000 QPS
+- 数据一致性：最终一致性
+
+约束条件：
+- 每个用户关注人数：1000
+- 每条动态存活时间：30天
+- 缓存命中率：>90%
+```
+
+#### 2.2 架构设计
+
+```
+Feed流架构：
+┌─────────────────────────────────────────────────────────────┐
+│                    API Gateway                              │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    ┌─────────────┐
+                    │  Load        │
+                    │  Balancer    │
+                    └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Feed       │ │  Feed       │ │  Feed       │
+    │  Service    │ │  Service    │ │  Service    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Redis      │ │  Kafka      │ │  MySQL      │
+    │  Cluster    │ │  Cluster    │ │  Cluster    │
+    └─────────────┘ └─────────────┘ └─────────────┘
+```
+
+#### 2.3 核心实现
+
+**推拉结合模式**
+```java
+@Service
+public class FeedService {
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+    
+    // 发布动态（推模式）
+    public void publishFeed(Long userId, String content) {
+        // 1. 保存动态到数据库
+        FeedEntity feed = new FeedEntity();
+        feed.setUserId(userId);
+        feed.setContent(content);
+        feed.setCreateTime(new Date());
+        feedRepository.save(feed);
+        
+        // 2. 获取关注者列表
+        List<Long> followers = getFollowers(userId);
+        
+        // 3. 推送到关注者的收件箱（推模式）
+        for (Long followerId : followers) {
+            String inboxKey = "feed:inbox:" + followerId;
+            redisTemplate.opsForZSet().add(inboxKey, 
+                String.valueOf(feed.getId()), feed.getCreateTime().getTime());
+            
+            // 限制收件箱大小
+            long size = redisTemplate.opsForZSet().size(inboxKey);
+            if (size > 1000) {
+                redisTemplate.opsForZSet().removeRange(inboxKey, 0, size - 1000);
+            }
+        }
+        
+        // 4. 发送消息到MQ进行异步处理
+        FeedMessage message = new FeedMessage();
+        message.setUserId(userId);
+        message.setFeedId(feed.getId());
+        message.setAction("PUBLISH");
+        
+        kafkaTemplate.send("feed-topic", JSON.toJSONString(message));
+    }
+    
+    // 获取Feed流（拉模式 + 推模式）
+    public List<FeedEntity> getFeed(Long userId, int page, int size) {
+        // 1. 从Redis收件箱获取动态ID列表（推模式）
+        String inboxKey = "feed:inbox:" + userId;
+        Set<String> feedIds = redisTemplate.opsForZSet()
+            .reverseRange(inboxKey, page * size, (page + 1) * size - 1);
+        
+        List<FeedEntity> feeds = new ArrayList<>();
+        
+        if (feedIds != null && !feedIds.isEmpty()) {
+            // 2. 批量获取动态内容
+            feeds = batchGetFeeds(feedIds);
+        }
+        
+        // 3. 如果收件箱内容不足，补充拉模式（获取关注者的最新动态）
+        if (feeds.size() < size) {
+            List<Long> followees = getFollowees(userId);
+            List<FeedEntity> additionalFeeds = pullFolloweesFeeds(followees, 
+                feeds.size(), size - feeds.size());
+            feeds.addAll(additionalFeeds);
+        }
+        
+        return feeds;
+    }
+    
+    // 批量获取动态
+    private List<FeedEntity> batchGetFeeds(Set<String> feedIds) {
+        List<Long> ids = feedIds.stream()
+            .map(Long::parseLong)
+            .collect(Collectors.toList());
+        
+        return feedRepository.findAllById(ids);
+    }
+    
+    // 拉取关注者的动态
+    private List<FeedEntity> pullFolloweesFeeds(List<Long> followees, 
+                                               int offset, int limit) {
+        return feedRepository.findTopFeedsByUsers(followees, offset, limit);
+    }
+}
+```
+
+**推荐算法**
+```java
+@Service
+public class FeedRecommendService {
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    // 基于协同过滤的推荐
+    public List<FeedEntity> recommendFeeds(Long userId, int count) {
+        // 1. 获取用户兴趣标签
+        Set<String> userTags = getUserTags(userId);
+        
+        // 2. 获取热门动态
+        List<FeedEntity> hotFeeds = getHotFeeds(count * 2);
+        
+        // 3. 根据兴趣标签过滤和排序
+        List<FeedEntity> recommendedFeeds = hotFeeds.stream()
+            .filter(feed -> calculateRelevance(feed, userTags) > 0.5)
+            .sorted((f1, f2) -> Double.compare(
+                calculateRelevance(f2, userTags), 
+                calculateRelevance(f1, userTags)))
+            .limit(count)
+            .collect(Collectors.toList());
+        
+        return recommendedFeeds;
+    }
+    
+    // 计算动态相关性
+    private double calculateRelevance(FeedEntity feed, Set<String> userTags) {
+        Set<String> feedTags = extractTags(feed.getContent());
+        
+        // 计算Jaccard相似度
+        Set<String> intersection = new HashSet<>(userTags);
+        intersection.retainAll(feedTags);
+        
+        Set<String> union = new HashSet<>(userTags);
+        union.addAll(feedTags);
+        
+        return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
+    }
+    
+    // 获取热门动态
+    private List<FeedEntity> getHotFeeds(int count) {
+        // 基于Redis的热度排行榜
+        String hotKey = "feed:hot";
+        Set<String> feedIds = redisTemplate.opsForZSet()
+            .reverseRange(hotKey, 0, count - 1);
+        
+        if (feedIds != null) {
+            return batchGetFeeds(feedIds);
+        }
+        
+        return Collections.emptyList();
+    }
+}
+```
+
+### 3. 设计秒杀系统
+
+#### 3.1 需求分析
+
+```
+功能需求：
+- 商品展示
+- 秒杀下单
+- 库存管理
+- 订单管理
+
+非功能需求：
+- 高并发：支持10万QPS
+- 低延迟：下单<50ms
+- 高可用：99.9%
+- 数据一致性：不超卖
+
+约束条件：
+- 秒杀时长：5分钟
+- 每个用户限购1件
+- 库存：1000件
+```
+
+#### 3.2 架构设计
+
+```
+秒杀系统架构：
+┌─────────────────────────────────────────────────────────────┐
+│                    CDN                                     │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    ┌─────────────┐
+                    │  Load        │
+                    │  Balancer    │
+                    └─────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Web        │ │  Web        │ │  Web        │
+    │  Server     │ │  Server     │ │  Server     │
+    └─────────────┘ └─────────────┘ └─────────────┘
+          │               │               │
+          └───────────────┼───────────────┘
+                          │
+          ┌───────────────┼───────────────┐
+          │               │               │
+    ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+    │  Redis      │ │  MQ         │ │  MySQL      │
+    │  Cluster    │ │  Cluster    │ │  Master     │
+    └─────────────┘ └─────────────┘ └─────────────┘
+```
+
+#### 3.3 核心实现
+
+**库存管理**
+```java
+@Service
+public class SeckillService {
+    
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    
+    // 预热库存
+    public void warmUpStock(Long productId, int stock) {
+        String stockKey = "seckill:stock:" + productId;
+        redisTemplate.opsForValue().set(stockKey, String.valueOf(stock));
+        
+        // 预热用户购买记录
+        String userKey = "seckill:user:" + productId;
+        // 预分配空间
+        redisTemplate.opsForHash().put(userKey, "init", "0");
+    }
+    
+    // 秒杀下单
+    @Transactional
+    public SeckillResult seckill(Long productId, Long userId) {
+        // 1. 检查用户是否已购买
+        if (hasPurchased(productId, userId)) {
+            return SeckillResult.error("已购买");
+        }
+        
+        // 2. 原子性扣减库存
+        String stockKey = "seckill:stock:" + productId;
+        Long result = redisTemplate.execute(
+            new DefaultRedisScript<>(SECKILL_SCRIPT, Long.class),
+            Collections.singletonList(stockKey),
+            String.valueOf(userId)
+        );
+        
+        if (result == null || result == 0) {
+            return SeckillResult.error("库存不足");
+        }
+        
+        // 3. 发送MQ消息
+        SeckillMessage message = new SeckillMessage();
+        message.setProductId(productId);
+        message.setUserId(userId);
+        message.setCreateTime(new Date());
+        
+        rabbitTemplate.convertAndSend("seckill.queue", message);
+        
+        return SeckillResult.success("抢购成功");
+    }
+    
+    // Lua脚本：原子性操作
+    private static final String SECKILL_SCRIPT = 
+        "local stock = redis.call('GET', KEYS[1]) " +
+        "if tonumber(stock) <= 0 then " +
+        "  return 0 " +
+        "end " +
+        "local userKey = 'seckill:user:' .. KEYS[1] " +
+        "if redis.call('HEXISTS', userKey, ARGV[1]) == 1 then " +
+        "  return -1 " +
+        "end " +
+        "redis.call('DECR', KEYS[1]) " +
+        "redis.call('HSET', userKey, ARGV[1], '1') " +
+        "return 1";
+    
+    private boolean hasPurchased(Long productId, Long userId) {
+        String userKey = "seckill:user:" + productId;
+        return redisTemplate.opsForHash().hasKey(userKey, String.valueOf(userId));
+    }
+}
+```
+
+**限流保护**
+```java
+@Component
+public class RateLimiter {
+    
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    
+    // 令牌桶限流
+    public boolean tryAcquire(String key, int permits, double rate) {
+        Bucket bucket = buckets.computeIfAbsent(key, k -> {
+            Refill refill = Refill.intervally(permits, Duration.ofSeconds((int) (permits / rate)));
+            return Bucket.builder()
+                .addLimit(Bandwidth.classic(permits, refill))
+                .build();
+        });
+        
+        return bucket.tryConsume(permits);
+    }
+    
+    // 滑动窗口限流
+    public boolean tryAcquireWithSlidingWindow(String key, int permits, int windowSize) {
+        String windowKey = "rate:limit:" + key;
+        long currentTime = System.currentTimeMillis();
+        
+        // 清理过期记录
+        redisTemplate.execute(
+            new DefaultRedisScript<>(CLEANUP_SCRIPT, Long.class),
+            Collections.singletonList(windowKey),
+            String.valueOf(currentTime - windowSize * 1000)
+        );
+        
+        // 检查当前窗口内的请求数
+        Long currentCount = redisTemplate.opsForZSet().count(windowKey, 
+            currentTime - windowSize * 1000, currentTime);
+        
+        if (currentCount < permits) {
+            // 添加当前请求
+            redisTemplate.opsForZSet().add(windowKey, 
+                String.valueOf(currentTime), currentTime);
+            return true;
+        }
+        
+        return false;
+    }
+    
+    private static final String CLEANUP_SCRIPT = 
+        "redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, ARGV[1]) " +
+        "return redis.call('ZCARD', KEYS[1])";
+}
+
+@RestController
+public class SeckillController {
+    
+    @Autowired
+    private SeckillService seckillService;
+    
+    @Autowired
+    private RateLimiter rateLimiter;
+    
+    @PostMapping("/seckill/{productId}")
+    public Result seckill(@PathVariable Long productId) {
+        Long userId = getCurrentUserId();
+        
+        // 接口级别限流
+        if (!rateLimiter.tryAcquire("seckill:api", 1000, 1000)) {
+            return Result.error("系统繁忙");
+        }
+        
+        // 用户级别限流
+        if (!rateLimiter.tryAcquire("seckill:user:" + userId, 1, 10)) {
+            return Result.error("操作过于频繁");
+        }
+        
+        return seckillService.seckill(productId, userId);
+    }
+}
+```
+
+## 系统设计技巧
+
+### 1. 性能优化
+
+```
+性能优化策略：
+├── 缓存
+│   ├── 多级缓存
+│   ├── 缓存预热
+│   ├── 缓存更新
+│   └── 缓存穿透/雪崩
+├── 异步
+│   ├── 消息队列
+│   ├── 异步处理
+│   ├── 批量操作
+│   └── 异步回调
+├── 数据库
+│   ├── 索引优化
+│   ├── 读写分离
+│   ├── 分库分表
+│   └── 连接池优化
+└── 网络
+    ├── CDN加速
+    ├── HTTP/2
+    ├── 压缩传输
+    └── 连接复用
+```
+
+### 2. 可扩展性设计
+
+```
+可扩展性原则：
+├── 无状态服务
+│   ├── 会话外部化
+│   ├── 文件存储
+│   └── 负载均衡
+├── 数据分片
+│   ├── 水平分片
+│   ├── 垂直分片
+│   └── 分片算法
+├── 微服务架构
+│   ├── 服务拆分
+│   ├── 服务治理
+│   └── 服务编排
+└── 弹性伸缩
+    ├── 自动扩容
+    ├── 负载监控
+    └── 资源调度
+```
+
+### 3. 面试技巧
+
+```
+面试答题技巧：
+├── 沟通确认
+│   ├── 明确需求
+│   ├── 确认约束
+│   └── 边界条件
+├── 结构化回答
+│   ├── 总体架构
+│   ├── 核心模块
+│   ├── 技术细节
+│   └── 优化改进
+├── 权衡取舍
+│   ├── 性能vs成本
+│   ├── 一致性vs可用性
+│   ├── 复杂度vs可维护性
+│   └── 安全vs便利性
+└── 总结回顾
+    ├── 设计亮点
+    ├── 潜在问题
+    ├── 优化方向
+    └── 扩展思路
+```
+
+## 总结
+
+系统设计是一个综合性技能，需要掌握：
+
+1. **设计方法论**：系统的设计流程和思考方式
+2. **技术广度**：了解各种技术的特点和应用场景
+3. **实战经验**：通过实际项目积累经验
+4. **持续学习**：关注新技术和最佳实践
+5. **沟通表达**：能够清晰地表达设计思路
+
+通过不断练习和总结，可以逐步提升系统设计能力，在面试和实际工作中都能设计出优秀的系统架构。

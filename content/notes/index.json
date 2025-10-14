@@ -1,5 +1,103 @@
 [
   {
+    "name": "jvm-evolution-from5-to21.md",
+    "title": "JVM的发展之路，从5到21",
+    "date": "2024-10-14",
+    "excerpt": "详细介绍JVM从Java 5到Java 21的发展历程和重要特性",
+    "tags": ["JVM", "Java", "虚拟机", "性能优化", "垃圾回收"]
+  },
+  {
+    "name": "mysql-high-availability-performance.md",
+    "title": "MySQL高可用高性能实战",
+    "date": "2024-10-14",
+    "excerpt": "介绍MySQL高可用架构设计和性能优化实践",
+    "tags": ["MySQL", "高可用", "性能优化", "数据库架构", "主从复制"]
+  },
+  {
+    "name": "redis-high-availability.md",
+    "title": "Redis高可用实战",
+    "date": "2024-10-14",
+    "excerpt": "Redis集群、哨兵等高可用方案详解",
+    "tags": ["Redis", "高可用", "集群", "哨兵", "分布式缓存"]
+  },
+  {
+    "name": "redis-internal-data-structures.md",
+    "title": "Redis内部数据结构详解",
+    "date": "2024-10-14",
+    "excerpt": "深入分析Redis各种数据结构的实现原理",
+    "tags": ["Redis", "数据结构", "源码分析", "算法", "底层实现"]
+  },
+  {
+    "name": "dubbo-and-rpc-framework-design.md",
+    "title": "Dubbo详解及RPC框架的设计",
+    "date": "2024-10-14",
+    "excerpt": "Dubbo框架原理和RPC设计思想",
+    "tags": ["Dubbo", "RPC", "分布式系统", "微服务", "架构设计"]
+  },
+  {
+    "name": "ecommerce-promo-technical-guarantee.md",
+    "title": "大促活动的技术保障",
+    "date": "2024-10-14",
+    "excerpt": "电商大促期间的技术架构和保障措施",
+    "tags": ["电商", "大促", "技术保障", "高并发", "性能优化"]
+  },
+  {
+    "name": "java-production-troubleshooting.md",
+    "title": "Java项目线上问题排查",
+    "date": "2024-10-14",
+    "excerpt": "Java应用常见问题诊断和解决方案",
+    "tags": ["Java", "线上排查", "性能调优", "故障诊断", "JVM"]
+  },
+  {
+    "name": "popular-message-queues.md",
+    "title": "热门MQ详解",
+    "date": "2024-10-14",
+    "excerpt": "Kafka、RocketMQ等消息队列对比和选型",
+    "tags": ["消息队列", "Kafka", "RocketMQ", "RabbitMQ", "技术选型"]
+  },
+  {
+    "name": "system-design-interview-questions.md",
+    "title": "热门系统设计题及解题思路",
+    "date": "2024-10-14",
+    "excerpt": "常见系统设计面试题分析",
+    "tags": ["系统设计", "面试", "架构设计", "分布式系统", "技术方案"]
+  },
+  {
+    "name": "algorithm-data-structures.md",
+    "title": "热门算法数据结构详解",
+    "date": "2024-10-14",
+    "excerpt": "核心算法和数据结构原理与应用",
+    "tags": ["算法", "数据结构", "时间复杂度", "空间复杂度", "面试"]
+  },
+  {
+    "name": "system-security-guarantee.md",
+    "title": "系统安全性保障",
+    "date": "2024-10-14",
+    "excerpt": "系统安全架构和防护措施",
+    "tags": ["系统安全", "安全架构", "防护措施", "安全监控", "漏洞防护"]
+  },
+  {
+    "name": "ecommerce-system-design.md",
+    "title": "电商系统设计详解",
+    "date": "2024-10-14",
+    "excerpt": "电商平台整体架构设计",
+    "tags": ["电商系统", "系统设计", "架构设计", "微服务", "高并发"]
+  },
+  {
+    "name": "payment-system-design.md",
+    "title": "支付系统设计详解",
+    "date": "2024-10-14",
+    "excerpt": "支付系统架构和核心流程",
+    "tags": ["支付系统", "系统设计", "金融安全", "第三方支付", "对账系统"]
+  },
+  {
+    "name": "seckill-system-design.md",
+    "title": "秒杀系统设计详解",
+    "date": "2024-10-14",
+    "excerpt": "秒杀系统架构设计和技术要点",
+    "tags": ["秒杀系统", "高并发", "分布式锁", "缓存", "性能优化"]
+  },
+  {
     "name": "react-hooks-guide.md",
     "title": "React Hooks 完全指南",
     "date": "2024-01-15",
