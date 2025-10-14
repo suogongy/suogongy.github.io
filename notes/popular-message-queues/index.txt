@@ -2,16 +2,21 @@
 6:I[6423,[],""]
 4:["category","notes","d"]
 5:["slug","popular-message-queues","d"]
-0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","popular-message-queues","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"popular-message-queues\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","popular-message-queues","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
-9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
-b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
-a:T5b5f,<h1>热门MQ详解</h1>
-<blockquote>
-<p>消息队列是分布式系统的重要组件，选择合适的MQ对系统架构至关重要</p>
-</blockquote>
-<h2>消息队列概述</h2>
-<h3>1. 消息队列的作用</h3>
-<pre><code>消息队列核心价值：
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","popular-message-queues","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"popular-message-queues\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","popular-message-queues","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/eb4a34bff42c1814.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],""]
+a:I[2024,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],"default"]
+c:I[7140,["972","static/chunks/972-81dbad6abe39d3fa.js","185","static/chunks/app/layout-3ed2f387fb22aa2c.js"],"default"]
+b:T5458,
+# 热门MQ详解
+
+> 消息队列是分布式系统的重要组件，选择合适的MQ对系统架构至关重要
+
+## 消息队列概述
+
+### 1. 消息队列的作用
+
+```
+消息队列核心价值：
 ├── 解耦
 │   ├── 生产者与消费者解耦
 │   ├── 业务逻辑与技术实现解耦
@@ -28,57 +33,24 @@ a:T5b5f,<h1>热门MQ详解</h1>
     ├── 消息持久化
     ├── 重试机制
     └── 事务支持
-</code></pre>
-<h3>2. 主流MQ对比</h3>
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>Kafka</th>
-<th>RocketMQ</th>
-<th>RabbitMQ</th>
-<th>ActiveMQ</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>吞吐量</td>
-<td>极高</td>
-<td>高</td>
-<td>中等</td>
-<td>中等</td>
-</tr>
-<tr>
-<td>延迟</td>
-<td>低</td>
-<td>低</td>
-<td>低</td>
-<td>中等</td>
-</tr>
-<tr>
-<td>可靠性</td>
-<td>高</td>
-<td>高</td>
-<td>高</td>
-<td>中等</td>
-</tr>
-<tr>
-<td>复杂度</td>
-<td>高</td>
-<td>中等</td>
-<td>低</td>
-<td>低</td>
-</tr>
-<tr>
-<td>生态</td>
-<td>丰富</td>
-<td>良好</td>
-<td>一般</td>
-<td>一般</td>
-</tr>
-</tbody></table>
-<h2>Kafka详解</h2>
-<h3>1. Kafka架构</h3>
-<pre><code>Kafka架构图：
+```
+
+### 2. 主流MQ对比
+
+| 特性 | Kafka | RocketMQ | RabbitMQ | ActiveMQ |
+|------|-------|----------|----------|----------|
+| 吞吐量 | 极高 | 高 | 中等 | 中等 |
+| 延迟 | 低 | 低 | 低 | 中等 |
+| 可靠性 | 高 | 高 | 高 | 中等 |
+| 复杂度 | 高 | 中等 | 低 | 低 |
+| 生态 | 丰富 | 良好 | 一般 | 一般 |
+
+## Kafka详解
+
+### 1. Kafka架构
+
+```
+Kafka架构图：
 ┌─────────────────────────────────────────────────────────────┐
 │                    Kafka Cluster                            │
 ├─────────────────────────────────────────────────────────────┤
@@ -102,21 +74,24 @@ a:T5b5f,<h1>热门MQ详解</h1>
     │   Consumer  │     │  Consumer   │     │  Consumer   │
     │    Group    │     │   Group     │     │   Group     │
     └─────────────┘     └─────────────┘     └─────────────┘
-</code></pre>
-<h3>2. Kafka核心概念</h3>
-<p><strong>Partition机制</strong></p>
-<pre><code class="language-java">// Kafka生产者配置
+```
+
+### 2. Kafka核心概念
+
+**Partition机制**
+```java
+// Kafka生产者配置
 Properties props = new Properties();
-props.put(&quot;bootstrap.servers&quot;, &quot;localhost:9092&quot;);
-props.put(&quot;key.serializer&quot;, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;);
-props.put(&quot;value.serializer&quot;, &quot;org.apache.kafka.common.serialization.StringSerializer&quot;);
+props.put("bootstrap.servers", "localhost:9092");
+props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
 // 创建生产者
-KafkaProducer&lt;String, String&gt; producer = new KafkaProducer&lt;&gt;(props);
+KafkaProducer<String, String> producer = new KafkaProducer<>(props);
 
 // 发送消息（指定分区）
-ProducerRecord&lt;String, String&gt; record = 
-    new ProducerRecord&lt;&gt;(&quot;topic-name&quot;, 0, &quot;key&quot;, &quot;value&quot;);
+ProducerRecord<String, String> record = 
+    new ProducerRecord<>("topic-name", 0, "key", "value");
 
 // 自定义分区策略
 public class CustomPartitioner implements Partitioner {
@@ -127,50 +102,55 @@ public class CustomPartitioner implements Partitioner {
         return Math.abs(key.hashCode()) % cluster.partitionCountForTopic(topic);
     }
 }
-</code></pre>
-<p><strong>Consumer Group</strong></p>
-<pre><code class="language-java">// Kafka消费者配置
+```
+
+**Consumer Group**
+```java
+// Kafka消费者配置
 Properties props = new Properties();
-props.put(&quot;bootstrap.servers&quot;, &quot;localhost:9092&quot;);
-props.put(&quot;group.id&quot;, &quot;consumer-group-1&quot;);
-props.put(&quot;enable.auto.commit&quot;, &quot;true&quot;);
-props.put(&quot;auto.commit.interval.ms&quot;, &quot;1000&quot;);
-props.put(&quot;key.deserializer&quot;, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
-props.put(&quot;value.deserializer&quot;, &quot;org.apache.kafka.common.serialization.StringDeserializer&quot;);
+props.put("bootstrap.servers", "localhost:9092");
+props.put("group.id", "consumer-group-1");
+props.put("enable.auto.commit", "true");
+props.put("auto.commit.interval.ms", "1000");
+props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 
 // 创建消费者
-KafkaConsumer&lt;String, String&gt; consumer = new KafkaConsumer&lt;&gt;(props);
+KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 
 // 订阅主题
-consumer.subscribe(Arrays.asList(&quot;topic-1&quot;, &quot;topic-2&quot;));
+consumer.subscribe(Arrays.asList("topic-1", "topic-2"));
 
 // 消费消息
 while (true) {
-    ConsumerRecords&lt;String, String&gt; records = consumer.poll(Duration.ofMillis(100));
-    for (ConsumerRecord&lt;String, String&gt; record : records) {
-        System.out.printf(&quot;offset = %d, key = %s, value = %s%n&quot;, 
+    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+    for (ConsumerRecord<String, String> record : records) {
+        System.out.printf("offset = %d, key = %s, value = %s%n", 
                          record.offset(), record.key(), record.value());
     }
 }
-</code></pre>
-<h3>3. Kafka性能优化</h3>
-<p><strong>生产者优化</strong></p>
-<pre><code class="language-java">// 生产者性能优化配置
-props.put(&quot;batch.size&quot;, 16384);           // 批量大小
-props.put(&quot;linger.ms&quot;, 5);               // 等待时间
-props.put(&quot;compression.type&quot;, &quot;snappy&quot;); // 压缩类型
-props.put(&quot;acks&quot;, &quot;all&quot;);                // 确认机制
-props.put(&quot;retries&quot;, 3);                 // 重试次数
-props.put(&quot;max.in.flight.requests.per.connection&quot;, 5);
+```
+
+### 3. Kafka性能优化
+
+**生产者优化**
+```java
+// 生产者性能优化配置
+props.put("batch.size", 16384);           // 批量大小
+props.put("linger.ms", 5);               // 等待时间
+props.put("compression.type", "snappy"); // 压缩类型
+props.put("acks", "all");                // 确认机制
+props.put("retries", 3);                 // 重试次数
+props.put("max.in.flight.requests.per.connection", 5);
 
 // 异步发送优化
-List&lt;Future&lt;RecordMetadata&gt;&gt; futures = new ArrayList&lt;&gt;();
+List<Future<RecordMetadata>> futures = new ArrayList<>();
 
-for (int i = 0; i &lt; 1000; i++) {
-    ProducerRecord&lt;String, String&gt; record = 
-        new ProducerRecord&lt;&gt;(&quot;topic-name&quot;, &quot;key-&quot; + i, &quot;value-&quot; + i);
+for (int i = 0; i < 1000; i++) {
+    ProducerRecord<String, String> record = 
+        new ProducerRecord<>("topic-name", "key-" + i, "value-" + i);
     
-    Future&lt;RecordMetadata&gt; future = producer.send(record, (metadata, exception) -&gt; {
+    Future<RecordMetadata> future = producer.send(record, (metadata, exception) -> {
         if (exception != null) {
             // 处理发送失败
             exception.printStackTrace();
@@ -181,17 +161,21 @@ for (int i = 0; i &lt; 1000; i++) {
 }
 
 // 等待所有消息发送完成
-for (Future&lt;RecordMetadata&gt; future : futures) {
+for (Future<RecordMetadata> future : futures) {
     try {
         future.get();
     } catch (Exception e) {
         e.printStackTrace();
     }
 }
-</code></pre>
-<h2>RocketMQ详解</h2>
-<h3>1. RocketMQ架构</h3>
-<pre><code>RocketMQ架构图：
+```
+
+## RocketMQ详解
+
+### 1. RocketMQ架构
+
+```
+RocketMQ架构图：
 ┌─────────────────────────────────────────────────────────────┐
 │                    Name Server                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
@@ -221,12 +205,15 @@ for (Future&lt;RecordMetadata&gt; future : futures) {
     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
     │   Consumer  │     │  Consumer   │     │  Consumer   │
     └─────────────┘     └─────────────┘     └─────────────┘
-</code></pre>
-<h3>2. RocketMQ特性</h3>
-<p><strong>事务消息</strong></p>
-<pre><code class="language-java">// 事务消息生产者
-TransactionMQProducer producer = new TransactionMQProducer(&quot;transaction-producer-group&quot;);
-producer.setNamesrvAddr(&quot;localhost:9876&quot;);
+```
+
+### 2. RocketMQ特性
+
+**事务消息**
+```java
+// 事务消息生产者
+TransactionMQProducer producer = new TransactionMQProducer("transaction-producer-group");
+producer.setNamesrvAddr("localhost:9876");
 producer.setTransactionListener(new TransactionListener() {
     
     @Override
@@ -252,39 +239,41 @@ producer.setTransactionListener(new TransactionListener() {
 });
 
 // 发送事务消息
-Message msg = new Message(&quot;topic-name&quot;, &quot;tag&quot;, &quot;key&quot;, &quot;message body&quot;.getBytes());
+Message msg = new Message("topic-name", "tag", "key", "message body".getBytes());
 TransactionSendResult result = producer.sendMessageInTransaction(msg, null);
-</code></pre>
-<p><strong>顺序消息</strong></p>
-<pre><code class="language-java">// 顺序消息生产者
-DefaultMQProducer producer = new DefaultMQProducer(&quot;order-producer-group&quot;);
-producer.setNamesrvAddr(&quot;localhost:9876&quot;);
+```
+
+**顺序消息**
+```java
+// 顺序消息生产者
+DefaultMQProducer producer = new DefaultMQProducer("order-producer-group");
+producer.setNamesrvAddr("localhost:9876");
 producer.start();
 
 // 发送顺序消息
-for (int i = 0; i &lt; 10; i++) {
-    Message msg = new Message(&quot;order-topic&quot;, &quot;order&quot;, 
-        (&quot;order-&quot; + i).getBytes());
+for (int i = 0; i < 10; i++) {
+    Message msg = new Message("order-topic", "order", 
+        ("order-" + i).getBytes());
     
     // 使用相同的orderId作为选择队列的key
     SendResult result = producer.send(msg, new MessageQueueSelector() {
         @Override
-        public MessageQueue select(List&lt;MessageQueue&gt; mqs, Message msg, Object arg) {
+        public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
             String orderId = (String) arg;
             int index = Math.abs(orderId.hashCode()) % mqs.size();
             return mqs.get(index);
         }
-    }, &quot;orderId-123&quot;);
+    }, "orderId-123");
 }
 
 // 顺序消息消费者
-DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(&quot;order-consumer-group&quot;);
-consumer.setNamesrvAddr(&quot;localhost:9876&quot;);
-consumer.subscribe(&quot;order-topic&quot;, &quot;*&quot;);
+DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("order-consumer-group");
+consumer.setNamesrvAddr("localhost:9876");
+consumer.subscribe("order-topic", "*");
 consumer.registerMessageListener(new MessageListenerOrderly() {
     @Override
     public ConsumeOrderlyStatus consumeMessage(
-        List&lt;MessageExt&gt; msgs, ConsumeOrderlyContext context) {
+        List<MessageExt> msgs, ConsumeOrderlyContext context) {
         
         for (MessageExt msg : msgs) {
             // 顺序处理消息
@@ -295,10 +284,14 @@ consumer.registerMessageListener(new MessageListenerOrderly() {
     }
 });
 consumer.start();
-</code></pre>
-<h2>RabbitMQ详解</h2>
-<h3>1. RabbitMQ架构</h3>
-<pre><code>RabbitMQ架构图：
+```
+
+## RabbitMQ详解
+
+### 1. RabbitMQ架构
+
+```
+RabbitMQ架构图：
 ┌─────────────────────────────────────────────────────────────┐
 │                    RabbitMQ                                │
 ├─────────────────────────────────────────────────────────────┤
@@ -318,85 +311,90 @@ consumer.start();
 │  │   Consumer  │  │   Consumer  │  │   Consumer  │           │
 │  └─────────────┘  └─────────────┘  └─────────────┘           │
 └─────────────────────────────────────────────────────────────┘
-</code></pre>
-<h3>2. RabbitMQ特性</h3>
-<p><strong>交换机类型</strong></p>
-<pre><code class="language-java">// Direct Exchange（直连交换机）
+```
+
+### 2. RabbitMQ特性
+
+**交换机类型**
+```java
+// Direct Exchange（直连交换机）
 @Configuration
 public class RabbitConfig {
     
     @Bean
     public DirectExchange directExchange() {
-        return new DirectExchange(&quot;direct.exchange&quot;);
+        return new DirectExchange("direct.exchange");
     }
     
     @Bean
     public Queue directQueue1() {
-        return QueueBuilder.durable(&quot;direct.queue.1&quot;).build();
+        return QueueBuilder.durable("direct.queue.1").build();
     }
     
     @Bean
     public Binding directBinding1() {
         return BindingBuilder.bind(directQueue1())
-            .to(directExchange()).with(&quot;routing.key.1&quot;);
+            .to(directExchange()).with("routing.key.1");
     }
 }
 
 // Topic Exchange（主题交换机）
 @Bean
 public TopicExchange topicExchange() {
-    return new TopicExchange(&quot;topic.exchange&quot;);
+    return new TopicExchange("topic.exchange");
 }
 
 @Bean
 public Queue topicQueue1() {
-    return QueueBuilder.durable(&quot;topic.queue.1&quot;).build();
+    return QueueBuilder.durable("topic.queue.1").build();
 }
 
 @Bean
 public Binding topicBinding1() {
     return BindingBuilder.bind(topicQueue1())
-        .to(topicExchange()).with(&quot;*.error&quot;);
+        .to(topicExchange()).with("*.error");
 }
 
 // Fanout Exchange（扇出交换机）
 @Bean
 public FanoutExchange fanoutExchange() {
-    return new FanoutExchange(&quot;fanout.exchange&quot;);
+    return new FanoutExchange("fanout.exchange");
 }
 
 @Bean
 public Queue fanoutQueue1() {
-    return QueueBuilder.durable(&quot;fanout.queue.1&quot;).build();
+    return QueueBuilder.durable("fanout.queue.1").build();
 }
 
 @Bean
 public Binding fanoutBinding1() {
     return BindingBuilder.bind(fanoutQueue1()).to(fanoutExchange());
 }
-</code></pre>
-<p><strong>消息确认机制</strong></p>
-<pre><code class="language-java">// 发送者确认
+```
+
+**消息确认机制**
+```java
+// 发送者确认
 @Bean
 public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
     RabbitTemplate template = new RabbitTemplate(connectionFactory);
-    template.setConfirmCallback((correlationData, ack, cause) -&gt; {
+    template.setConfirmCallback((correlationData, ack, cause) -> {
         if (ack) {
-            System.out.println(&quot;消息发送成功: &quot; + correlationData.getId());
+            System.out.println("消息发送成功: " + correlationData.getId());
         } else {
-            System.err.println(&quot;消息发送失败: &quot; + cause);
+            System.err.println("消息发送失败: " + cause);
         }
     });
     
-    template.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -&gt; {
-        System.err.println(&quot;消息返回: &quot; + message);
+    template.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -> {
+        System.err.println("消息返回: " + message);
     });
     
     return template;
 }
 
 // 消费者确认
-@RabbitListener(queues = &quot;test.queue&quot;)
+@RabbitListener(queues = "test.queue")
 public void handleMessage(Message message, Channel channel) {
     try {
         // 处理消息
@@ -415,10 +413,14 @@ public void handleMessage(Message message, Channel channel) {
         }
     }
 }
-</code></pre>
-<h2>MQ选型指南</h2>
-<h3>1. 选型维度</h3>
-<pre><code>MQ选型评估维度：
+```
+
+## MQ选型指南
+
+### 1. 选型维度
+
+```
+MQ选型评估维度：
 ├── 性能要求
 │   ├── 吞吐量
 │   ├── 延迟
@@ -443,9 +445,12 @@ public void handleMessage(Message message, Channel channel) {
     ├── 文档完整性
     ├── 工具支持
     └── 学习成本
-</code></pre>
-<h3>2. 选型决策树</h3>
-<pre><code>选型决策流程：
+```
+
+### 2. 选型决策树
+
+```
+选型决策流程：
 是否需要高吞吐量？
 ├── 是 → 是否需要强顺序性？
 │   ├── 是 → RocketMQ
@@ -453,10 +458,13 @@ public void handleMessage(Message message, Channel channel) {
 └── 否 → 是否需要复杂路由？
     ├── 是 → RabbitMQ
     └── 否 → ActiveMQ/RocketMQ
-</code></pre>
-<h3>3. 最佳实践</h3>
-<p><strong>消息设计原则</strong></p>
-<pre><code class="language-java">// 消息结构设计
+```
+
+### 3. 最佳实践
+
+**消息设计原则**
+```java
+// 消息结构设计
 public class MessageEntity {
     private String messageId;    // 消息唯一ID
     private String topic;        // 主题
@@ -464,7 +472,7 @@ public class MessageEntity {
     private String body;         // 消息体
     private Long timestamp;      // 时间戳
     private Integer retryCount;  // 重试次数
-    private Map&lt;String, String&gt; properties; // 扩展属性
+    private Map<String, String> properties; // 扩展属性
 }
 
 // 消息生产者最佳实践
@@ -472,7 +480,7 @@ public class MessageEntity {
 public class MessageProducer {
     
     @Autowired
-    private KafkaTemplate&lt;String, String&gt; kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
     
     public void sendMessage(String topic, Object message) {
         try {
@@ -486,30 +494,31 @@ public class MessageProducer {
             // 发送消息
             kafkaTemplate.send(topic, entity.getMessageId(), 
                 JSON.toJSONString(entity))
-                .addCallback(success -&gt; {
+                .addCallback(success -> {
                     // 发送成功回调
-                    log.info(&quot;消息发送成功: {}&quot;, entity.getMessageId());
-                }, failure -&gt; {
+                    log.info("消息发送成功: {}", entity.getMessageId());
+                }, failure -> {
                     // 发送失败回调
-                    log.error(&quot;消息发送失败: {}&quot;, entity.getMessageId(), failure);
+                    log.error("消息发送失败: {}", entity.getMessageId(), failure);
                     // 重试或补偿
                 });
         } catch (Exception e) {
-            log.error(&quot;发送消息异常&quot;, e);
+            log.error("发送消息异常", e);
         }
     }
 }
-</code></pre>
-<h2>总结</h2>
-<p>消息队列选型是一个重要的架构决策，需要综合考虑：</p>
-<ol>
-<li><strong>Kafka</strong>：适合大数据场景，吞吐量极高，延迟较低</li>
-<li><strong>RocketMQ</strong>：适合金融场景，可靠性高，功能丰富</li>
-<li><strong>RabbitMQ</strong>：适合企业应用，路由灵活，易于使用</li>
-<li><strong>ActiveMQ</strong>：适合传统应用，成熟稳定，学习成本低</li>
-</ol>
-<p>选择MQ时，应该根据具体的业务需求、技术团队熟悉程度和运维能力来决定。没有最好的MQ，只有最适合的MQ。</p>
-2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"热门MQ详解"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","消息队列",{"className":"tag","children":"消息队列"}],["$","span","Kafka",{"className":"tag","children":"Kafka"}],["$","span","RocketMQ",{"className":"tag","children":"RocketMQ"}],["$","span","RabbitMQ",{"className":"tag","children":"RabbitMQ"}],["$","span","技术选型",{"className":"tag","children":"技术选型"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
-7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+```
+
+## 总结
+
+消息队列选型是一个重要的架构决策，需要综合考虑：
+
+1. **Kafka**：适合大数据场景，吞吐量极高，延迟较低
+2. **RocketMQ**：适合金融场景，可靠性高，功能丰富
+3. **RabbitMQ**：适合企业应用，路由灵活，易于使用
+4. **ActiveMQ**：适合传统应用，成熟稳定，学习成本低
+
+选择MQ时，应该根据具体的业务需求、技术团队熟悉程度和运维能力来决定。没有最好的MQ，只有最适合的MQ。2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"热门MQ详解"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","消息队列",{"className":"tag","children":"消息队列"}],["$","span","Kafka",{"className":"tag","children":"Kafka"}],["$","span","RocketMQ",{"className":"tag","children":"RocketMQ"}],["$","span","RabbitMQ",{"className":"tag","children":"RabbitMQ"}],["$","span","技术选型",{"className":"tag","children":"技术选型"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","children":["$","$La",null,{"content":"$b"}]}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}],["$","script",null,{"src":"https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lc",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
 8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"热门MQ详解 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"深入分析主流消息队列的技术特点、架构设计、性能差异和选型建议，帮助开发者选择合适的消息中间件。"}]]
 1:null

@@ -2,16 +2,21 @@
 6:I[6423,[],""]
 4:["category","notes","d"]
 5:["slug","system-security-guarantee","d"]
-0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","system-security-guarantee","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"system-security-guarantee\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","system-security-guarantee","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
-9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
-b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
-a:T79e8,<h1>系统安全性保障</h1>
-<blockquote>
-<p>安全是系统的生命线，完善的安全防护体系是保障系统稳定运行的基石</p>
-</blockquote>
-<h2>安全架构概述</h2>
-<h3>1. 安全体系架构</h3>
-<pre><code>安全防护体系：
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","system-security-guarantee","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"system-security-guarantee\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","system-security-guarantee","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/eb4a34bff42c1814.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],""]
+a:I[2024,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],"default"]
+c:I[7140,["972","static/chunks/972-81dbad6abe39d3fa.js","185","static/chunks/app/layout-3ed2f387fb22aa2c.js"],"default"]
+b:T7131,
+# 系统安全性保障
+
+> 安全是系统的生命线，完善的安全防护体系是保障系统稳定运行的基石
+
+## 安全架构概述
+
+### 1. 安全体系架构
+
+```
+安全防护体系：
 ├── 网络安全
 │   ├── 防火墙
 │   ├── DDoS防护
@@ -32,9 +37,12 @@ a:T79e8,<h1>系统安全性保障</h1>
     ├── 漏洞扫描
     ├── 入侵检测
     └── 应急响应
-</code></pre>
-<h3>2. 安全设计原则</h3>
-<pre><code>安全设计原则：
+```
+
+### 2. 安全设计原则
+
+```
+安全设计原则：
 ├── 纵深防御
 │   ├── 多层防护
 │   ├── 分段隔离
@@ -51,29 +59,33 @@ a:T79e8,<h1>系统安全性保障</h1>
     ├── 安全配置
     ├── 安全默认
     └── 安全加固
-</code></pre>
-<h2>身份认证与授权</h2>
-<h3>1. 认证机制</h3>
-<p><strong>JWT认证实现</strong></p>
-<pre><code class="language-java">@Component
+```
+
+## 身份认证与授权
+
+### 1. 认证机制
+
+**JWT认证实现**
+```java
+@Component
 public class JwtAuthenticationService {
     
-    @Value(&quot;${jwt.secret}&quot;)
+    @Value("${jwt.secret}")
     private String jwtSecret;
     
-    @Value(&quot;${jwt.expiration}&quot;)
+    @Value("${jwt.expiration}")
     private int jwtExpiration;
     
     // 生成JWT Token
     public String generateToken(UserDetails userDetails) {
-        Map&lt;String, Object&gt; claims = new HashMap&lt;&gt;();
-        claims.put(&quot;roles&quot;, userDetails.getAuthorities());
-        claims.put(&quot;username&quot;, userDetails.getUsername());
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", userDetails.getAuthorities());
+        claims.put("username", userDetails.getUsername());
         
         return createToken(claims, userDetails.getUsername());
     }
     
-    private String createToken(Map&lt;String, Object&gt; claims, String subject) {
+    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
             .setClaims(claims)
             .setSubject(subject)
@@ -86,7 +98,7 @@ public class JwtAuthenticationService {
     // 验证Token
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) &amp;&amp; 
+        return (username.equals(userDetails.getUsername()) && 
                 !isTokenExpired(token));
     }
     
@@ -96,7 +108,7 @@ public class JwtAuthenticationService {
     }
     
     // 从Token中获取指定声明
-    public &lt;T&gt; T getClaimFromToken(String token, Function&lt;Claims, T&gt; claimsResolver) {
+    public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
@@ -116,9 +128,11 @@ public class JwtAuthenticationService {
         return getClaimFromToken(token, Claims::getExpiration);
     }
 }
-</code></pre>
-<p><strong>OAuth2认证</strong></p>
-<pre><code class="language-java">@Configuration
+```
+
+**OAuth2认证**
+```java
+@Configuration
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
     
@@ -139,25 +153,28 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey(&quot;jwt-secret-key&quot;);
+        converter.setSigningKey("jwt-secret-key");
         return converter;
     }
     
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-            .withClient(&quot;client-id&quot;)
-            .secret(&quot;client-secret&quot;)
-            .authorizedGrantTypes(&quot;password&quot;, &quot;refresh_token&quot;)
-            .scopes(&quot;read&quot;, &quot;write&quot;)
+            .withClient("client-id")
+            .secret("client-secret")
+            .authorizedGrantTypes("password", "refresh_token")
+            .scopes("read", "write")
             .accessTokenValiditySeconds(3600)
             .refreshTokenValiditySeconds(18000);
     }
 }
-</code></pre>
-<h3>2. 权限控制</h3>
-<p><strong>RBAC权限控制</strong></p>
-<pre><code class="language-java">// 角色实体
+```
+
+### 2. 权限控制
+
+**RBAC权限控制**
+```java
+// 角色实体
 @Entity
 public class Role {
     @Id
@@ -167,11 +184,11 @@ public class Role {
     
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-        name = &quot;role_permission&quot;,
-        joinColumns = @JoinColumn(name = &quot;role_id&quot;),
-        inverseJoinColumns = @JoinColumn(name = &quot;permission_id&quot;)
+        name = "role_permission",
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
-    private Set&lt;Permission&gt; permissions;
+    private Set<Permission> permissions;
 }
 
 // 权限实体
@@ -187,7 +204,7 @@ public class Permission {
 // 权限检查注解
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize(&quot;hasPermission(#id, &#39;USER&#39;, &#39;READ&#39;)&quot;)
+@PreAuthorize("hasPermission(#id, 'USER', 'READ')")
 public @interface RequirePermission {
     String resource();
     String action();
@@ -201,7 +218,7 @@ public class PermissionAspect {
     @Autowired
     private PermissionService permissionService;
     
-    @Before(&quot;@annotation(requirePermission)&quot;)
+    @Before("@annotation(requirePermission)")
     public void checkPermission(JoinPoint joinPoint, RequirePermission requirePermission) {
         // 获取当前用户
         User currentUser = SecurityContextHolder.getContext()
@@ -219,7 +236,7 @@ public class PermissionAspect {
         );
         
         if (!hasPermission) {
-            throw new AccessDeniedException(&quot;权限不足&quot;);
+            throw new AccessDeniedException("权限不足");
         }
     }
     
@@ -234,17 +251,21 @@ public class PermissionAspect {
         return null;
     }
 }
-</code></pre>
-<h2>数据安全防护</h2>
-<h3>1. 数据加密</h3>
-<p><strong>对称加密</strong></p>
-<pre><code class="language-java">@Component
+```
+
+## 数据安全防护
+
+### 1. 数据加密
+
+**对称加密**
+```java
+@Component
 public class EncryptionService {
     
-    private static final String ALGORITHM = &quot;AES&quot;;
-    private static final String TRANSFORMATION = &quot;AES/CBC/PKCS5Padding&quot;;
+    private static final String ALGORITHM = "AES";
+    private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
     
-    @Value(&quot;${encryption.key}&quot;)
+    @Value("${encryption.key}")
     private String encryptionKey;
     
     // 加密
@@ -277,12 +298,14 @@ public class EncryptionService {
         return new String(decrypted);
     }
 }
-</code></pre>
-<p><strong>非对称加密</strong></p>
-<pre><code class="language-java">@Component
+```
+
+**非对称加密**
+```java
+@Component
 public class RSAEncryptionService {
     
-    private static final String ALGORITHM = &quot;RSA&quot;;
+    private static final String ALGORITHM = "RSA";
     
     // 生成密钥对
     public KeyPair generateKeyPair() throws Exception {
@@ -313,7 +336,7 @@ public class RSAEncryptionService {
     
     // 数字签名
     public String sign(String data, PrivateKey privateKey) throws Exception {
-        Signature signature = Signature.getInstance(&quot;SHA256withRSA&quot;);
+        Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initSign(privateKey);
         signature.update(data.getBytes());
         
@@ -323,7 +346,7 @@ public class RSAEncryptionService {
     
     // 验证签名
     public boolean verify(String data, String sign, PublicKey publicKey) throws Exception {
-        Signature signature = Signature.getInstance(&quot;SHA256withRSA&quot;);
+        Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initVerify(publicKey);
         signature.update(data.getBytes());
         
@@ -331,18 +354,21 @@ public class RSAEncryptionService {
         return signature.verify(signBytes);
     }
 }
-</code></pre>
-<h3>2. 数据脱敏</h3>
-<p><strong>敏感数据脱敏</strong></p>
-<pre><code class="language-java">@Component
+```
+
+### 2. 数据脱敏
+
+**敏感数据脱敏**
+```java
+@Component
 public class DataMaskingService {
     
     // 手机号脱敏
     public String maskPhone(String phone) {
-        if (phone == null || phone.length() &lt; 11) {
+        if (phone == null || phone.length() < 11) {
             return phone;
         }
-        return phone.substring(0, 3) + &quot;****&quot; + phone.substring(7);
+        return phone.substring(0, 3) + "****" + phone.substring(7);
     }
     
     // 邮箱脱敏
@@ -351,37 +377,37 @@ public class DataMaskingService {
             return null;
         }
         
-        int atIndex = email.indexOf(&quot;@&quot;);
-        if (atIndex &lt;= 1) {
+        int atIndex = email.indexOf("@");
+        if (atIndex <= 1) {
             return email;
         }
         
         String username = email.substring(0, atIndex);
         String domain = email.substring(atIndex);
         
-        if (username.length() &lt;= 2) {
-            return username.charAt(0) + &quot;***&quot; + domain;
+        if (username.length() <= 2) {
+            return username.charAt(0) + "***" + domain;
         }
         
-        return username.charAt(0) + &quot;***&quot; + 
+        return username.charAt(0) + "***" + 
                username.charAt(username.length() - 1) + domain;
     }
     
     // 身份证脱敏
     public String maskIdCard(String idCard) {
-        if (idCard == null || idCard.length() &lt; 8) {
+        if (idCard == null || idCard.length() < 8) {
             return idCard;
         }
-        return idCard.substring(0, 4) + &quot;**********&quot; + 
+        return idCard.substring(0, 4) + "**********" + 
                idCard.substring(idCard.length() - 4);
     }
     
     // 银行卡脱敏
     public String maskBankCard(String bankCard) {
-        if (bankCard == null || bankCard.length() &lt; 8) {
+        if (bankCard == null || bankCard.length() < 8) {
             return bankCard;
         }
-        return bankCard.substring(0, 4) + &quot; **** **** &quot; + 
+        return bankCard.substring(0, 4) + " **** **** " + 
                bankCard.substring(bankCard.length() - 4);
     }
 }
@@ -406,17 +432,17 @@ public class DataMaskingAspect {
     @Autowired
     private DataMaskingService maskingService;
     
-    @Around(&quot;@annotation(org.springframework.web.bind.annotation.GetMapping)&quot;)
+    @Around("@annotation(org.springframework.web.bind.annotation.GetMapping)")
     public Object maskResponseData(ProceedingJoinPoint joinPoint) throws Throwable {
         Object result = joinPoint.proceed();
         
         if (result instanceof ResponseEntity) {
-            ResponseEntity&lt;?&gt; response = (ResponseEntity&lt;?&gt;) result;
+            ResponseEntity<?> response = (ResponseEntity<?>) result;
             Object body = response.getBody();
             
             if (body != null) {
                 Object maskedBody = maskObject(body);
-                return new ResponseEntity&lt;&gt;(maskedBody, response.getHeaders(), 
+                return new ResponseEntity<>(maskedBody, response.getHeaders(), 
                     response.getStatusCode());
             }
         }
@@ -429,11 +455,11 @@ public class DataMaskingAspect {
             return null;
         }
         
-        Class&lt;?&gt; clazz = obj.getClass();
+        Class<?> clazz = obj.getClass();
         
         for (Field field : clazz.getDeclaredFields()) {
             DataMasking annotation = field.getAnnotation(DataMasking.class);
-            if (annotation != null &amp;&amp; annotation.type() != MaskType.NONE) {
+            if (annotation != null && annotation.type() != MaskType.NONE) {
                 field.setAccessible(true);
                 try {
                     Object value = field.get(obj);
@@ -465,27 +491,31 @@ public class DataMaskingAspect {
         }
     }
 }
-</code></pre>
-<h2>网络安全防护</h2>
-<h3>1. Web应用防火墙</h3>
-<p><strong>WAF规则配置</strong></p>
-<pre><code class="language-java">@Component
+```
+
+## 网络安全防护
+
+### 1. Web应用防火墙
+
+**WAF规则配置**
+```java
+@Component
 public class WebApplicationFirewall {
     
     // SQL注入检测
     public boolean detectSqlInjection(String input) {
         String[] sqlPatterns = {
-            &quot;(&#39;|(\\-\\-)|(;)|(\\||\\|)|(\\*|\\*))&quot;,
-            &quot;(exec(\\s|\\+)+(s|x)p\\w+)&quot;,
-            &quot;insert(\\s|\\+)into&quot;,
-            &quot;delete(\\s|\\+)from&quot;,
-            &quot;select(\\s|\\+).*from&quot;,
-            &quot;update(\\s|\\+).*set&quot;,
-            &quot;union(\\s|\\+)select&quot;
+            "('|(\\-\\-)|(;)|(\\||\\|)|(\\*|\\*))",
+            "(exec(\\s|\\+)+(s|x)p\\w+)",
+            "insert(\\s|\\+)into",
+            "delete(\\s|\\+)from",
+            "select(\\s|\\+).*from",
+            "update(\\s|\\+).*set",
+            "union(\\s|\\+)select"
         };
         
         for (String pattern : sqlPatterns) {
-            if (input.toLowerCase().matches(&quot;.*&quot; + pattern + &quot;.*&quot;)) {
+            if (input.toLowerCase().matches(".*" + pattern + ".*")) {
                 return true;
             }
         }
@@ -496,14 +526,14 @@ public class WebApplicationFirewall {
     // XSS攻击检测
     public boolean detectXss(String input) {
         String[] xssPatterns = {
-            &quot;&lt;script&quot;,
-            &quot;&lt;/script&gt;&quot;,
-            &quot;&lt;iframe&quot;,
-            &quot;javascript:&quot;,
-            &quot;vbscript:&quot;,
-            &quot;onload=&quot;,
-            &quot;onerror=&quot;,
-            &quot;onclick=&quot;
+            "<script",
+            "</script>",
+            "<iframe",
+            "javascript:",
+            "vbscript:",
+            "onload=",
+            "onerror=",
+            "onclick="
         };
         
         for (String pattern : xssPatterns) {
@@ -518,13 +548,13 @@ public class WebApplicationFirewall {
     // CSRF防护
     public String generateCsrfToken(HttpServletRequest request) {
         String token = UUID.randomUUID().toString();
-        request.getSession().setAttribute(&quot;csrf_token&quot;, token);
+        request.getSession().setAttribute("csrf_token", token);
         return token;
     }
     
     public boolean validateCsrfToken(HttpServletRequest request, String token) {
-        String sessionToken = (String) request.getSession().getAttribute(&quot;csrf_token&quot;);
-        return sessionToken != null &amp;&amp; sessionToken.equals(token);
+        String sessionToken = (String) request.getSession().getAttribute("csrf_token");
+        return sessionToken != null && sessionToken.equals(token);
     }
 }
 
@@ -544,32 +574,35 @@ public class SecurityFilter implements Filter {
         
         // 检查SQL注入
         String queryString = httpRequest.getQueryString();
-        if (queryString != null &amp;&amp; waf.detectSqlInjection(queryString)) {
-            httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;SQL注入攻击&quot;);
+        if (queryString != null && waf.detectSqlInjection(queryString)) {
+            httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "SQL注入攻击");
             return;
         }
         
         // 检查XSS攻击
-        String userAgent = httpRequest.getHeader(&quot;User-Agent&quot;);
-        if (userAgent != null &amp;&amp; waf.detectXss(userAgent)) {
-            httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, &quot;XSS攻击&quot;);
+        String userAgent = httpRequest.getHeader("User-Agent");
+        if (userAgent != null && waf.detectXss(userAgent)) {
+            httpResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "XSS攻击");
             return;
         }
         
         chain.doFilter(request, response);
     }
 }
-</code></pre>
-<h3>2. DDoS防护</h3>
-<p><strong>限流防护</strong></p>
-<pre><code class="language-java">@Component
+```
+
+### 2. DDoS防护
+
+**限流防护**
+```java
+@Component
 public class RateLimitingService {
     
-    private final Map&lt;String, Bucket&gt; buckets = new ConcurrentHashMap&lt;&gt;();
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
     
     // 令牌桶限流
     public boolean allowRequest(String clientId, int capacity, double refillRate) {
-        Bucket bucket = buckets.computeIfAbsent(clientId, id -&gt; {
+        Bucket bucket = buckets.computeIfAbsent(clientId, id -> {
             Refill refill = Refill.intervently(capacity, Duration.ofSeconds((int) (capacity / refillRate)));
             return Bucket.builder()
                 .addLimit(Bandwidth.classic(capacity, refill))
@@ -597,7 +630,7 @@ public class RateLimitingService {
             
             // 每个IP每分钟最多100个请求
             if (!rateLimitingService.allowRequest(clientIp, 100, 100/60.0)) {
-                httpResponse.sendError(HttpServletResponse.SC_TOO_MANY_REQUESTS, &quot;请求过于频繁&quot;);
+                httpResponse.sendError(HttpServletResponse.SC_TOO_MANY_REQUESTS, "请求过于频繁");
                 return;
             }
             
@@ -605,20 +638,24 @@ public class RateLimitingService {
         }
         
         private String getClientIp(HttpServletRequest request) {
-            String xForwardedFor = request.getHeader(&quot;X-Forwarded-For&quot;);
-            if (xForwardedFor != null &amp;&amp; !xForwardedFor.isEmpty()) {
-                return xForwardedFor.split(&quot;,&quot;)[0].trim();
+            String xForwardedFor = request.getHeader("X-Forwarded-For");
+            if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+                return xForwardedFor.split(",")[0].trim();
             }
             
             return request.getRemoteAddr();
         }
     }
 }
-</code></pre>
-<h2>安全监控与审计</h2>
-<h3>1. 安全日志</h3>
-<p><strong>安全事件记录</strong></p>
-<pre><code class="language-java">@Component
+```
+
+## 安全监控与审计
+
+### 1. 安全日志
+
+**安全事件记录**
+```java
+@Component
 public class SecurityAuditService {
     
     @Autowired
@@ -627,12 +664,12 @@ public class SecurityAuditService {
     // 记录登录事件
     public void recordLogin(String username, String ip, boolean success) {
         AuditLog log = new AuditLog();
-        log.setEventType(&quot;LOGIN&quot;);
+        log.setEventType("LOGIN");
         log.setUsername(username);
         log.setIpAddress(ip);
         log.setSuccess(success);
         log.setEventTime(new Date());
-        log.setDescription(success ? &quot;登录成功&quot; : &quot;登录失败&quot;);
+        log.setDescription(success ? "登录成功" : "登录失败");
         
         auditLogRepository.save(log);
         
@@ -644,13 +681,13 @@ public class SecurityAuditService {
     public void recordPermissionChange(String operator, String targetUser, 
                                     String resource, String action) {
         AuditLog log = new AuditLog();
-        log.setEventType(&quot;PERMISSION_CHANGE&quot;);
+        log.setEventType("PERMISSION_CHANGE");
         log.setUsername(operator);
         log.setTargetUser(targetUser);
         log.setResource(resource);
         log.setAction(action);
         log.setEventTime(new Date());
-        log.setDescription(&quot;权限变更: &quot; + targetUser + &quot; &quot; + action + &quot; &quot; + resource);
+        log.setDescription("权限变更: " + targetUser + " " + action + " " + resource);
         
         auditLogRepository.save(log);
         asyncSendToLogSystem(log);
@@ -660,13 +697,13 @@ public class SecurityAuditService {
     public void recordDataAccess(String username, String resource, 
                                String action, boolean success) {
         AuditLog log = new AuditLog();
-        log.setEventType(&quot;DATA_ACCESS&quot;);
+        log.setEventType("DATA_ACCESS");
         log.setUsername(username);
         log.setResource(resource);
         log.setAction(action);
         log.setSuccess(success);
         log.setEventTime(new Date());
-        log.setDescription(&quot;数据访问: &quot; + username + &quot; &quot; + action + &quot; &quot; + resource);
+        log.setDescription("数据访问: " + username + " " + action + " " + resource);
         
         auditLogRepository.save(log);
         asyncSendToLogSystem(log);
@@ -674,7 +711,7 @@ public class SecurityAuditService {
     
     private void asyncSendToLogSystem(AuditLog log) {
         // 异步发送到ELK、Splunk等日志系统
-        CompletableFuture.runAsync(() -&gt; {
+        CompletableFuture.runAsync(() -> {
             try {
                 // 发送逻辑
                 logSystemClient.send(log);
@@ -684,10 +721,13 @@ public class SecurityAuditService {
         });
     }
 }
-</code></pre>
-<h3>2. 入侵检测</h3>
-<p><strong>异常行为检测</strong></p>
-<pre><code class="language-java">@Component
+```
+
+### 2. 入侵检测
+
+**异常行为检测**
+```java
+@Component
 public class IntrusionDetectionService {
     
     @Autowired
@@ -697,17 +737,17 @@ public class IntrusionDetectionService {
     public void detectAnomalousLogin(String username, String ip) {
         // 检查是否为新IP登录
         if (isNewIpForUser(username, ip)) {
-            auditService.recordSecurityEvent(&quot;NEW_IP_LOGIN&quot;, username, ip);
+            auditService.recordSecurityEvent("NEW_IP_LOGIN", username, ip);
         }
         
         // 检查是否为异地登录
         if (isRemoteLogin(username, ip)) {
-            auditService.recordSecurityEvent(&quot;REMOTE_LOGIN&quot;, username, ip);
+            auditService.recordSecurityEvent("REMOTE_LOGIN", username, ip);
         }
         
         // 检查登录频率异常
         if (isHighFrequencyLogin(username, ip)) {
-            auditService.recordSecurityEvent(&quot;HIGH_FREQUENCY_LOGIN&quot;, username, ip);
+            auditService.recordSecurityEvent("HIGH_FREQUENCY_LOGIN", username, ip);
         }
     }
     
@@ -715,23 +755,23 @@ public class IntrusionDetectionService {
     public void detectAnomalousDataAccess(String username, String resource) {
         // 检查是否为非工作时间访问
         if (isAfterHoursAccess()) {
-            auditService.recordSecurityEvent(&quot;AFTER_HOURS_ACCESS&quot;, username, resource);
+            auditService.recordSecurityEvent("AFTER_HOURS_ACCESS", username, resource);
         }
         
         // 检查是否为大批量数据访问
         if (isBulkDataAccess(username, resource)) {
-            auditService.recordSecurityEvent(&quot;BULK_DATA_ACCESS&quot;, username, resource);
+            auditService.recordSecurityEvent("BULK_DATA_ACCESS", username, resource);
         }
         
         // 检查是否为敏感数据访问
         if (isSensitiveDataAccess(resource)) {
-            auditService.recordSecurityEvent(&quot;SENSITIVE_DATA_ACCESS&quot;, username, resource);
+            auditService.recordSecurityEvent("SENSITIVE_DATA_ACCESS", username, resource);
         }
     }
     
     private boolean isNewIpForUser(String username, String ip) {
         // 检查用户历史登录IP
-        List&lt;String&gt; historicalIps = getHistoricalIps(username);
+        List<String> historicalIps = getHistoricalIps(username);
         return !historicalIps.contains(ip);
     }
     
@@ -745,56 +785,60 @@ public class IntrusionDetectionService {
     private boolean isHighFrequencyLogin(String username, String ip) {
         // 检查最近5分钟内登录次数
         int recentLogins = getRecentLoginCount(username, ip, 5);
-        return recentLogins &gt; 10;
+        return recentLogins > 10;
     }
     
     private boolean isAfterHoursAccess() {
         int hour = LocalTime.now().getHour();
-        return hour &lt; 9 || hour &gt; 18;
+        return hour < 9 || hour > 18;
     }
     
     private boolean isBulkDataAccess(String username, String resource) {
         // 检查最近1小时内的访问次数
         int recentAccess = getRecentAccessCount(username, resource, 60);
-        return recentAccess &gt; 1000;
+        return recentAccess > 1000;
     }
     
     private boolean isSensitiveDataAccess(String resource) {
         // 检查是否为敏感资源
-        return resource.contains(&quot;admin&quot;) || 
-               resource.contains(&quot;config&quot;) || 
-               resource.contains(&quot;password&quot;);
+        return resource.contains("admin") || 
+               resource.contains("config") || 
+               resource.contains("password");
     }
 }
-</code></pre>
-<h2>漏洞管理</h2>
-<h3>1. 漏洞扫描</h3>
-<p><strong>自动化漏洞扫描</strong></p>
-<pre><code class="language-java">@Component
+```
+
+## 漏洞管理
+
+### 1. 漏洞扫描
+
+**自动化漏洞扫描**
+```java
+@Component
 public class VulnerabilityScanner {
     
     // SQL注入漏洞扫描
-    public List&lt;Vulnerability&gt; scanSqlInjection(String target) {
-        List&lt;Vulnerability&gt; vulnerabilities = new ArrayList&lt;&gt;();
+    public List<Vulnerability> scanSqlInjection(String target) {
+        List<Vulnerability> vulnerabilities = new ArrayList<>();
         
         String[] payloads = {
-            &quot;&#39; OR &#39;1&#39;=&#39;1&quot;,
-            &quot;&#39; UNION SELECT NULL--&quot;,
-            &quot;&#39;; DROP TABLE users--&quot;
+            "' OR '1'='1",
+            "' UNION SELECT NULL--",
+            "'; DROP TABLE users--"
         };
         
         for (String payload : payloads) {
             try {
-                String testUrl = target + &quot;?id=&quot; + URLEncoder.encode(payload, &quot;UTF-8&quot;);
+                String testUrl = target + "?id=" + URLEncoder.encode(payload, "UTF-8");
                 HttpResponse response = httpClient.execute(new HttpGet(testUrl));
                 
-                if (response.getEntity() != null &amp;&amp; 
-                    response.getEntity().getContentLength() &gt; 0) {
+                if (response.getEntity() != null && 
+                    response.getEntity().getContentLength() > 0) {
                     
                     Vulnerability vuln = new Vulnerability();
-                    vuln.setType(&quot;SQL_INJECTION&quot;);
-                    vuln.setSeverity(&quot;HIGH&quot;);
-                    vuln.setDescription(&quot;发现SQL注入漏洞&quot;);
+                    vuln.setType("SQL_INJECTION");
+                    vuln.setSeverity("HIGH");
+                    vuln.setDescription("发现SQL注入漏洞");
                     vuln.setPayload(payload);
                     vulnerabilities.add(vuln);
                 }
@@ -807,26 +851,26 @@ public class VulnerabilityScanner {
     }
     
     // XSS漏洞扫描
-    public List&lt;Vulnerability&gt; scanXss(String target) {
-        List&lt;Vulnerability&gt; vulnerabilities = new ArrayList&lt;&gt;();
+    public List<Vulnerability> scanXss(String target) {
+        List<Vulnerability> vulnerabilities = new ArrayList<>();
         
         String[] payloads = {
-            &quot;&lt;script&gt;alert(&#39;XSS&#39;)&lt;/script&gt;&quot;,
-            &quot;&lt;img src=x onerror=alert(&#39;XSS&#39;)&gt;&quot;,
-            &quot;javascript:alert(&#39;XSS&#39;)&quot;
+            "<script>alert('XSS')</script>",
+            "<img src=x onerror=alert('XSS')>",
+            "javascript:alert('XSS')"
         };
         
         for (String payload : payloads) {
             try {
-                String testUrl = target + &quot;?search=&quot; + URLEncoder.encode(payload, &quot;UTF-8&quot;);
+                String testUrl = target + "?search=" + URLEncoder.encode(payload, "UTF-8");
                 HttpResponse response = httpClient.execute(new HttpGet(testUrl));
                 
                 String content = EntityUtils.toString(response.getEntity());
                 if (content.contains(payload)) {
                     Vulnerability vuln = new Vulnerability();
-                    vuln.setType(&quot;XSS&quot;);
-                    vuln.setSeverity(&quot;MEDIUM&quot;);
-                    vuln.setDescription(&quot;发现XSS漏洞&quot;);
+                    vuln.setType("XSS");
+                    vuln.setSeverity("MEDIUM");
+                    vuln.setDescription("发现XSS漏洞");
                     vuln.setPayload(payload);
                     vulnerabilities.add(vuln);
                 }
@@ -838,16 +882,19 @@ public class VulnerabilityScanner {
         return vulnerabilities;
     }
 }
-</code></pre>
-<h3>2. 漏洞修复</h3>
-<p><strong>安全编码规范</strong></p>
-<pre><code class="language-java">@Component
+```
+
+### 2. 漏洞修复
+
+**安全编码规范**
+```java
+@Component
 public class SecureCodingService {
     
     // 安全的SQL查询
     public User getUserById(Long id) {
         // 使用参数化查询防止SQL注入
-        String sql = &quot;SELECT * FROM users WHERE id = ?&quot;;
+        String sql = "SELECT * FROM users WHERE id = ?";
         return jdbcTemplate.queryForObject(sql, new Object[]{id}, new UserRowMapper());
     }
     
@@ -866,12 +913,12 @@ public class SecureCodingService {
         // 验证文件类型
         String contentType = file.getContentType();
         if (!isAllowedContentType(contentType)) {
-            throw new SecurityException(&quot;不支持的文件类型&quot;);
+            throw new SecurityException("不支持的文件类型");
         }
         
         // 验证文件大小
-        if (file.getSize() &gt; 10 * 1024 * 1024) { // 10MB
-            throw new SecurityException(&quot;文件过大&quot;);
+        if (file.getSize() > 10 * 1024 * 1024) { // 10MB
+            throw new SecurityException("文件过大");
         }
         
         // 生成安全的文件名
@@ -879,39 +926,40 @@ public class SecureCodingService {
         String safeFilename = generateSafeFilename(originalFilename);
         
         // 保存文件
-        String filePath = &quot;/uploads/&quot; + safeFilename;
+        String filePath = "/uploads/" + safeFilename;
         Files.copy(file.getInputStream(), Paths.get(filePath));
         
         return filePath;
     }
     
     private boolean isAllowedContentType(String contentType) {
-        List&lt;String&gt; allowedTypes = Arrays.asList(
-            &quot;image/jpeg&quot;,
-            &quot;image/png&quot;,
-            &quot;application/pdf&quot;,
-            &quot;text/plain&quot;
+        List<String> allowedTypes = Arrays.asList(
+            "image/jpeg",
+            "image/png",
+            "application/pdf",
+            "text/plain"
         );
         return allowedTypes.contains(contentType);
     }
     
     private String generateSafeFilename(String originalFilename) {
-        String extension = originalFilename.substring(originalFilename.lastIndexOf(&quot;.&quot;));
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         return UUID.randomUUID().toString() + extension;
     }
 }
-</code></pre>
-<h2>总结</h2>
-<p>系统安全性保障是一个持续的过程，需要：</p>
-<ol>
-<li><strong>纵深防御</strong>：建立多层次的防护体系</li>
-<li><strong>最小权限</strong>：遵循最小权限原则</li>
-<li><strong>持续监控</strong>：建立完善的安全监控体系</li>
-<li><strong>定期评估</strong>：定期进行安全评估和漏洞扫描</li>
-<li><strong>应急响应</strong>：建立完善的应急响应机制</li>
-</ol>
-<p>通过这些措施，可以构建安全可靠的系统，有效防范各种安全威胁。</p>
-2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"系统安全性保障"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","系统安全",{"className":"tag","children":"系统安全"}],["$","span","安全架构",{"className":"tag","children":"安全架构"}],["$","span","防护措施",{"className":"tag","children":"防护措施"}],["$","span","安全监控",{"className":"tag","children":"安全监控"}],["$","span","漏洞防护",{"className":"tag","children":"漏洞防护"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
-7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+```
+
+## 总结
+
+系统安全性保障是一个持续的过程，需要：
+
+1. **纵深防御**：建立多层次的防护体系
+2. **最小权限**：遵循最小权限原则
+3. **持续监控**：建立完善的安全监控体系
+4. **定期评估**：定期进行安全评估和漏洞扫描
+5. **应急响应**：建立完善的应急响应机制
+
+通过这些措施，可以构建安全可靠的系统，有效防范各种安全威胁。2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"系统安全性保障"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","系统安全",{"className":"tag","children":"系统安全"}],["$","span","安全架构",{"className":"tag","children":"安全架构"}],["$","span","防护措施",{"className":"tag","children":"防护措施"}],["$","span","安全监控",{"className":"tag","children":"安全监控"}],["$","span","漏洞防护",{"className":"tag","children":"漏洞防护"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","children":["$","$La",null,{"content":"$b"}]}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}],["$","script",null,{"src":"https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lc",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
 8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"系统安全性保障 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"全面介绍系统安全架构设计、安全防护措施、安全漏洞防护和安全监控体系建设，帮助构建安全可靠的系统。"}]]
 1:null

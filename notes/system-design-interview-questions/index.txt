@@ -2,16 +2,21 @@
 6:I[6423,[],""]
 4:["category","notes","d"]
 5:["slug","system-design-interview-questions","d"]
-0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","system-design-interview-questions","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"system-design-interview-questions\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","system-design-interview-questions","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
-9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
-b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
-a:T66f0,<h1>热门系统设计题及解题思路</h1>
-<blockquote>
-<p>系统设计面试是技术面试的重要环节，掌握解题方法是关键</p>
-</blockquote>
-<h2>系统设计方法论</h2>
-<h3>1. 设计流程</h3>
-<pre><code>系统设计流程：
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","system-design-interview-questions","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"system-design-interview-questions\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","system-design-interview-questions","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/eb4a34bff42c1814.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],""]
+a:I[2024,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],"default"]
+c:I[7140,["972","static/chunks/972-81dbad6abe39d3fa.js","185","static/chunks/app/layout-3ed2f387fb22aa2c.js"],"default"]
+b:T6115,
+# 热门系统设计题及解题思路
+
+> 系统设计面试是技术面试的重要环节，掌握解题方法是关键
+
+## 系统设计方法论
+
+### 1. 设计流程
+
+```
+系统设计流程：
 ├── 需求分析
 │   ├── 功能需求
 │   ├── 非功能需求
@@ -36,9 +41,12 @@ a:T66f0,<h1>热门系统设计题及解题思路</h1>
     ├── 设计回顾
     ├── 权衡取舍
     └── 后续优化
-</code></pre>
-<h3>2. 通用设计原则</h3>
-<pre><code>设计原则：
+```
+
+### 2. 通用设计原则
+
+```
+设计原则：
 ├── 简单性
 │   ├── KISS原则
 │   ├── 避免过度设计
@@ -59,11 +67,16 @@ a:T66f0,<h1>热门系统设计题及解题思路</h1>
     ├── 强一致性
     ├── 最终一致性
     └── 一致性级别选择
-</code></pre>
-<h2>经典题目分析</h2>
-<h3>1. 设计短链接系统</h3>
-<h4>1.1 需求分析</h4>
-<pre><code>功能需求：
+```
+
+## 经典题目分析
+
+### 1. 设计短链接系统
+
+#### 1.1 需求分析
+
+```
+功能需求：
 - 用户输入长URL，生成短链接
 - 用户访问短链接，重定向到长URL
 - 支持自定义短链接
@@ -72,7 +85,7 @@ a:T66f0,<h1>热门系统设计题及解题思路</h1>
 
 非功能需求：
 - 高可用性：99.9%
-- 低延迟：生成&lt;100ms，访问&lt;50ms
+- 低延迟：生成<100ms，访问<50ms
 - 高并发：支持1000 QPS
 - 可扩展：支持水平扩展
 
@@ -80,9 +93,12 @@ a:T66f0,<h1>热门系统设计题及解题思路</h1>
 - 短链接长度：6-8位
 - 字符集：a-zA-Z0-9
 - 短链接有效期：1年
-</code></pre>
-<h4>1.2 系统架构</h4>
-<pre><code>系统架构图：
+```
+
+#### 1.2 系统架构
+
+```
+系统架构图：
 ┌─────────────────────────────────────────────────────────────┐
 │                    CDN                                     │
 └─────────────────────────────────────────────────────────────┘
@@ -107,20 +123,23 @@ a:T66f0,<h1>热门系统设计题及解题思路</h1>
     │  Redis      │ │  MySQL      │ │  Analytics  │
     │  Cluster    │ │  Master     │ │  Service    │
     └─────────────┘ └─────────────┘ └─────────────┘
-</code></pre>
-<h4>1.3 核心算法</h4>
-<p><strong>Base62编码算法</strong></p>
-<pre><code class="language-java">public class Base62Encoder {
+```
+
+#### 1.3 核心算法
+
+**Base62编码算法**
+```java
+public class Base62Encoder {
     private static final String BASE62_CHARS = 
-        &quot;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789&quot;;
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     
     public static String encode(long num) {
         if (num == 0) {
-            return &quot;a&quot;;
+            return "a";
         }
         
         StringBuilder sb = new StringBuilder();
-        while (num &gt; 0) {
+        while (num > 0) {
             sb.append(BASE62_CHARS.charAt((int)(num % 62)));
             num /= 62;
         }
@@ -130,7 +149,7 @@ a:T66f0,<h1>热门系统设计题及解题思路</h1>
     
     public static long decode(String str) {
         long num = 0;
-        for (int i = 0; i &lt; str.length(); i++) {
+        for (int i = 0; i < str.length(); i++) {
             num = num * 62 + BASE62_CHARS.indexOf(str.charAt(i));
         }
         return num;
@@ -142,7 +161,7 @@ a:T66f0,<h1>热门系统设计题及解题思路</h1>
 public class ShortLinkService {
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     @Autowired
     private ShortLinkMapper shortLinkMapper;
@@ -163,38 +182,40 @@ public class ShortLinkService {
         // 3. 存储映射关系
         storeMapping(code, longUrl);
         
-        return &quot;https://short.ly/&quot; + code;
+        return "https://short.ly/" + code;
     }
     
     private String getExistingShortLink(String longUrl) {
-        String key = &quot;url:hash:&quot; + DigestUtils.md5Hex(longUrl);
+        String key = "url:hash:" + DigestUtils.md5Hex(longUrl);
         return redisTemplate.opsForValue().get(key);
     }
     
     private void storeMapping(String code, String longUrl) {
         // 存储到Redis
-        redisTemplate.opsForValue().set(&quot;code:&quot; + code, longUrl, 365, TimeUnit.DAYS);
-        redisTemplate.opsForValue().set(&quot;url:hash:&quot; + 
+        redisTemplate.opsForValue().set("code:" + code, longUrl, 365, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("url:hash:" + 
             DigestUtils.md5Hex(longUrl), code, 365, TimeUnit.DAYS);
         
         // 异步存储到MySQL
         asyncStoreToMySQL(code, longUrl);
     }
 }
-</code></pre>
-<p><strong>重定向服务</strong></p>
-<pre><code class="language-java">@RestController
+```
+
+**重定向服务**
+```java
+@RestController
 public class RedirectController {
     
     @Autowired
     private ShortLinkService shortLinkService;
     
-    @GetMapping(&quot;/{code}&quot;)
+    @GetMapping("/{code}")
     public RedirectView redirect(@PathVariable String code, 
                                HttpServletRequest request) {
         String longUrl = shortLinkService.getLongUrl(code);
         if (longUrl == null) {
-            throw new NotFoundException(&quot;Short link not found&quot;);
+            throw new NotFoundException("Short link not found");
         }
         
         // 记录访问日志
@@ -211,7 +232,7 @@ public class ShortLinkService {
     
     public String getLongUrl(String code) {
         // 先从Redis获取
-        String longUrl = redisTemplate.opsForValue().get(&quot;code:&quot; + code);
+        String longUrl = redisTemplate.opsForValue().get("code:" + code);
         if (longUrl != null) {
             return longUrl;
         }
@@ -220,7 +241,7 @@ public class ShortLinkService {
         ShortLinkEntity entity = shortLinkMapper.selectByCode(code);
         if (entity != null) {
             // 回写Redis
-            redisTemplate.opsForValue().set(&quot;code:&quot; + code, 
+            redisTemplate.opsForValue().set("code:" + code, 
                 entity.getLongUrl(), 365, TimeUnit.DAYS);
             return entity.getLongUrl();
         }
@@ -232,17 +253,21 @@ public class ShortLinkService {
         AccessLog log = new AccessLog();
         log.setCode(code);
         log.setIp(getClientIp(request));
-        log.setUserAgent(request.getHeader(&quot;User-Agent&quot;));
+        log.setUserAgent(request.getHeader("User-Agent"));
         log.setAccessTime(new Date());
         
         // 异步记录访问日志
         asyncRecordAccess(log);
     }
 }
-</code></pre>
-<h3>2. 设计Feed流系统</h3>
-<h4>2.1 需求分析</h4>
-<pre><code>功能需求：
+```
+
+### 2. 设计Feed流系统
+
+#### 2.1 需求分析
+
+```
+功能需求：
 - 用户发布动态
 - 查看关注人的动态
 - 点赞、评论、转发
@@ -250,17 +275,20 @@ public class ShortLinkService {
 
 非功能需求：
 - 支持千万级用户
-- 实时性：延迟&lt;1秒
+- 实时性：延迟<1秒
 - 高并发：写1000 QPS，读10000 QPS
 - 数据一致性：最终一致性
 
 约束条件：
 - 每个用户关注人数：1000
 - 每条动态存活时间：30天
-- 缓存命中率：&gt;90%
-</code></pre>
-<h4>2.2 架构设计</h4>
-<pre><code>Feed流架构：
+- 缓存命中率：>90%
+```
+
+#### 2.2 架构设计
+
+```
+Feed流架构：
 ┌─────────────────────────────────────────────────────────────┐
 │                    API Gateway                              │
 └─────────────────────────────────────────────────────────────┘
@@ -285,17 +313,20 @@ public class ShortLinkService {
     │  Redis      │ │  Kafka      │ │  MySQL      │
     │  Cluster    │ │  Cluster    │ │  Cluster    │
     └─────────────┘ └─────────────┘ └─────────────┘
-</code></pre>
-<h4>2.3 核心实现</h4>
-<p><strong>推拉结合模式</strong></p>
-<pre><code class="language-java">@Service
+```
+
+#### 2.3 核心实现
+
+**推拉结合模式**
+```java
+@Service
 public class FeedService {
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     @Autowired
-    private KafkaTemplate&lt;String, String&gt; kafkaTemplate;
+    private KafkaTemplate<String, String> kafkaTemplate;
     
     // 发布动态（推模式）
     public void publishFeed(Long userId, String content) {
@@ -307,17 +338,17 @@ public class FeedService {
         feedRepository.save(feed);
         
         // 2. 获取关注者列表
-        List&lt;Long&gt; followers = getFollowers(userId);
+        List<Long> followers = getFollowers(userId);
         
         // 3. 推送到关注者的收件箱（推模式）
         for (Long followerId : followers) {
-            String inboxKey = &quot;feed:inbox:&quot; + followerId;
+            String inboxKey = "feed:inbox:" + followerId;
             redisTemplate.opsForZSet().add(inboxKey, 
                 String.valueOf(feed.getId()), feed.getCreateTime().getTime());
             
             // 限制收件箱大小
             long size = redisTemplate.opsForZSet().size(inboxKey);
-            if (size &gt; 1000) {
+            if (size > 1000) {
                 redisTemplate.opsForZSet().removeRange(inboxKey, 0, size - 1000);
             }
         }
@@ -326,29 +357,29 @@ public class FeedService {
         FeedMessage message = new FeedMessage();
         message.setUserId(userId);
         message.setFeedId(feed.getId());
-        message.setAction(&quot;PUBLISH&quot;);
+        message.setAction("PUBLISH");
         
-        kafkaTemplate.send(&quot;feed-topic&quot;, JSON.toJSONString(message));
+        kafkaTemplate.send("feed-topic", JSON.toJSONString(message));
     }
     
     // 获取Feed流（拉模式 + 推模式）
-    public List&lt;FeedEntity&gt; getFeed(Long userId, int page, int size) {
+    public List<FeedEntity> getFeed(Long userId, int page, int size) {
         // 1. 从Redis收件箱获取动态ID列表（推模式）
-        String inboxKey = &quot;feed:inbox:&quot; + userId;
-        Set&lt;String&gt; feedIds = redisTemplate.opsForZSet()
+        String inboxKey = "feed:inbox:" + userId;
+        Set<String> feedIds = redisTemplate.opsForZSet()
             .reverseRange(inboxKey, page * size, (page + 1) * size - 1);
         
-        List&lt;FeedEntity&gt; feeds = new ArrayList&lt;&gt;();
+        List<FeedEntity> feeds = new ArrayList<>();
         
-        if (feedIds != null &amp;&amp; !feedIds.isEmpty()) {
+        if (feedIds != null && !feedIds.isEmpty()) {
             // 2. 批量获取动态内容
             feeds = batchGetFeeds(feedIds);
         }
         
         // 3. 如果收件箱内容不足，补充拉模式（获取关注者的最新动态）
-        if (feeds.size() &lt; size) {
-            List&lt;Long&gt; followees = getFollowees(userId);
-            List&lt;FeedEntity&gt; additionalFeeds = pullFolloweesFeeds(followees, 
+        if (feeds.size() < size) {
+            List<Long> followees = getFollowees(userId);
+            List<FeedEntity> additionalFeeds = pullFolloweesFeeds(followees, 
                 feeds.size(), size - feeds.size());
             feeds.addAll(additionalFeeds);
         }
@@ -357,8 +388,8 @@ public class FeedService {
     }
     
     // 批量获取动态
-    private List&lt;FeedEntity&gt; batchGetFeeds(Set&lt;String&gt; feedIds) {
-        List&lt;Long&gt; ids = feedIds.stream()
+    private List<FeedEntity> batchGetFeeds(Set<String> feedIds) {
+        List<Long> ids = feedIds.stream()
             .map(Long::parseLong)
             .collect(Collectors.toList());
         
@@ -366,31 +397,33 @@ public class FeedService {
     }
     
     // 拉取关注者的动态
-    private List&lt;FeedEntity&gt; pullFolloweesFeeds(List&lt;Long&gt; followees, 
+    private List<FeedEntity> pullFolloweesFeeds(List<Long> followees, 
                                                int offset, int limit) {
         return feedRepository.findTopFeedsByUsers(followees, offset, limit);
     }
 }
-</code></pre>
-<p><strong>推荐算法</strong></p>
-<pre><code class="language-java">@Service
+```
+
+**推荐算法**
+```java
+@Service
 public class FeedRecommendService {
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     // 基于协同过滤的推荐
-    public List&lt;FeedEntity&gt; recommendFeeds(Long userId, int count) {
+    public List<FeedEntity> recommendFeeds(Long userId, int count) {
         // 1. 获取用户兴趣标签
-        Set&lt;String&gt; userTags = getUserTags(userId);
+        Set<String> userTags = getUserTags(userId);
         
         // 2. 获取热门动态
-        List&lt;FeedEntity&gt; hotFeeds = getHotFeeds(count * 2);
+        List<FeedEntity> hotFeeds = getHotFeeds(count * 2);
         
         // 3. 根据兴趣标签过滤和排序
-        List&lt;FeedEntity&gt; recommendedFeeds = hotFeeds.stream()
-            .filter(feed -&gt; calculateRelevance(feed, userTags) &gt; 0.5)
-            .sorted((f1, f2) -&gt; Double.compare(
+        List<FeedEntity> recommendedFeeds = hotFeeds.stream()
+            .filter(feed -> calculateRelevance(feed, userTags) > 0.5)
+            .sorted((f1, f2) -> Double.compare(
                 calculateRelevance(f2, userTags), 
                 calculateRelevance(f1, userTags)))
             .limit(count)
@@ -400,24 +433,24 @@ public class FeedRecommendService {
     }
     
     // 计算动态相关性
-    private double calculateRelevance(FeedEntity feed, Set&lt;String&gt; userTags) {
-        Set&lt;String&gt; feedTags = extractTags(feed.getContent());
+    private double calculateRelevance(FeedEntity feed, Set<String> userTags) {
+        Set<String> feedTags = extractTags(feed.getContent());
         
         // 计算Jaccard相似度
-        Set&lt;String&gt; intersection = new HashSet&lt;&gt;(userTags);
+        Set<String> intersection = new HashSet<>(userTags);
         intersection.retainAll(feedTags);
         
-        Set&lt;String&gt; union = new HashSet&lt;&gt;(userTags);
+        Set<String> union = new HashSet<>(userTags);
         union.addAll(feedTags);
         
         return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
     }
     
     // 获取热门动态
-    private List&lt;FeedEntity&gt; getHotFeeds(int count) {
+    private List<FeedEntity> getHotFeeds(int count) {
         // 基于Redis的热度排行榜
-        String hotKey = &quot;feed:hot&quot;;
-        Set&lt;String&gt; feedIds = redisTemplate.opsForZSet()
+        String hotKey = "feed:hot";
+        Set<String> feedIds = redisTemplate.opsForZSet()
             .reverseRange(hotKey, 0, count - 1);
         
         if (feedIds != null) {
@@ -427,10 +460,14 @@ public class FeedRecommendService {
         return Collections.emptyList();
     }
 }
-</code></pre>
-<h3>3. 设计秒杀系统</h3>
-<h4>3.1 需求分析</h4>
-<pre><code>功能需求：
+```
+
+### 3. 设计秒杀系统
+
+#### 3.1 需求分析
+
+```
+功能需求：
 - 商品展示
 - 秒杀下单
 - 库存管理
@@ -438,7 +475,7 @@ public class FeedRecommendService {
 
 非功能需求：
 - 高并发：支持10万QPS
-- 低延迟：下单&lt;50ms
+- 低延迟：下单<50ms
 - 高可用：99.9%
 - 数据一致性：不超卖
 
@@ -446,9 +483,12 @@ public class FeedRecommendService {
 - 秒杀时长：5分钟
 - 每个用户限购1件
 - 库存：1000件
-</code></pre>
-<h4>3.2 架构设计</h4>
-<pre><code>秒杀系统架构：
+```
+
+#### 3.2 架构设计
+
+```
+秒杀系统架构：
 ┌─────────────────────────────────────────────────────────────┐
 │                    CDN                                     │
 └─────────────────────────────────────────────────────────────┘
@@ -473,27 +513,30 @@ public class FeedRecommendService {
     │  Redis      │ │  MQ         │ │  MySQL      │
     │  Cluster    │ │  Cluster    │ │  Master     │
     └─────────────┘ └─────────────┘ └─────────────┘
-</code></pre>
-<h4>3.3 核心实现</h4>
-<p><strong>库存管理</strong></p>
-<pre><code class="language-java">@Service
+```
+
+#### 3.3 核心实现
+
+**库存管理**
+```java
+@Service
 public class SeckillService {
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     @Autowired
     private RabbitTemplate rabbitTemplate;
     
     // 预热库存
     public void warmUpStock(Long productId, int stock) {
-        String stockKey = &quot;seckill:stock:&quot; + productId;
+        String stockKey = "seckill:stock:" + productId;
         redisTemplate.opsForValue().set(stockKey, String.valueOf(stock));
         
         // 预热用户购买记录
-        String userKey = &quot;seckill:user:&quot; + productId;
+        String userKey = "seckill:user:" + productId;
         // 预分配空间
-        redisTemplate.opsForHash().put(userKey, &quot;init&quot;, &quot;0&quot;);
+        redisTemplate.opsForHash().put(userKey, "init", "0");
     }
     
     // 秒杀下单
@@ -501,19 +544,19 @@ public class SeckillService {
     public SeckillResult seckill(Long productId, Long userId) {
         // 1. 检查用户是否已购买
         if (hasPurchased(productId, userId)) {
-            return SeckillResult.error(&quot;已购买&quot;);
+            return SeckillResult.error("已购买");
         }
         
         // 2. 原子性扣减库存
-        String stockKey = &quot;seckill:stock:&quot; + productId;
+        String stockKey = "seckill:stock:" + productId;
         Long result = redisTemplate.execute(
-            new DefaultRedisScript&lt;&gt;(SECKILL_SCRIPT, Long.class),
+            new DefaultRedisScript<>(SECKILL_SCRIPT, Long.class),
             Collections.singletonList(stockKey),
             String.valueOf(userId)
         );
         
         if (result == null || result == 0) {
-            return SeckillResult.error(&quot;库存不足&quot;);
+            return SeckillResult.error("库存不足");
         }
         
         // 3. 发送MQ消息
@@ -522,40 +565,42 @@ public class SeckillService {
         message.setUserId(userId);
         message.setCreateTime(new Date());
         
-        rabbitTemplate.convertAndSend(&quot;seckill.queue&quot;, message);
+        rabbitTemplate.convertAndSend("seckill.queue", message);
         
-        return SeckillResult.success(&quot;抢购成功&quot;);
+        return SeckillResult.success("抢购成功");
     }
     
     // Lua脚本：原子性操作
     private static final String SECKILL_SCRIPT = 
-        &quot;local stock = redis.call(&#39;GET&#39;, KEYS[1]) &quot; +
-        &quot;if tonumber(stock) &lt;= 0 then &quot; +
-        &quot;  return 0 &quot; +
-        &quot;end &quot; +
-        &quot;local userKey = &#39;seckill:user:&#39; .. KEYS[1] &quot; +
-        &quot;if redis.call(&#39;HEXISTS&#39;, userKey, ARGV[1]) == 1 then &quot; +
-        &quot;  return -1 &quot; +
-        &quot;end &quot; +
-        &quot;redis.call(&#39;DECR&#39;, KEYS[1]) &quot; +
-        &quot;redis.call(&#39;HSET&#39;, userKey, ARGV[1], &#39;1&#39;) &quot; +
-        &quot;return 1&quot;;
+        "local stock = redis.call('GET', KEYS[1]) " +
+        "if tonumber(stock) <= 0 then " +
+        "  return 0 " +
+        "end " +
+        "local userKey = 'seckill:user:' .. KEYS[1] " +
+        "if redis.call('HEXISTS', userKey, ARGV[1]) == 1 then " +
+        "  return -1 " +
+        "end " +
+        "redis.call('DECR', KEYS[1]) " +
+        "redis.call('HSET', userKey, ARGV[1], '1') " +
+        "return 1";
     
     private boolean hasPurchased(Long productId, Long userId) {
-        String userKey = &quot;seckill:user:&quot; + productId;
+        String userKey = "seckill:user:" + productId;
         return redisTemplate.opsForHash().hasKey(userKey, String.valueOf(userId));
     }
 }
-</code></pre>
-<p><strong>限流保护</strong></p>
-<pre><code class="language-java">@Component
+```
+
+**限流保护**
+```java
+@Component
 public class RateLimiter {
     
-    private final Map&lt;String, Bucket&gt; buckets = new ConcurrentHashMap&lt;&gt;();
+    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
     
     // 令牌桶限流
     public boolean tryAcquire(String key, int permits, double rate) {
-        Bucket bucket = buckets.computeIfAbsent(key, k -&gt; {
+        Bucket bucket = buckets.computeIfAbsent(key, k -> {
             Refill refill = Refill.intervally(permits, Duration.ofSeconds((int) (permits / rate)));
             return Bucket.builder()
                 .addLimit(Bandwidth.classic(permits, refill))
@@ -567,12 +612,12 @@ public class RateLimiter {
     
     // 滑动窗口限流
     public boolean tryAcquireWithSlidingWindow(String key, int permits, int windowSize) {
-        String windowKey = &quot;rate:limit:&quot; + key;
+        String windowKey = "rate:limit:" + key;
         long currentTime = System.currentTimeMillis();
         
         // 清理过期记录
         redisTemplate.execute(
-            new DefaultRedisScript&lt;&gt;(CLEANUP_SCRIPT, Long.class),
+            new DefaultRedisScript<>(CLEANUP_SCRIPT, Long.class),
             Collections.singletonList(windowKey),
             String.valueOf(currentTime - windowSize * 1000)
         );
@@ -581,7 +626,7 @@ public class RateLimiter {
         Long currentCount = redisTemplate.opsForZSet().count(windowKey, 
             currentTime - windowSize * 1000, currentTime);
         
-        if (currentCount &lt; permits) {
+        if (currentCount < permits) {
             // 添加当前请求
             redisTemplate.opsForZSet().add(windowKey, 
                 String.valueOf(currentTime), currentTime);
@@ -592,8 +637,8 @@ public class RateLimiter {
     }
     
     private static final String CLEANUP_SCRIPT = 
-        &quot;redis.call(&#39;ZREMRANGEBYSCORE&#39;, KEYS[1], 0, ARGV[1]) &quot; +
-        &quot;return redis.call(&#39;ZCARD&#39;, KEYS[1])&quot;;
+        "redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, ARGV[1]) " +
+        "return redis.call('ZCARD', KEYS[1])";
 }
 
 @RestController
@@ -605,27 +650,31 @@ public class SeckillController {
     @Autowired
     private RateLimiter rateLimiter;
     
-    @PostMapping(&quot;/seckill/{productId}&quot;)
+    @PostMapping("/seckill/{productId}")
     public Result seckill(@PathVariable Long productId) {
         Long userId = getCurrentUserId();
         
         // 接口级别限流
-        if (!rateLimiter.tryAcquire(&quot;seckill:api&quot;, 1000, 1000)) {
-            return Result.error(&quot;系统繁忙&quot;);
+        if (!rateLimiter.tryAcquire("seckill:api", 1000, 1000)) {
+            return Result.error("系统繁忙");
         }
         
         // 用户级别限流
-        if (!rateLimiter.tryAcquire(&quot;seckill:user:&quot; + userId, 1, 10)) {
-            return Result.error(&quot;操作过于频繁&quot;);
+        if (!rateLimiter.tryAcquire("seckill:user:" + userId, 1, 10)) {
+            return Result.error("操作过于频繁");
         }
         
         return seckillService.seckill(productId, userId);
     }
 }
-</code></pre>
-<h2>系统设计技巧</h2>
-<h3>1. 性能优化</h3>
-<pre><code>性能优化策略：
+```
+
+## 系统设计技巧
+
+### 1. 性能优化
+
+```
+性能优化策略：
 ├── 缓存
 │   ├── 多级缓存
 │   ├── 缓存预热
@@ -646,9 +695,12 @@ public class SeckillController {
     ├── HTTP/2
     ├── 压缩传输
     └── 连接复用
-</code></pre>
-<h3>2. 可扩展性设计</h3>
-<pre><code>可扩展性原则：
+```
+
+### 2. 可扩展性设计
+
+```
+可扩展性原则：
 ├── 无状态服务
 │   ├── 会话外部化
 │   ├── 文件存储
@@ -665,9 +717,12 @@ public class SeckillController {
     ├── 自动扩容
     ├── 负载监控
     └── 资源调度
-</code></pre>
-<h3>3. 面试技巧</h3>
-<pre><code>面试答题技巧：
+```
+
+### 3. 面试技巧
+
+```
+面试答题技巧：
 ├── 沟通确认
 │   ├── 明确需求
 │   ├── 确认约束
@@ -687,18 +742,19 @@ public class SeckillController {
     ├── 潜在问题
     ├── 优化方向
     └── 扩展思路
-</code></pre>
-<h2>总结</h2>
-<p>系统设计是一个综合性技能，需要掌握：</p>
-<ol>
-<li><strong>设计方法论</strong>：系统的设计流程和思考方式</li>
-<li><strong>技术广度</strong>：了解各种技术的特点和应用场景</li>
-<li><strong>实战经验</strong>：通过实际项目积累经验</li>
-<li><strong>持续学习</strong>：关注新技术和最佳实践</li>
-<li><strong>沟通表达</strong>：能够清晰地表达设计思路</li>
-</ol>
-<p>通过不断练习和总结，可以逐步提升系统设计能力，在面试和实际工作中都能设计出优秀的系统架构。</p>
-2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"热门系统设计题及解题思路"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","系统设计",{"className":"tag","children":"系统设计"}],["$","span","面试",{"className":"tag","children":"面试"}],["$","span","架构设计",{"className":"tag","children":"架构设计"}],["$","span","分布式系统",{"className":"tag","children":"分布式系统"}],["$","span","技术方案",{"className":"tag","children":"技术方案"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
-7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+```
+
+## 总结
+
+系统设计是一个综合性技能，需要掌握：
+
+1. **设计方法论**：系统的设计流程和思考方式
+2. **技术广度**：了解各种技术的特点和应用场景
+3. **实战经验**：通过实际项目积累经验
+4. **持续学习**：关注新技术和最佳实践
+5. **沟通表达**：能够清晰地表达设计思路
+
+通过不断练习和总结，可以逐步提升系统设计能力，在面试和实际工作中都能设计出优秀的系统架构。2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"热门系统设计题及解题思路"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","系统设计",{"className":"tag","children":"系统设计"}],["$","span","面试",{"className":"tag","children":"面试"}],["$","span","架构设计",{"className":"tag","children":"架构设计"}],["$","span","分布式系统",{"className":"tag","children":"分布式系统"}],["$","span","技术方案",{"className":"tag","children":"技术方案"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","children":["$","$La",null,{"content":"$b"}]}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}],["$","script",null,{"src":"https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lc",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
 8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"热门系统设计题及解题思路 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"深入分析常见的系统设计面试题，包括设计思路、架构方案和技术选型，帮助开发者掌握系统设计的核心方法。"}]]
 1:null

@@ -2,57 +2,62 @@
 6:I[6423,[],""]
 4:["category","notes","d"]
 5:["slug","redis-high-availability","d"]
-0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","redis-high-availability","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"redis-high-availability\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","redis-high-availability","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
-9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
-b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
-a:T4b8a,<h1>Redis高可用实战</h1>
-<blockquote>
-<p>构建高可用的Redis架构是保障系统稳定性的关键</p>
-</blockquote>
-<h2>引言</h2>
-<p>Redis作为高性能的内存数据库，在互联网应用中扮演着重要的角色。然而，单节点的Redis实例存在单点故障风险，一旦宕机会影响整个系统的可用性。本文将详细介绍Redis高可用架构的设计原理和实现方案。</p>
-<h2>Redis高可用架构概述</h2>
-<h3>1. 高可用架构目标</h3>
-<p><strong>可用性指标</strong></p>
-<ul>
-<li>99.9%可用性（年停机时间不超过8.76小时）</li>
-<li>99.99%可用性（年停机时间不超过52分钟）</li>
-<li>快速故障检测和恢复（RTO &lt; 30秒）</li>
-<li>最小数据丢失（RPO &lt; 1秒）</li>
-</ul>
-<p><strong>性能指标</strong></p>
-<ul>
-<li>高并发处理能力（十万级QPS）</li>
-<li>低延迟响应（P99 &lt; 1ms）</li>
-<li>高吞吐量（百万级OPS）</li>
-<li>线性扩展能力</li>
-</ul>
-<h3>2. 高可用架构模式</h3>
-<p><strong>主从模式</strong></p>
-<ul>
-<li>一主多从的复制架构</li>
-<li>读写分离，提升读性能</li>
-<li>主节点故障时需要手动切换</li>
-<li>适合对可用性要求不高的场景</li>
-</ul>
-<p><strong>哨兵模式</strong></p>
-<ul>
-<li>自动监控和故障转移</li>
-<li>哨兵集群监控主从节点</li>
-<li>自动选举新的主节点</li>
-<li>适合中小型应用</li>
-</ul>
-<p><strong>集群模式</strong></p>
-<ul>
-<li>分布式集群架构</li>
-<li>数据分片存储</li>
-<li>自动故障转移和恢复</li>
-<li>适合大规模应用</li>
-</ul>
-<h2>主从复制架构</h2>
-<h3>1. 主从复制配置</h3>
-<p><strong>主节点配置</strong>：</p>
-<pre><code class="language-conf"># redis.conf
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","redis-high-availability","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"redis-high-availability\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","redis-high-availability","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/eb4a34bff42c1814.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],""]
+a:I[2024,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],"default"]
+c:I[7140,["972","static/chunks/972-81dbad6abe39d3fa.js","185","static/chunks/app/layout-3ed2f387fb22aa2c.js"],"default"]
+b:T3ec4,
+# Redis高可用实战
+
+> 构建高可用的Redis架构是保障系统稳定性的关键
+
+## 引言
+
+Redis作为高性能的内存数据库，在互联网应用中扮演着重要的角色。然而，单节点的Redis实例存在单点故障风险，一旦宕机会影响整个系统的可用性。本文将详细介绍Redis高可用架构的设计原理和实现方案。
+
+## Redis高可用架构概述
+
+### 1. 高可用架构目标
+
+**可用性指标**
+- 99.9%可用性（年停机时间不超过8.76小时）
+- 99.99%可用性（年停机时间不超过52分钟）
+- 快速故障检测和恢复（RTO < 30秒）
+- 最小数据丢失（RPO < 1秒）
+
+**性能指标**
+- 高并发处理能力（十万级QPS）
+- 低延迟响应（P99 < 1ms）
+- 高吞吐量（百万级OPS）
+- 线性扩展能力
+
+### 2. 高可用架构模式
+
+**主从模式**
+- 一主多从的复制架构
+- 读写分离，提升读性能
+- 主节点故障时需要手动切换
+- 适合对可用性要求不高的场景
+
+**哨兵模式**
+- 自动监控和故障转移
+- 哨兵集群监控主从节点
+- 自动选举新的主节点
+- 适合中小型应用
+
+**集群模式**
+- 分布式集群架构
+- 数据分片存储
+- 自动故障转移和恢复
+- 适合大规模应用
+
+## 主从复制架构
+
+### 1. 主从复制配置
+
+**主节点配置**：
+```conf
+# redis.conf
 bind 0.0.0.0
 port 6379
 requirepass your_password
@@ -64,9 +69,11 @@ save 300 10
 save 60 10000
 appendonly yes
 appendfsync everysec
-</code></pre>
-<p><strong>从节点配置</strong>：</p>
-<pre><code class="language-conf"># redis.conf
+```
+
+**从节点配置**：
+```conf
+# redis.conf
 bind 0.0.0.0
 port 6379
 requirepass your_password
@@ -77,25 +84,29 @@ masterauth your_password
 
 # 只读模式
 replica-read-only yes
-</code></pre>
-<p><strong>动态配置</strong>：</p>
-<pre><code class="language-bash"># 在从节点执行
+```
+
+**动态配置**：
+```bash
+# 在从节点执行
 redis-cli -a your_password replicaof master_ip 6379
 
 # 查看复制状态
 redis-cli -a your_password info replication
-</code></pre>
-<h3>2. 复制原理详解</h3>
-<p><strong>复制过程</strong>：</p>
-<ol>
-<li>从节点向主节点发送SYNC命令</li>
-<li>主节点生成RDB快照文件</li>
-<li>主节点将RDB文件发送给从节点</li>
-<li>从节点加载RDB文件并恢复数据</li>
-<li>主节点将写命令发送给从节点执行</li>
-</ol>
-<p><strong>增量复制</strong>：</p>
-<pre><code class="language-bash"># 查看复制偏移量
+```
+
+### 2. 复制原理详解
+
+**复制过程**：
+1. 从节点向主节点发送SYNC命令
+2. 主节点生成RDB快照文件
+3. 主节点将RDB文件发送给从节点
+4. 从节点加载RDB文件并恢复数据
+5. 主节点将写命令发送给从节点执行
+
+**增量复制**：
+```bash
+# 查看复制偏移量
 redis-cli -a your_password info replication
 
 # 主节点输出
@@ -104,15 +115,18 @@ master_repl_offset:12345
 
 # 从节点输出
 slave_repl_offset:12345
-</code></pre>
-<h3>3. 复制延迟监控</h3>
-<p><strong>监控脚本</strong>：</p>
-<pre><code class="language-bash">#!/bin/bash
+```
+
+### 3. 复制延迟监控
+
+**监控脚本**：
+```bash
+#!/bin/bash
 # monitor_replication_lag.sh
 
-REDIS_CLI=&quot;redis-cli -a your_password&quot;
-MASTER_IP=&quot;master_ip&quot;
-SLAVE_IP=&quot;slave_ip&quot;
+REDIS_CLI="redis-cli -a your_password"
+MASTER_IP="master_ip"
+SLAVE_IP="slave_ip"
 
 # 获取主节点偏移量
 MASTER_OFFSET=$($REDIS_CLI -h $MASTER_IP info replication | grep master_repl_offset | cut -d: -f2)
@@ -124,14 +138,18 @@ SLAVE_OFFSET=$($REDIS_CLI -h $SLAVE_IP info replication | grep slave_repl_offset
 LAG=$((MASTER_OFFSET - SLAVE_OFFSET))
 
 if [ $LAG -gt 10000 ]; then
-    echo &quot;WARNING: Replication lag is high: $LAG&quot;
+    echo "WARNING: Replication lag is high: $LAG"
     # 发送告警
 fi
-</code></pre>
-<h2>哨兵模式架构</h2>
-<h3>1. 哨兵配置</h3>
-<p><strong>哨兵配置文件</strong>：</p>
-<pre><code class="language-conf"># sentinel.conf
+```
+
+## 哨兵模式架构
+
+### 1. 哨兵配置
+
+**哨兵配置文件**：
+```conf
+# sentinel.conf
 port 26379
 sentinel monitor mymaster master_ip 6379 2
 sentinel auth-pass mymaster your_password
@@ -140,59 +158,67 @@ sentinel failover-timeout mymaster 180000
 sentinel parallel-syncs mymaster 1
 sentinel notification-script mymaster /opt/redis/sentinel_notify.sh
 sentinel client-reconfig-script mymaster /opt/redis/sentinel_reconfig.sh
-</code></pre>
-<p><strong>多哨兵部署</strong>：</p>
-<pre><code class="language-bash"># 在不同服务器上启动哨兵
+```
+
+**多哨兵部署**：
+```bash
+# 在不同服务器上启动哨兵
 redis-sentinel /opt/redis/sentinel.conf --port 26379
 redis-sentinel /opt/redis/sentinel.conf --port 26380
 redis-sentinel /opt/redis/sentinel.conf --port 26381
-</code></pre>
-<h3>2. 哨兵工作原理</h3>
-<p><strong>故障检测</strong>：</p>
-<ol>
-<li>哨兵定期向主节点发送PING命令</li>
-<li>如果主节点在down-after-milliseconds时间内无响应</li>
-<li>哨兵认为主节点主观下线（S_DOWN）</li>
-<li>多个哨兵确认后，主节点客观下线（O_DOWN）</li>
-</ol>
-<p><strong>故障转移</strong>：</p>
-<ol>
-<li>哨兵从从节点中选举新的主节点</li>
-<li>将其他从节点指向新的主节点</li>
-<li>通知客户端新的主节点地址</li>
-<li>监控故障节点的恢复情况</li>
-</ol>
-<h3>3. 哨兵监控脚本</h3>
-<p><strong>监控脚本</strong>：</p>
-<pre><code class="language-bash">#!/bin/bash
+```
+
+### 2. 哨兵工作原理
+
+**故障检测**：
+1. 哨兵定期向主节点发送PING命令
+2. 如果主节点在down-after-milliseconds时间内无响应
+3. 哨兵认为主节点主观下线（S_DOWN）
+4. 多个哨兵确认后，主节点客观下线（O_DOWN）
+
+**故障转移**：
+1. 哨兵从从节点中选举新的主节点
+2. 将其他从节点指向新的主节点
+3. 通知客户端新的主节点地址
+4. 监控故障节点的恢复情况
+
+### 3. 哨兵监控脚本
+
+**监控脚本**：
+```bash
+#!/bin/bash
 # sentinel_monitor.sh
 
-SENTINEL_CLI=&quot;redis-cli -p 26379&quot;
-MASTER_NAME=&quot;mymaster&quot;
+SENTINEL_CLI="redis-cli -p 26379"
+MASTER_NAME="mymaster"
 
 # 检查主节点状态
 MASTER_STATUS=$($SENTINEL_CLI sentinel masters | grep $MASTER_NAME)
 
-if [ -z &quot;$MASTER_STATUS&quot; ]; then
-    echo &quot;ERROR: Master not found in sentinel&quot;
+if [ -z "$MASTER_STATUS" ]; then
+    echo "ERROR: Master not found in sentinel"
     exit 1
 fi
 
 # 获取主节点IP和端口
-MASTER_IP=$(echo $MASTER_STATUS | awk &#39;{print $3}&#39;)
-MASTER_PORT=$(echo $MASTER_STATUS | awk &#39;{print $5}&#39;)
+MASTER_IP=$(echo $MASTER_STATUS | awk '{print $3}')
+MASTER_PORT=$(echo $MASTER_STATUS | awk '{print $5}')
 
 # 检查主节点是否可达
-redis-cli -h $MASTER_IP -p $MASTER_PORT ping &gt; /dev/null 2&gt;&amp;1
+redis-cli -h $MASTER_IP -p $MASTER_PORT ping > /dev/null 2>&1
 
 if [ $? -ne 0 ]; then
-    echo &quot;WARNING: Master $MASTER_IP:$MASTER_PORT is not reachable&quot;
+    echo "WARNING: Master $MASTER_IP:$MASTER_PORT is not reachable"
 fi
-</code></pre>
-<h2>Redis集群架构</h2>
-<h3>1. 集群配置</h3>
-<p><strong>集群节点配置</strong>：</p>
-<pre><code class="language-conf"># redis.conf
+```
+
+## Redis集群架构
+
+### 1. 集群配置
+
+**集群节点配置**：
+```conf
+# redis.conf
 cluster-enabled yes
 cluster-config-file nodes-6379.conf
 cluster-node-timeout 15000
@@ -200,9 +226,11 @@ cluster-require-full-coverage yes
 cluster-announce-ip node_ip
 cluster-announce-port 6379
 cluster-announce-bus-port 16379
-</code></pre>
-<p><strong>集群初始化</strong>：</p>
-<pre><code class="language-bash"># 创建集群
+```
+
+**集群初始化**：
+```bash
+# 创建集群
 redis-cli --cluster create \
     node1:6379 node2:6379 node3:6379 \
     node4:6379 node5:6379 node6:6379 \
@@ -210,43 +238,51 @@ redis-cli --cluster create \
 
 # 检查集群状态
 redis-cli --cluster check node1:6379
-</code></pre>
-<h3>2. 分片原理</h3>
-<p><strong>数据分片</strong>：</p>
-<ul>
-<li>使用CRC16算法计算key的哈希值</li>
-<li>哈希值对16384取模，确定槽位</li>
-<li>每个节点负责一定范围的槽位</li>
-<li>支持动态槽位迁移</li>
-</ul>
-<p><strong>槽位分布</strong>：</p>
-<pre><code class="language-bash"># 查看槽位分布
+```
+
+### 2. 分片原理
+
+**数据分片**：
+- 使用CRC16算法计算key的哈希值
+- 哈希值对16384取模，确定槽位
+- 每个节点负责一定范围的槽位
+- 支持动态槽位迁移
+
+**槽位分布**：
+```bash
+# 查看槽位分布
 redis-cli cluster nodes
 
 # 输出示例
 # 3a3b4f1d9e4f2a7b8c9d0e1f2a3b4c5d6e7f8a9 192.168.1.10:6379@16379 master - 0 1234567890123 1 connected 0-5460
 # b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2 192.168.1.11:6379@16379 master - 0 1234567890123 2 connected 5461-10922
 # c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4 192.168.1.12:6379@16379 master - 0 1234567890123 3 connected 10923-16383
-</code></pre>
-<h3>3. 故障转移</h3>
-<p><strong>节点故障</strong>：</p>
-<ol>
-<li>集群检测到节点故障</li>
-<li>主节点故障时，从节点自动升级为主节点</li>
-<li>重新分配槽位，保证集群完整</li>
-<li>客户端自动重定向到正确节点</li>
-</ol>
-<p><strong>手动故障转移</strong>：</p>
-<pre><code class="language-bash"># 手动故障转移
+```
+
+### 3. 故障转移
+
+**节点故障**：
+1. 集群检测到节点故障
+2. 主节点故障时，从节点自动升级为主节点
+3. 重新分配槽位，保证集群完整
+4. 客户端自动重定向到正确节点
+
+**手动故障转移**：
+```bash
+# 手动故障转移
 redis-cli --cluster failover node_ip:6379
 
 # 槽位重平衡
 redis-cli --cluster rebalance node_ip:6379
-</code></pre>
-<h2>高可用客户端配置</h2>
-<h3>1. Java客户端配置</h3>
-<p><strong>Jedis哨兵配置</strong>：</p>
-<pre><code class="language-java">import redis.clients.jedis.*;
+```
+
+## 高可用客户端配置
+
+### 1. Java客户端配置
+
+**Jedis哨兵配置**：
+```java
+import redis.clients.jedis.*;
 import java.util.*;
 
 public class RedisSentinelExample {
@@ -254,10 +290,10 @@ public class RedisSentinelExample {
     private JedisSentinelPool sentinelPool;
     
     public void initSentinelPool() {
-        Set&lt;String&gt; sentinels = new HashSet&lt;&gt;();
-        sentinels.add(&quot;sentinel1:26379&quot;);
-        sentinels.add(&quot;sentinel2:26379&quot;);
-        sentinels.add(&quot;sentinel3:26379&quot;);
+        Set<String> sentinels = new HashSet<>();
+        sentinels.add("sentinel1:26379");
+        sentinels.add("sentinel2:26379");
+        sentinels.add("sentinel3:26379");
         
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(100);
@@ -265,18 +301,18 @@ public class RedisSentinelExample {
         config.setMinIdle(5);
         
         sentinelPool = new JedisSentinelPool(
-            &quot;mymaster&quot;, 
+            "mymaster", 
             sentinels, 
             config, 
             2000, 
-            &quot;your_password&quot;
+            "your_password"
         );
     }
     
     public void executeWithRetry() {
         try (Jedis jedis = sentinelPool.getResource()) {
-            jedis.set(&quot;key&quot;, &quot;value&quot;);
-            String result = jedis.get(&quot;key&quot;);
+            jedis.set("key", "value");
+            String result = jedis.get("key");
             System.out.println(result);
         } catch (JedisConnectionException e) {
             // 处理连接异常，自动重试
@@ -284,9 +320,11 @@ public class RedisSentinelExample {
         }
     }
 }
-</code></pre>
-<p><strong>Lettuce集群配置</strong>：</p>
-<pre><code class="language-java">import io.lettuce.core.*;
+```
+
+**Lettuce集群配置**：
+```java
+import io.lettuce.core.*;
 import io.lettuce.core.cluster.*;
 
 public class RedisClusterExample {
@@ -295,7 +333,7 @@ public class RedisClusterExample {
     
     public void initClusterClient() {
         clusterClient = RedisClusterClient.create(
-            RedisURI.create(&quot;redis://node1:6379&quot;)
+            RedisURI.create("redis://node1:6379")
         );
         
         ClusterTopologyRefreshOptions topologyOptions = 
@@ -313,48 +351,51 @@ public class RedisClusterExample {
     }
     
     public void executeCommand() {
-        StatefulRedisClusterConnection&lt;String, String&gt; connection = 
+        StatefulRedisClusterConnection<String, String> connection = 
             clusterClient.connect();
             
-        RedisAdvancedClusterCommands&lt;String, String&gt; commands = 
+        RedisAdvancedClusterCommands<String, String> commands = 
             connection.sync();
             
-        commands.set(&quot;key&quot;, &quot;value&quot;);
-        String result = commands.get(&quot;key&quot;);
+        commands.set("key", "value");
+        String result = commands.get("key");
         
         connection.close();
     }
 }
-</code></pre>
-<h3>2. Python客户端配置</h3>
-<p><strong>Redis-py哨兵配置</strong>：</p>
-<pre><code class="language-python">import redis
+```
+
+### 2. Python客户端配置
+
+**Redis-py哨兵配置**：
+```python
+import redis
 from redis.sentinel import Sentinel
 
 class RedisSentinelClient:
     
     def __init__(self):
         self.sentinel = Sentinel([
-            (&#39;sentinel1&#39;, 26379),
-            (&#39;sentinel2&#39;, 26379),
-            (&#39;sentinel3&#39;, 26379)
+            ('sentinel1', 26379),
+            ('sentinel2', 26379),
+            ('sentinel3', 26379)
         ], socket_timeout=0.1)
         
         self.master = self.sentinel.master_for(
-            &#39;mymaster&#39;, 
+            'mymaster', 
             socket_timeout=0.1,
-            password=&#39;your_password&#39;
+            password='your_password'
         )
         
         self.slave = self.sentinel.slave_for(
-            &#39;mymaster&#39;,
+            'mymaster',
             socket_timeout=0.1,
-            password=&#39;your_password&#39;
+            password='your_password'
         )
     
     def write_operation(self):
         try:
-            result = self.master.set(&#39;key&#39;, &#39;value&#39;)
+            result = self.master.set('key', 'value')
             return result
         except redis.ConnectionError:
             # 重试逻辑
@@ -362,22 +403,24 @@ class RedisSentinelClient:
     
     def read_operation(self):
         try:
-            result = self.slave.get(&#39;key&#39;)
+            result = self.slave.get('key')
             return result
         except redis.ConnectionError:
             # 降级到主节点读取
-            return self.master.get(&#39;key&#39;)
-</code></pre>
-<p><strong>Redis-py集群配置</strong>：</p>
-<pre><code class="language-python">from rediscluster import RedisCluster
+            return self.master.get('key')
+```
+
+**Redis-py集群配置**：
+```python
+from rediscluster import RedisCluster
 
 class RedisClusterClient:
     
     def __init__(self):
         startup_nodes = [
-            {&quot;host&quot;: &quot;node1&quot;, &quot;port&quot;: &quot;6379&quot;},
-            {&quot;host&quot;: &quot;node2&quot;, &quot;port&quot;: &quot;6379&quot;},
-            {&quot;host&quot;: &quot;node3&quot;, &quot;port&quot;: &quot;6379&quot;}
+            {"host": "node1", "port": "6379"},
+            {"host": "node2", "port": "6379"},
+            {"host": "node3", "port": "6379"}
         ]
         
         self.client = RedisCluster(
@@ -396,11 +439,15 @@ class RedisClusterClient:
                 if i == max_retries - 1:
                     raise
                 continue
-</code></pre>
-<h2>监控和运维</h2>
-<h3>1. 性能监控</h3>
-<p><strong>关键指标监控</strong>：</p>
-<pre><code class="language-bash"># 内存使用情况
+```
+
+## 监控和运维
+
+### 1. 性能监控
+
+**关键指标监控**：
+```bash
+# 内存使用情况
 redis-cli info memory | grep used_memory_human
 
 # 连接数
@@ -411,16 +458,18 @@ redis-cli info stats
 
 # 慢查询日志
 redis-cli slowlog get 10
-</code></pre>
-<p><strong>Prometheus监控配置</strong>：</p>
-<pre><code class="language-yaml"># redis_exporter配置
+```
+
+**Prometheus监控配置**：
+```yaml
+# redis_exporter配置
 global:
   scrape_interval: 15s
 
 scrape_configs:
-  - job_name: &#39;redis&#39;
+  - job_name: 'redis'
     static_configs:
-      - targets: [&#39;redis-exporter:9121&#39;]
+      - targets: ['redis-exporter:9121']
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -428,10 +477,13 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: redis-exporter:9121
-</code></pre>
-<h3>2. 告警规则</h3>
-<p><strong>Grafana告警规则</strong>：</p>
-<pre><code class="language-yaml">groups:
+```
+
+### 2. 告警规则
+
+**Grafana告警规则**：
+```yaml
+groups:
   - name: redis
     rules:
       - alert: RedisDown
@@ -440,76 +492,83 @@ scrape_configs:
         labels:
           severity: critical
         annotations:
-          summary: &quot;Redis instance is down&quot;
+          summary: "Redis instance is down"
           
       - alert: RedisMemoryHigh
-        expr: redis_memory_used_bytes / redis_memory_max_bytes &gt; 0.9
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: &quot;Redis memory usage is high&quot;
+          summary: "Redis memory usage is high"
           
       - alert: RedisConnectionsHigh
-        expr: redis_connected_clients &gt; 1000
+        expr: redis_connected_clients > 1000
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: &quot;Redis has too many connections&quot;
-</code></pre>
-<h3>3. 运维脚本</h3>
-<p><strong>批量操作脚本</strong>：</p>
-<pre><code class="language-bash">#!/bin/bash
+          summary: "Redis has too many connections"
+```
+
+### 3. 运维脚本
+
+**批量操作脚本**：
+```bash
+#!/bin/bash
 # redis_cluster_ops.sh
 
-NODES=(&quot;node1:6379&quot; &quot;node2:6379&quot; &quot;node3:6379&quot;)
-PASSWORD=&quot;your_password&quot;
+NODES=("node1:6379" "node2:6379" "node3:6379")
+PASSWORD="your_password"
 
 # 批量执行命令
 execute_on_cluster() {
     local cmd=$1
-    for node in &quot;${NODES[@]}&quot;; do
-        echo &quot;Executing on $node: $cmd&quot;
+    for node in "${NODES[@]}"; do
+        echo "Executing on $node: $cmd"
         redis-cli -h ${node%:*} -p ${node#*:} -a $PASSWORD $cmd
     done
 }
 
 # 集群健康检查
 cluster_health_check() {
-    echo &quot;Checking cluster health...&quot;
-    execute_on_cluster &quot;cluster nodes&quot;
-    execute_on_cluster &quot;info replication&quot;
+    echo "Checking cluster health..."
+    execute_on_cluster "cluster nodes"
+    execute_on_cluster "info replication"
 }
 
 # 备份数据
 backup_cluster() {
-    local backup_dir=&quot;/backup/redis/$(date +%Y%m%d_%H%M%S)&quot;
+    local backup_dir="/backup/redis/$(date +%Y%m%d_%H%M%S)"
     mkdir -p $backup_dir
     
-    for node in &quot;${NODES[@]}&quot;; do
+    for node in "${NODES[@]}"; do
         redis-cli -h ${node%:*} -p ${node#*:} -a $PASSWORD \
             --rdb $backup_dir/${node%:*}.rdb
     done
 }
 
 # 调用示例
-case &quot;$1&quot; in
-    &quot;health&quot;)
+case "$1" in
+    "health")
         cluster_health_check
         ;;
-    &quot;backup&quot;)
+    "backup")
         backup_cluster
         ;;
     *)
-        echo &quot;Usage: $0 {health|backup}&quot;
+        echo "Usage: $0 {health|backup}"
         ;;
 esac
-</code></pre>
-<h2>性能优化</h2>
-<h3>1. 内存优化</h3>
-<p><strong>内存配置优化</strong>：</p>
-<pre><code class="language-conf"># redis.conf
+```
+
+## 性能优化
+
+### 1. 内存优化
+
+**内存配置优化**：
+```conf
+# redis.conf
 maxmemory 4gb
 maxmemory-policy allkeys-lru
 
@@ -520,10 +579,12 @@ maxmemory-policy allkeys-lru
 # allkeys-random: 随机淘汰key
 # volatile-ttl: 淘汰即将过期的key
 # noeviction: 不淘汰，返回错误
-</code></pre>
-<p><strong>数据结构优化</strong>：</p>
-<pre><code class="language-bash"># 使用Hash代替String存储对象
-HSET user:1001 name &quot;张三&quot; age 25 email &quot;zhangsan@example.com&quot;
+```
+
+**数据结构优化**：
+```bash
+# 使用Hash代替String存储对象
+HSET user:1001 name "张三" age 25 email "zhangsan@example.com"
 
 # 使用List代替多个String
 LPUSH recent:users user:1001 user:1002 user:1003
@@ -534,25 +595,33 @@ SISMEMBER user:1001:tags tag1
 
 # 使用Sorted Set进行排序
 ZADD ranking 100 user:1001 90 user:1002 80 user:1003
-</code></pre>
-<h3>2. 网络优化</h3>
-<p><strong>TCP参数优化</strong>：</p>
-<pre><code class="language-conf"># 系统级优化
-echo &#39;net.core.somaxconn = 65535&#39; &gt;&gt; /etc/sysctl.conf
-echo &#39;net.ipv4.tcp_max_syn_backlog = 65535&#39; &gt;&gt; /etc/sysctl.conf
-echo &#39;net.core.netdev_max_backlog = 5000&#39; &gt;&gt; /etc/sysctl.conf
+```
+
+### 2. 网络优化
+
+**TCP参数优化**：
+```conf
+# 系统级优化
+echo 'net.core.somaxconn = 65535' >> /etc/sysctl.conf
+echo 'net.ipv4.tcp_max_syn_backlog = 65535' >> /etc/sysctl.conf
+echo 'net.core.netdev_max_backlog = 5000' >> /etc/sysctl.conf
 
 sysctl -p
-</code></pre>
-<p><strong>Redis连接优化</strong>：</p>
-<pre><code class="language-conf"># redis.conf
+```
+
+**Redis连接优化**：
+```conf
+# redis.conf
 tcp-keepalive 300
 tcp-backlog 511
 timeout 0
-</code></pre>
-<h3>3. 持久化优化</h3>
-<p><strong>RDB优化</strong>：</p>
-<pre><code class="language-conf"># 优化RDB保存策略
+```
+
+### 3. 持久化优化
+
+**RDB优化**：
+```conf
+# 优化RDB保存策略
 save 900 1
 save 300 10
 save 60 10000
@@ -562,9 +631,11 @@ rdbcompression yes
 
 # 启用校验和
 rdbchecksum yes
-</code></pre>
-<p><strong>AOF优化</strong>：</p>
-<pre><code class="language-conf"># 启用AOF
+```
+
+**AOF优化**：
+```conf
+# 启用AOF
 appendonly yes
 
 # AOF重写策略
@@ -573,51 +644,64 @@ auto-aof-rewrite-min-size 64mb
 
 # fsync策略
 appendfsync everysec
-</code></pre>
-<h2>安全配置</h2>
-<h3>1. 认证和授权</h3>
-<p><strong>密码认证</strong>：</p>
-<pre><code class="language-conf"># redis.conf
+```
+
+## 安全配置
+
+### 1. 认证和授权
+
+**密码认证**：
+```conf
+# redis.conf
 requirepass your_strong_password
 
 # 禁用危险命令
-rename-command FLUSHDB &quot;&quot;
-rename-command FLUSHALL &quot;&quot;
-rename-command KEYS &quot;&quot;
-rename-command CONFIG &quot;CONFIG_b835c3f8a5d2e7f1&quot;
-</code></pre>
-<h3>2. 网络安全</h3>
-<p><strong>绑定IP和端口</strong>：</p>
-<pre><code class="language-conf"># 绑定特定IP
+rename-command FLUSHDB ""
+rename-command FLUSHALL ""
+rename-command KEYS ""
+rename-command CONFIG "CONFIG_b835c3f8a5d2e7f1"
+```
+
+### 2. 网络安全
+
+**绑定IP和端口**：
+```conf
+# 绑定特定IP
 bind 127.0.0.1 10.0.0.1
 
 # 修改默认端口
 port 6380
-</code></pre>
-<p><strong>防火墙配置</strong>：</p>
-<pre><code class="language-bash"># iptables规则
+```
+
+**防火墙配置**：
+```bash
+# iptables规则
 iptables -A INPUT -p tcp --dport 6379 -s 10.0.0.0/8 -j ACCEPT
 iptables -A INPUT -p tcp --dport 6379 -j DROP
-</code></pre>
-<h3>3. SSL/TLS加密</h3>
-<p><strong>SSL配置</strong>：</p>
-<pre><code class="language-conf"># redis.conf
+```
+
+### 3. SSL/TLS加密
+
+**SSL配置**：
+```conf
+# redis.conf
 tls-port 6380
 tls-cert-file /path/to/redis.crt
 tls-key-file /path/to/redis.key
 tls-ca-cert-file /path/to/ca.crt
-</code></pre>
-<h2>总结</h2>
-<p>构建Redis高可用架构需要综合考虑多个方面：</p>
-<ol>
-<li><strong>架构选择</strong>：根据业务需求选择主从、哨兵或集群模式</li>
-<li><strong>配置优化</strong>：合理配置内存、网络、持久化等参数</li>
-<li><strong>监控告警</strong>：建立完善的监控体系和告警机制</li>
-<li><strong>运维管理</strong>：制定标准化的运维流程和应急预案</li>
-<li><strong>安全防护</strong>：实施多层次的安全防护措施</li>
-</ol>
-<p>通过合理的架构设计和持续的优化改进，可以构建出稳定、高效、安全的Redis高可用系统，为业务发展提供可靠的缓存服务支撑。</p>
-2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"Redis高可用实战"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","Redis",{"className":"tag","children":"Redis"}],["$","span","高可用",{"className":"tag","children":"高可用"}],["$","span","集群",{"className":"tag","children":"集群"}],["$","span","哨兵",{"className":"tag","children":"哨兵"}],["$","span","分布式缓存",{"className":"tag","children":"分布式缓存"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
-7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+```
+
+## 总结
+
+构建Redis高可用架构需要综合考虑多个方面：
+
+1. **架构选择**：根据业务需求选择主从、哨兵或集群模式
+2. **配置优化**：合理配置内存、网络、持久化等参数
+3. **监控告警**：建立完善的监控体系和告警机制
+4. **运维管理**：制定标准化的运维流程和应急预案
+5. **安全防护**：实施多层次的安全防护措施
+
+通过合理的架构设计和持续的优化改进，可以构建出稳定、高效、安全的Redis高可用系统，为业务发展提供可靠的缓存服务支撑。2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"Redis高可用实战"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","Redis",{"className":"tag","children":"Redis"}],["$","span","高可用",{"className":"tag","children":"高可用"}],["$","span","集群",{"className":"tag","children":"集群"}],["$","span","哨兵",{"className":"tag","children":"哨兵"}],["$","span","分布式缓存",{"className":"tag","children":"分布式缓存"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","children":["$","$La",null,{"content":"$b"}]}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}],["$","script",null,{"src":"https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lc",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
 8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Redis高可用实战 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"详细介绍Redis高可用架构的设计原理、实现方案和最佳实践，包括主从复制、哨兵模式、集群模式等核心技术的深入解析。"}]]
 1:null

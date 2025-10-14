@@ -2,16 +2,21 @@
 6:I[6423,[],""]
 4:["category","notes","d"]
 5:["slug","payment-system-design","d"]
-0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","payment-system-design","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"payment-system-design\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","payment-system-design","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
-9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
-b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
-a:T995a,<h1>支付系统设计详解</h1>
-<blockquote>
-<p>支付系统是电商平台的核心，其安全性和可靠性直接影响整个平台的信誉</p>
-</blockquote>
-<h2>支付系统概述</h2>
-<h3>1. 系统架构</h3>
-<pre><code>支付系统架构：
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","payment-system-design","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"payment-system-design\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","payment-system-design","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/eb4a34bff42c1814.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],""]
+a:I[2024,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],"default"]
+c:I[7140,["972","static/chunks/972-81dbad6abe39d3fa.js","185","static/chunks/app/layout-3ed2f387fb22aa2c.js"],"default"]
+b:T93d7,
+# 支付系统设计详解
+
+> 支付系统是电商平台的核心，其安全性和可靠性直接影响整个平台的信誉
+
+## 支付系统概述
+
+### 1. 系统架构
+
+```
+支付系统架构：
 ┌─────────────────────────────────────────────────────────────┐
 │                    前端应用层                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
@@ -48,9 +53,12 @@ a:T995a,<h1>支付系统设计详解</h1>
     │  MySQL      │ │  Redis      │ │  MQ         │
     │  Master     │ │  Cluster    │ │  Cluster    │
     └─────────────┘ └─────────────┘ └─────────────┘
-</code></pre>
-<h3>2. 核心业务流程</h3>
-<pre><code>支付流程：
+```
+
+### 2. 核心业务流程
+
+```
+支付流程：
 ├── 创建支付
 │   ├── 验证订单
 │   ├── 选择支付方式
@@ -71,11 +79,15 @@ a:T995a,<h1>支付系统设计详解</h1>
     ├── 对比账单
     ├── 处理差异
     └── 生成报告
-</code></pre>
-<h2>支付核心服务</h2>
-<h3>1. 支付创建</h3>
-<p><strong>支付服务实现</strong></p>
-<pre><code class="language-java">@Service
+```
+
+## 支付核心服务
+
+### 1. 支付创建
+
+**支付服务实现**
+```java
+@Service
 @Transactional
 public class PaymentService {
     
@@ -92,24 +104,24 @@ public class PaymentService {
     private RiskControlService riskControlService;
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     // 创建支付
     public PaymentResponse createPayment(PaymentRequest request) {
         // 1. 验证订单
         Order order = orderService.getOrder(request.getOrderId());
         if (order == null) {
-            throw new BusinessException(&quot;订单不存在&quot;);
+            throw new BusinessException("订单不存在");
         }
         
         // 2. 验证订单状态
         if (order.getStatus() != OrderStatus.PENDING_PAYMENT) {
-            throw new BusinessException(&quot;订单状态不正确&quot;);
+            throw new BusinessException("订单状态不正确");
         }
         
         // 3. 验证支付金额
         if (!order.getPayAmount().equals(request.getAmount())) {
-            throw new BusinessException(&quot;支付金额不匹配&quot;);
+            throw new BusinessException("支付金额不匹配");
         }
         
         // 4. 风险控制检查
@@ -117,7 +129,7 @@ public class PaymentService {
             order.getUserId(), request.getAmount(), request.getIp());
         
         if (riskResult.isHighRisk()) {
-            throw new BusinessException(&quot;支付风险过高&quot;);
+            throw new BusinessException("支付风险过高");
         }
         
         // 5. 创建支付记录
@@ -159,7 +171,7 @@ public class PaymentService {
         // 1. 验证签名
         PaymentChannel paymentChannel = channelService.getChannel(channel);
         if (!paymentChannel.verifyCallback(request)) {
-            throw new BusinessException(&quot;回调签名验证失败&quot;);
+            throw new BusinessException("回调签名验证失败");
         }
         
         // 2. 查找支付记录
@@ -167,7 +179,7 @@ public class PaymentService {
             request.getThirdPartyPaymentNo());
         
         if (payment == null) {
-            throw new BusinessException(&quot;支付记录不存在&quot;);
+            throw new BusinessException("支付记录不存在");
         }
         
         // 3. 防止重复处理
@@ -230,12 +242,12 @@ public class PaymentService {
         
         // 验证支付状态
         if (payment.getStatus() != PaymentStatus.SUCCESS) {
-            throw new BusinessException(&quot;支付状态不正确&quot;);
+            throw new BusinessException("支付状态不正确");
         }
         
         // 验证退款金额
-        if (request.getAmount().compareTo(payment.getAmount()) &gt; 0) {
-            throw new BusinessException(&quot;退款金额不能大于支付金额&quot;);
+        if (request.getAmount().compareTo(payment.getAmount()) > 0) {
+            throw new BusinessException("退款金额不能大于支付金额");
         }
         
         // 创建退款记录
@@ -286,20 +298,20 @@ public class PaymentService {
     }
     
     private String generatePaymentNo() {
-        return &quot;PAY&quot; + System.currentTimeMillis() + 
-               String.format(&quot;%04d&quot;, new Random().nextInt(10000));
+        return "PAY" + System.currentTimeMillis() + 
+               String.format("%04d", new Random().nextInt(10000));
     }
     
     private String generateRefundNo() {
-        return &quot;REF&quot; + System.currentTimeMillis() + 
-               String.format(&quot;%04d&quot;, new Random().nextInt(10000));
+        return "REF" + System.currentTimeMillis() + 
+               String.format("%04d", new Random().nextInt(10000));
     }
     
     private ThirdPartyPaymentRequest buildThirdPartyRequest(Payment payment, PaymentRequest request) {
         ThirdPartyPaymentRequest thirdPartyRequest = new ThirdPartyPaymentRequest();
         thirdPartyRequest.setOutTradeNo(payment.getPaymentNo());
         thirdPartyRequest.setAmount(payment.getAmount());
-        thirdPartyRequest.setSubject(&quot;订单支付&quot;);
+        thirdPartyRequest.setSubject("订单支付");
         thirdPartyRequest.setNotifyUrl(getNotifyUrl(payment.getChannel()));
         thirdPartyRequest.setReturnUrl(getReturnUrl(payment.getChannel()));
         thirdPartyRequest.setExpireTime(30); // 30分钟过期
@@ -315,11 +327,11 @@ public class PaymentService {
     }
     
     private String getNotifyUrl(String channel) {
-        return &quot;https://api.example.com/payment/callback/&quot; + channel;
+        return "https://api.example.com/payment/callback/" + channel;
     }
     
     private String getReturnUrl(String channel) {
-        return &quot;https://www.example.com/payment/return/&quot; + channel;
+        return "https://www.example.com/payment/return/" + channel;
     }
     
     private void sendPaymentSuccessMessage(Payment payment) {
@@ -328,9 +340,9 @@ public class PaymentService {
         message.setOrderId(payment.getOrderId());
         message.setUserId(payment.getUserId());
         message.setAmount(payment.getAmount());
-        message.setAction(&quot;PAYMENT_SUCCESS&quot;);
+        message.setAction("PAYMENT_SUCCESS");
         
-        rabbitTemplate.convertAndSend(&quot;payment.exchange&quot;, &quot;payment.success&quot;, message);
+        rabbitTemplate.convertAndSend("payment.exchange", "payment.success", message);
     }
     
     private void sendPaymentFailedMessage(Payment payment) {
@@ -339,9 +351,9 @@ public class PaymentService {
         message.setOrderId(payment.getOrderId());
         message.setUserId(payment.getUserId());
         message.setAmount(payment.getAmount());
-        message.setAction(&quot;PAYMENT_FAILED&quot;);
+        message.setAction("PAYMENT_FAILED");
         
-        rabbitTemplate.convertAndSend(&quot;payment.exchange&quot;, &quot;payment.failed&quot;, message);
+        rabbitTemplate.convertAndSend("payment.exchange", "payment.failed", message);
     }
     
     private void sendRefundMessage(Refund refund) {
@@ -349,42 +361,45 @@ public class PaymentService {
         message.setRefundNo(refund.getRefundNo());
         message.setPaymentNo(refund.getPaymentNo());
         message.setAmount(refund.getAmount());
-        message.setAction(&quot;REFUND&quot;);
+        message.setAction("REFUND");
         
-        rabbitTemplate.convertAndSend(&quot;payment.exchange&quot;, &quot;refund.created&quot;, message);
+        rabbitTemplate.convertAndSend("payment.exchange", "refund.created", message);
     }
     
     private Payment getPayment(String paymentNo) {
         return paymentRepository.findByPaymentNo(paymentNo)
-            .orElseThrow(() -&gt; new BusinessException(&quot;支付记录不存在&quot;));
+            .orElseThrow(() -> new BusinessException("支付记录不存在"));
     }
 }
-</code></pre>
-<h3>2. 支付渠道管理</h3>
-<p><strong>支付渠道服务</strong></p>
-<pre><code class="language-java">@Service
+```
+
+### 2. 支付渠道管理
+
+**支付渠道服务**
+```java
+@Service
 public class PaymentChannelService {
     
     @Autowired
-    private Map&lt;String, PaymentChannel&gt; channelMap;
+    private Map<String, PaymentChannel> channelMap;
     
     @PostConstruct
     public void initChannels() {
-        channelMap.put(&quot;ALIPAY&quot;, new AlipayChannel());
-        channelMap.put(&quot;WECHAT&quot;, new WechatChannel());
-        channelMap.put(&quot;UNIONPAY&quot;, new UnionpayChannel());
+        channelMap.put("ALIPAY", new AlipayChannel());
+        channelMap.put("WECHAT", new WechatChannel());
+        channelMap.put("UNIONPAY", new UnionpayChannel());
     }
     
     public PaymentChannel getChannel(String channel) {
         PaymentChannel paymentChannel = channelMap.get(channel.toUpperCase());
         if (paymentChannel == null) {
-            throw new BusinessException(&quot;不支持的支付渠道&quot;);
+            throw new BusinessException("不支持的支付渠道");
         }
         return paymentChannel;
     }
     
-    public List&lt;PaymentChannel&gt; getAvailableChannels() {
-        return new ArrayList&lt;&gt;(channelMap.values());
+    public List<PaymentChannel> getAvailableChannels() {
+        return new ArrayList<>(channelMap.values());
     }
 }
 
@@ -404,26 +419,26 @@ public interface PaymentChannel {
 @Component
 public class AlipayChannel implements PaymentChannel {
     
-    @Value(&quot;${alipay.app.id}&quot;)
+    @Value("${alipay.app.id}")
     private String appId;
     
-    @Value(&quot;${alipay.private.key}&quot;)
+    @Value("${alipay.private.key}")
     private String privateKey;
     
-    @Value(&quot;${alipay.public.key}&quot;)
+    @Value("${alipay.public.key}")
     private String publicKey;
     
     @Override
     public ThirdPartyPaymentResponse createPayment(ThirdPartyPaymentRequest request) {
         try {
             AlipayClient alipayClient = new DefaultAlipayClient(
-                &quot;https://openapi.alipay.com/gateway.do&quot;,
+                "https://openapi.alipay.com/gateway.do",
                 appId,
                 privateKey,
-                &quot;json&quot;,
-                &quot;UTF-8&quot;,
+                "json",
+                "UTF-8",
                 publicKey,
-                &quot;RSA2&quot;
+                "RSA2"
             );
             
             AlipayTradePagePayRequest alipayRequest = new AlipayTradePagePayRequest();
@@ -431,7 +446,7 @@ public class AlipayChannel implements PaymentChannel {
             alipayRequest.setNotifyUrl(request.getNotifyUrl());
             
             alipayRequest.setBizContent(String.format(
-                &quot;{\&quot;out_trade_no\&quot;:\&quot;%s\&quot;,\&quot;total_amount\&quot;:\&quot;%s\&quot;,\&quot;subject\&quot;:\&quot;%s\&quot;}&quot;,
+                "{\"out_trade_no\":\"%s\",\"total_amount\":\"%s\",\"subject\":\"%s\"}",
                 request.getOutTradeNo(),
                 request.getAmount(),
                 request.getSubject()
@@ -446,7 +461,7 @@ public class AlipayChannel implements PaymentChannel {
             
             return result;
         } catch (AlipayApiException e) {
-            throw new BusinessException(&quot;支付宝支付失败&quot;);
+            throw new BusinessException("支付宝支付失败");
         }
     }
     
@@ -454,28 +469,28 @@ public class AlipayChannel implements PaymentChannel {
     public ThirdPartyPaymentStatus queryPaymentStatus(String thirdPartyPaymentNo) {
         try {
             AlipayClient alipayClient = new DefaultAlipayClient(
-                &quot;https://openapi.alipay.com/gateway.do&quot;,
+                "https://openapi.alipay.com/gateway.do",
                 appId,
                 privateKey,
-                &quot;json&quot;,
-                &quot;UTF-8&quot;,
+                "json",
+                "UTF-8",
                 publicKey,
-                &quot;RSA2&quot;
+                "RSA2"
             );
             
             AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
             request.setBizContent(String.format(
-                &quot;{\&quot;out_trade_no\&quot;:\&quot;%s\&quot;}&quot;,
+                "{\"out_trade_no\":\"%s\"}",
                 thirdPartyPaymentNo
             ));
             
             AlipayTradeQueryResponse response = alipayClient.execute(request);
             
             if (response.isSuccess()) {
-                if (&quot;TRADE_SUCCESS&quot;.equals(response.getTradeStatus()) || 
-                    &quot;TRADE_FINISHED&quot;.equals(response.getTradeStatus())) {
+                if ("TRADE_SUCCESS".equals(response.getTradeStatus()) || 
+                    "TRADE_FINISHED".equals(response.getTradeStatus())) {
                     return ThirdPartyPaymentStatus.SUCCESS;
-                } else if (&quot;WAIT_BUYER_PAY&quot;.equals(response.getTradeStatus())) {
+                } else if ("WAIT_BUYER_PAY".equals(response.getTradeStatus())) {
                     return ThirdPartyPaymentStatus.PENDING;
                 } else {
                     return ThirdPartyPaymentStatus.FAILED;
@@ -484,7 +499,7 @@ public class AlipayChannel implements PaymentChannel {
                 return ThirdPartyPaymentStatus.FAILED;
             }
         } catch (AlipayApiException e) {
-            throw new BusinessException(&quot;查询支付状态失败&quot;);
+            throw new BusinessException("查询支付状态失败");
         }
     }
     
@@ -492,18 +507,18 @@ public class AlipayChannel implements PaymentChannel {
     public ThirdPartyRefundResponse createRefund(ThirdPartyRefundRequest request) {
         try {
             AlipayClient alipayClient = new DefaultAlipayClient(
-                &quot;https://openapi.alipay.com/gateway.do&quot;,
+                "https://openapi.alipay.com/gateway.do",
                 appId,
                 privateKey,
-                &quot;json&quot;,
-                &quot;UTF-8&quot;,
+                "json",
+                "UTF-8",
                 publicKey,
-                &quot;RSA2&quot;
+                "RSA2"
             );
             
             AlipayTradeRefundRequest alipayRequest = new AlipayTradeRefundRequest();
             alipayRequest.setBizContent(String.format(
-                &quot;{\&quot;out_trade_no\&quot;:\&quot;%s\&quot;,\&quot;refund_amount\&quot;:\&quot;%s\&quot;,\&quot;refund_reason\&quot;:\&quot;%s\&quot;}&quot;,
+                "{\"out_trade_no\":\"%s\",\"refund_amount\":\"%s\",\"refund_reason\":\"%s\"}",
                 request.getOutRefundNo(),
                 request.getAmount(),
                 request.getReason()
@@ -517,39 +532,43 @@ public class AlipayChannel implements PaymentChannel {
             
             return result;
         } catch (AlipayApiException e) {
-            throw new BusinessException(&quot;支付宝退款失败&quot;);
+            throw new BusinessException("支付宝退款失败");
         }
     }
     
     @Override
     public boolean verifyCallback(PaymentCallbackRequest request) {
         try {
-            Map&lt;String, String&gt; params = request.getParams();
+            Map<String, String> params = request.getParams();
             
             // 验证签名
             return AlipaySignature.rsaCheckV1(
                 params,
                 publicKey,
-                &quot;UTF-8&quot;,
-                &quot;RSA2&quot;
+                "UTF-8",
+                "RSA2"
             );
         } catch (AlipayApiException e) {
             return false;
         }
     }
 }
-</code></pre>
-<h2>风险控制</h2>
-<h3>1. 风险评估</h3>
-<p><strong>风险控制服务</strong></p>
-<pre><code class="language-java">@Service
+```
+
+## 风险控制
+
+### 1. 风险评估
+
+**风险控制服务**
+```java
+@Service
 public class RiskControlService {
     
     @Autowired
     private RiskRuleRepository riskRuleRepository;
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     // 支付风险检查
     public RiskCheckResult checkPaymentRisk(Long userId, BigDecimal amount, String ip) {
@@ -575,7 +594,7 @@ public class RiskControlService {
                            frequencyRiskScore + deviceRiskScore;
         
         result.setRiskScore(totalRiskScore);
-        result.setHighRisk(totalRiskScore &gt; 80);
+        result.setHighRisk(totalRiskScore > 80);
         
         // 记录风险检查日志
         recordRiskCheck(userId, amount, ip, totalRiskScore);
@@ -600,12 +619,12 @@ public class RiskControlService {
         }
         
         // 检查用户历史风险记录
-        if (profile.getRiskCount() &gt; 0) {
+        if (profile.getRiskCount() > 0) {
             riskScore += 10 * profile.getRiskCount();
         }
         
         // 检查用户支付频率
-        if (profile.getPaymentCount() &gt; 100) {
+        if (profile.getPaymentCount() > 100) {
             riskScore += 5;
         }
         
@@ -620,14 +639,14 @@ public class RiskControlService {
         BigDecimal avgAmount = getUserAveragePaymentAmount(userId);
         
         // 检查支付金额是否异常
-        if (amount.compareTo(avgAmount.multiply(new BigDecimal(&quot;5&quot;))) &gt; 0) {
+        if (amount.compareTo(avgAmount.multiply(new BigDecimal("5"))) > 0) {
             riskScore += 25;
-        } else if (amount.compareTo(avgAmount.multiply(new BigDecimal(&quot;3&quot;))) &gt; 0) {
+        } else if (amount.compareTo(avgAmount.multiply(new BigDecimal("3"))) > 0) {
             riskScore += 15;
         }
         
         // 检查大额支付
-        if (amount.compareTo(new BigDecimal(&quot;10000&quot;)) &gt; 0) {
+        if (amount.compareTo(new BigDecimal("10000")) > 0) {
             riskScore += 20;
         }
         
@@ -663,13 +682,13 @@ public class RiskControlService {
         
         // 检查最近1小时内的支付次数
         int hourCount = getPaymentCount(userId, 1);
-        if (hourCount &gt; 10) {
+        if (hourCount > 10) {
             riskScore += 20;
         }
         
         // 检查最近24小时内的支付次数
         int dayCount = getPaymentCount(userId, 24);
-        if (dayCount &gt; 50) {
+        if (dayCount > 50) {
             riskScore += 15;
         }
         
@@ -704,7 +723,7 @@ public class RiskControlService {
         riskCheckLogRepository.save(log);
         
         // 如果风险分数过高，发送告警
-        if (riskScore &gt; 80) {
+        if (riskScore > 80) {
             sendRiskAlert(userId, amount, ip, riskScore);
         }
     }
@@ -732,7 +751,7 @@ public class RiskControlService {
     }
     
     private boolean isIpInBlacklist(String ip) {
-        String key = &quot;risk:ip:blacklist&quot;;
+        String key = "risk:ip:blacklist";
         return redisTemplate.opsForSet().isMember(key, ip);
     }
     
@@ -742,7 +761,7 @@ public class RiskControlService {
     }
     
     private boolean isHighRiskLocation(String location) {
-        List&lt;String&gt; highRiskLocations = Arrays.asList(&quot;XX&quot;, &quot;YY&quot;, &quot;ZZ&quot;);
+        List<String> highRiskLocations = Arrays.asList("XX", "YY", "ZZ");
         return highRiskLocations.contains(location);
     }
     
@@ -757,7 +776,7 @@ public class RiskControlService {
     }
     
     private boolean isKnownDevice(Long userId, String deviceId) {
-        String key = &quot;user:device:&quot; + userId;
+        String key = "user:device:" + userId;
         return redisTemplate.opsForSet().isMember(key, deviceId);
     }
     
@@ -766,11 +785,15 @@ public class RiskControlService {
         return deviceRiskService.getRiskLevel(deviceId);
     }
 }
-</code></pre>
-<h2>对账系统</h2>
-<h3>1. 对账服务</h3>
-<p><strong>对账服务实现</strong></p>
-<pre><code class="language-java">@Service
+```
+
+## 对账系统
+
+### 1. 对账服务
+
+**对账服务实现**
+```java
+@Service
 public class ReconciliationService {
     
     @Autowired
@@ -779,15 +802,15 @@ public class ReconciliationService {
     @Autowired
     private PaymentRepository paymentRepository;
     
-    @Scheduled(cron = &quot;0 0 2 * * ?&quot;) // 每天凌晨2点执行
+    @Scheduled(cron = "0 0 2 * * ?") // 每天凌晨2点执行
     public void dailyReconciliation() {
         String yesterday = DateUtils.formatDate(DateUtils.addDays(new Date(), -1));
         
         // 1. 获取内部账单
-        List&lt;InternalBill&gt; internalBills = getInternalBills(yesterday);
+        List<InternalBill> internalBills = getInternalBills(yesterday);
         
         // 2. 获取第三方账单
-        List&lt;ThirdPartyBill&gt; thirdPartyBills = getThirdPartyBills(yesterday);
+        List<ThirdPartyBill> thirdPartyBills = getThirdPartyBills(yesterday);
         
         // 3. 执行对账
         ReconciliationResult result = reconcile(internalBills, thirdPartyBills);
@@ -802,7 +825,7 @@ public class ReconciliationService {
     }
     
     // 获取内部账单
-    private List&lt;InternalBill&gt; getInternalBills(String date) {
+    private List<InternalBill> getInternalBills(String date) {
         return paymentRepository.findByDate(date)
             .stream()
             .map(this::convertToInternalBill)
@@ -810,8 +833,8 @@ public class ReconciliationService {
     }
     
     // 获取第三方账单
-    private List&lt;ThirdPartyBill&gt; getThirdPartyBills(String date) {
-        List&lt;ThirdPartyBill&gt; bills = new ArrayList&lt;&gt;();
+    private List<ThirdPartyBill> getThirdPartyBills(String date) {
+        List<ThirdPartyBill> bills = new ArrayList<>();
         
         // 获取支付宝账单
         bills.addAll(getAlipayBills(date));
@@ -826,15 +849,15 @@ public class ReconciliationService {
     }
     
     // 执行对账
-    private ReconciliationResult reconcile(List&lt;InternalBill&gt; internalBills, 
-                                         List&lt;ThirdPartyBill&gt; thirdPartyBills) {
+    private ReconciliationResult reconcile(List<InternalBill> internalBills, 
+                                         List<ThirdPartyBill> thirdPartyBills) {
         ReconciliationResult result = new ReconciliationResult();
         
         // 按支付单号分组
-        Map&lt;String, InternalBill&gt; internalBillMap = internalBills.stream()
+        Map<String, InternalBill> internalBillMap = internalBills.stream()
             .collect(Collectors.toMap(InternalBill::getPaymentNo, Function.identity()));
         
-        Map&lt;String, ThirdPartyBill&gt; thirdPartyBillMap = thirdPartyBills.stream()
+        Map<String, ThirdPartyBill> thirdPartyBillMap = thirdPartyBills.stream()
             .collect(Collectors.toMap(ThirdPartyBill::getPaymentNo, Function.identity()));
         
         // 检查内部账单在第三方账单中是否存在
@@ -889,7 +912,7 @@ public class ReconciliationService {
     }
     
     // 处理差异
-    private void handleDiscrepancies(List&lt;Discrepancy&gt; discrepancies) {
+    private void handleDiscrepancies(List<Discrepancy> discrepancies) {
         for (Discrepancy discrepancy : discrepancies) {
             switch (discrepancy.getType()) {
                 case THIRD_PARTY_MISSING:
@@ -944,13 +967,13 @@ public class ReconciliationService {
         paymentRepository.save(payment);
         
         // 记录异常
-        recordReconciliationException(discrepancy, &quot;内部账单缺失&quot;);
+        recordReconciliationException(discrepancy, "内部账单缺失");
     }
     
     // 处理金额不匹配
     private void handleAmountMismatch(Discrepancy discrepancy) {
         // 记录异常
-        recordReconciliationException(discrepancy, &quot;金额不匹配&quot;);
+        recordReconciliationException(discrepancy, "金额不匹配");
         
         // 发送告警
         sendReconciliationAlert(discrepancy);
@@ -1001,33 +1024,34 @@ public class ReconciliationService {
         return bill;
     }
     
-    private List&lt;ThirdPartyBill&gt; getAlipayBills(String date) {
+    private List<ThirdPartyBill> getAlipayBills(String date) {
         // 调用支付宝账单接口
         return alipayService.getBills(date);
     }
     
-    private List&lt;ThirdPartyBill&gt; getWechatBills(String date) {
+    private List<ThirdPartyBill> getWechatBills(String date) {
         // 调用微信账单接口
         return wechatService.getBills(date);
     }
     
-    private List&lt;ThirdPartyBill&gt; getUnionpayBills(String date) {
+    private List<ThirdPartyBill> getUnionpayBills(String date) {
         // 调用银联账单接口
         return unionpayService.getBills(date);
     }
 }
-</code></pre>
-<h2>总结</h2>
-<p>支付系统设计需要考虑以下关键点：</p>
-<ol>
-<li><strong>安全性</strong>：确保支付过程的安全可靠</li>
-<li><strong>一致性</strong>：保证支付状态与业务状态的一致性</li>
-<li><strong>可靠性</strong>：确保支付流程的稳定运行</li>
-<li><strong>扩展性</strong>：支持多种支付渠道的接入</li>
-<li><strong>监控性</strong>：完善的监控和对账机制</li>
-</ol>
-<p>通过合理的架构设计和严格的流程控制，可以构建安全、可靠的支付系统。</p>
-2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"支付系统设计详解"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","支付系统",{"className":"tag","children":"支付系统"}],["$","span","系统设计",{"className":"tag","children":"系统设计"}],["$","span","金融安全",{"className":"tag","children":"金融安全"}],["$","span","第三方支付",{"className":"tag","children":"第三方支付"}],["$","span","对账系统",{"className":"tag","children":"对账系统"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
-7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+```
+
+## 总结
+
+支付系统设计需要考虑以下关键点：
+
+1. **安全性**：确保支付过程的安全可靠
+2. **一致性**：保证支付状态与业务状态的一致性
+3. **可靠性**：确保支付流程的稳定运行
+4. **扩展性**：支持多种支付渠道的接入
+5. **监控性**：完善的监控和对账机制
+
+通过合理的架构设计和严格的流程控制，可以构建安全、可靠的支付系统。2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"支付系统设计详解"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","支付系统",{"className":"tag","children":"支付系统"}],["$","span","系统设计",{"className":"tag","children":"系统设计"}],["$","span","金融安全",{"className":"tag","children":"金融安全"}],["$","span","第三方支付",{"className":"tag","children":"第三方支付"}],["$","span","对账系统",{"className":"tag","children":"对账系统"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","children":["$","$La",null,{"content":"$b"}]}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}],["$","script",null,{"src":"https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lc",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
 8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"支付系统设计详解 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"深入分析支付系统的架构设计、核心业务流程、安全机制、对账系统等关键模块，帮助构建安全可靠的支付系统。"}]]
 1:null

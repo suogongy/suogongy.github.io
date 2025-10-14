@@ -2,31 +2,35 @@
 6:I[6423,[],""]
 4:["category","notes","d"]
 5:["slug","ecommerce-promo-technical-guarantee","d"]
-0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","ecommerce-promo-technical-guarantee","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"ecommerce-promo-technical-guarantee\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","ecommerce-promo-technical-guarantee","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
-9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
-b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
-a:T456b,<h1>大促活动的技术保障</h1>
-<blockquote>
-<p>大促活动是电商系统的终极考验，完善的技术保障体系是成功的关键</p>
-</blockquote>
-<h2>大促技术挑战</h2>
-<h3>1. 流量特征分析</h3>
-<p><strong>流量激增</strong></p>
-<ul>
-<li>平时流量的10-100倍</li>
-<li>零点峰值效应</li>
-<li>用户行为模式变化</li>
-<li>地域分布不均</li>
-</ul>
-<p><strong>业务特点</strong></p>
-<ul>
-<li>短时高并发</li>
-<li>数据一致性要求高</li>
-<li>用户体验敏感</li>
-<li>系统稳定性要求极高</li>
-</ul>
-<h3>2. 技术挑战清单</h3>
-<pre><code>性能挑战：
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","ecommerce-promo-technical-guarantee","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"ecommerce-promo-technical-guarantee\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","ecommerce-promo-technical-guarantee","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/eb4a34bff42c1814.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],""]
+a:I[2024,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],"default"]
+c:I[7140,["972","static/chunks/972-81dbad6abe39d3fa.js","185","static/chunks/app/layout-3ed2f387fb22aa2c.js"],"default"]
+b:T3e99,
+# 大促活动的技术保障
+
+> 大促活动是电商系统的终极考验，完善的技术保障体系是成功的关键
+
+## 大促技术挑战
+
+### 1. 流量特征分析
+
+**流量激增**
+- 平时流量的10-100倍
+- 零点峰值效应
+- 用户行为模式变化
+- 地域分布不均
+
+**业务特点**
+- 短时高并发
+- 数据一致性要求高
+- 用户体验敏感
+- 系统稳定性要求极高
+
+### 2. 技术挑战清单
+
+```
+性能挑战：
 - QPS从1000到100万的跨越
 - 响应时间从100ms到10ms的要求
 - 数据库连接池耗尽风险
@@ -43,10 +47,14 @@ a:T456b,<h1>大促活动的技术保障</h1>
 - 库存超卖问题
 - 订单状态同步
 - 支付一致性保障
-</code></pre>
-<h2>架构设计原则</h2>
-<h3>1. 高可用架构</h3>
-<pre><code>                    ┌─────────────┐
+```
+
+## 架构设计原则
+
+### 1. 高可用架构
+
+```
+                    ┌─────────────┐
                     │   CDN       │
                     └─────────────┘
                           │
@@ -70,48 +78,53 @@ a:T456b,<h1>大促活动的技术保障</h1>
     │  Redis      │ │  MySQL      │ │  MQ         │
     │  Cluster    │ │  Master     │ │  Cluster    │
     └─────────────┘ └─────────────┘ └─────────────┘
-</code></pre>
-<h3>2. 分层设计策略</h3>
-<p><strong>接入层</strong></p>
-<pre><code class="language-java">// 接入限流配置
+```
+
+### 2. 分层设计策略
+
+**接入层**
+```java
+// 接入限流配置
 @Component
 public class RateLimiter {
     
-    private final Map&lt;String, RateLimiter&gt; limiters = new ConcurrentHashMap&lt;&gt;();
+    private final Map<String, RateLimiter> limiters = new ConcurrentHashMap<>();
     
     public boolean tryAcquire(String key, int permits, int rate) {
         RateLimiter limiter = limiters.computeIfAbsent(key, 
-            k -&gt; RateLimiter.create(rate));
+            k -> RateLimiter.create(rate));
         return limiter.tryAcquire(permits);
     }
     
-    @GetMapping(&quot;/api/seckill&quot;)
+    @GetMapping("/api/seckill")
     public Result seckill(@RequestParam String productId) {
         // 用户级别限流
-        if (!tryAcquire(&quot;user:&quot; + getUserId(), 1, 10)) {
-            return Result.error(&quot;请求过于频繁&quot;);
+        if (!tryAcquire("user:" + getUserId(), 1, 10)) {
+            return Result.error("请求过于频繁");
         }
         
         // 接口级别限流
-        if (!tryAcquire(&quot;seckill&quot;, 1, 1000)) {
-            return Result.error(&quot;系统繁忙&quot;);
+        if (!tryAcquire("seckill", 1, 1000)) {
+            return Result.error("系统繁忙");
         }
         
         return seckillService.process(productId);
     }
 }
-</code></pre>
-<p><strong>应用层</strong></p>
-<pre><code class="language-java">// 服务降级策略
+```
+
+**应用层**
+```java
+// 服务降级策略
 @Service
 public class ProductService {
     
     @HystrixCommand(
-        fallbackMethod = &quot;getProductFallback&quot;,
+        fallbackMethod = "getProductFallback",
         commandProperties = {
-            @HystrixProperty(name = &quot;execution.isolation.thread.timeoutInMilliseconds&quot;, value = &quot;3000&quot;),
-            @HystrixProperty(name = &quot;circuitBreaker.requestVolumeThreshold&quot;, value = &quot;10&quot;),
-            @HystrixProperty(name = &quot;circuitBreaker.sleepWindowInMilliseconds&quot;, value = &quot;10000&quot;)
+            @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000"),
+            @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "10"),
+            @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "10000")
         }
     )
     public Product getProduct(Long id) {
@@ -122,11 +135,15 @@ public class ProductService {
         return Product.getDefault();
     }
 }
-</code></pre>
-<h2>核心技术方案</h2>
-<h3>1. 流量控制</h3>
-<p><strong>限流算法实现</strong></p>
-<pre><code class="language-java">// 令牌桶算法
+```
+
+## 核心技术方案
+
+### 1. 流量控制
+
+**限流算法实现**
+```java
+// 令牌桶算法
 public class TokenBucket {
     private final int capacity;
     private final int rate;
@@ -135,7 +152,7 @@ public class TokenBucket {
     
     public synchronized boolean tryConsume() {
         refill();
-        if (tokens &gt; 0) {
+        if (tokens > 0) {
             tokens--;
             return true;
         }
@@ -155,62 +172,67 @@ public class TokenBucket {
 public class SlidingWindow {
     private final int windowSize;
     private final int maxCount;
-    private final Queue&lt;Long&gt; requests;
+    private final Queue<Long> requests;
     
     public synchronized boolean tryAcquire() {
         long now = System.currentTimeMillis();
-        while (!requests.isEmpty() &amp;&amp; now - requests.peek() &gt; windowSize) {
+        while (!requests.isEmpty() && now - requests.peek() > windowSize) {
             requests.poll();
         }
         
-        if (requests.size() &lt; maxCount) {
+        if (requests.size() < maxCount) {
             requests.offer(now);
             return true;
         }
         return false;
     }
 }
-</code></pre>
-<p><strong>分布式限流</strong></p>
-<pre><code class="language-java">// Redis分布式限流
+```
+
+**分布式限流**
+```java
+// Redis分布式限流
 @Component
 public class DistributedRateLimiter {
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     public boolean tryAcquire(String key, int limit, int window) {
         String script = 
-            &quot;local current = redis.call(&#39;GET&#39;, KEYS[1]) &quot; +
-            &quot;if current == false then &quot; +
-            &quot;  redis.call(&#39;SET&#39;, KEYS[1], 1) &quot; +
-            &quot;  redis.call(&#39;EXPIRE&#39;, KEYS[1], ARGV[1]) &quot; +
-            &quot;  return 1 &quot; +
-            &quot;else &quot; +
-            &quot;  if tonumber(current) &lt; tonumber(ARGV[2]) then &quot; +
-            &quot;    return redis.call(&#39;INCR&#39;, KEYS[1]) &quot; +
-            &quot;  else &quot; +
-            &quot;    return 0 &quot; +
-            &quot;  end &quot; +
-            &quot;end&quot;;
+            "local current = redis.call('GET', KEYS[1]) " +
+            "if current == false then " +
+            "  redis.call('SET', KEYS[1], 1) " +
+            "  redis.call('EXPIRE', KEYS[1], ARGV[1]) " +
+            "  return 1 " +
+            "else " +
+            "  if tonumber(current) < tonumber(ARGV[2]) then " +
+            "    return redis.call('INCR', KEYS[1]) " +
+            "  else " +
+            "    return 0 " +
+            "  end " +
+            "end";
         
         Long result = redisTemplate.execute(
-            new DefaultRedisScript&lt;&gt;(script, Long.class),
+            new DefaultRedisScript<>(script, Long.class),
             Collections.singletonList(key),
             String.valueOf(window),
             String.valueOf(limit)
         );
         
-        return result != null &amp;&amp; result == 1;
+        return result != null && result == 1;
     }
 }
-</code></pre>
-<h3>2. 缓存策略</h3>
-<p><strong>多级缓存架构</strong></p>
-<pre><code class="language-java">// L1缓存：本地缓存
+```
+
+### 2. 缓存策略
+
+**多级缓存架构**
+```java
+// L1缓存：本地缓存
 @Component
 public class LocalCache {
-    private final Cache&lt;String, Object&gt; cache = Caffeine.newBuilder()
+    private final Cache<String, Object> cache = Caffeine.newBuilder()
         .maximumSize(10000)
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .build();
@@ -232,7 +254,7 @@ public class CacheService {
     private LocalCache localCache;
     
     @Autowired
-    private RedisTemplate&lt;String, Object&gt; redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
     
     public Object get(String key) {
         // 先查本地缓存
@@ -255,47 +277,52 @@ public class CacheService {
         redisTemplate.opsForValue().set(key, value, ttl, TimeUnit.SECONDS);
     }
 }
-</code></pre>
-<p><strong>缓存预热策略</strong></p>
-<pre><code class="language-java">@Component
+```
+
+**缓存预热策略**
+```java
+@Component
 public class CacheWarmup {
     
     @Scheduled(fixedRate = 300000) // 每5分钟执行一次
     public void warmupCache() {
         // 预热热门商品
-        List&lt;Product&gt; hotProducts = productService.getHotProducts();
-        hotProducts.forEach(product -&gt; {
-            String key = &quot;product:&quot; + product.getId();
+        List<Product> hotProducts = productService.getHotProducts();
+        hotProducts.forEach(product -> {
+            String key = "product:" + product.getId();
             cacheService.put(key, product, 3600);
         });
         
         // 预热库存信息
-        List&lt;Long&gt; productIds = hotProducts.stream()
+        List<Long> productIds = hotProducts.stream()
             .map(Product::getId)
             .collect(Collectors.toList());
         
-        Map&lt;Long, Integer&gt; stockMap = stockService.batchGetStock(productIds);
-        stockMap.forEach((productId, stock) -&gt; {
-            String key = &quot;stock:&quot; + productId;
+        Map<Long, Integer> stockMap = stockService.batchGetStock(productIds);
+        stockMap.forEach((productId, stock) -> {
+            String key = "stock:" + productId;
             cacheService.put(key, stock, 300);
         });
     }
 }
-</code></pre>
-<h3>3. 库存管理</h3>
-<p><strong>分布式库存锁</strong></p>
-<pre><code class="language-java">@Service
+```
+
+### 3. 库存管理
+
+**分布式库存锁**
+```java
+@Service
 public class StockService {
     
     @Autowired
-    private RedisTemplate&lt;String, String&gt; redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     
     @Autowired
     private StockMapper stockMapper;
     
     public boolean deductStock(Long productId, int quantity) {
-        String lockKey = &quot;stock:lock:&quot; + productId;
-        String stockKey = &quot;stock:&quot; + productId;
+        String lockKey = "stock:lock:" + productId;
+        String stockKey = "stock:" + productId;
         
         // 分布式锁
         String lockValue = UUID.randomUUID().toString();
@@ -312,7 +339,7 @@ public class StockService {
             int stock = stockStr != null ? Integer.parseInt(stockStr) : 
                 stockMapper.getStock(productId);
             
-            if (stock &lt; quantity) {
+            if (stock < quantity) {
                 return false;
             }
             
@@ -332,23 +359,26 @@ public class StockService {
     
     private void releaseLock(String lockKey, String lockValue) {
         String script = 
-            &quot;if redis.call(&#39;GET&#39;, KEYS[1]) == ARGV[1] then &quot; +
-            &quot;  return redis.call(&#39;DEL&#39;, KEYS[1]) &quot; +
-            &quot;else &quot; +
-            &quot;  return 0 &quot; +
-            &quot;end&quot;;
+            "if redis.call('GET', KEYS[1]) == ARGV[1] then " +
+            "  return redis.call('DEL', KEYS[1]) " +
+            "else " +
+            "  return 0 " +
+            "end";
         
         redisTemplate.execute(
-            new DefaultRedisScript&lt;&gt;(script, Long.class),
+            new DefaultRedisScript<>(script, Long.class),
             Collections.singletonList(lockKey),
             lockValue
         );
     }
 }
-</code></pre>
-<h3>4. 消息队列应用</h3>
-<p><strong>削峰填谷</strong></p>
-<pre><code class="language-java">@Component
+```
+
+### 4. 消息队列应用
+
+**削峰填谷**
+```java
+@Component
 public class OrderProcessor {
     
     @Autowired
@@ -360,15 +390,15 @@ public class OrderProcessor {
         orderMapper.insert(order);
         
         // 2. 发送消息到MQ
-        rabbitTemplate.convertAndSend(&quot;order.exchange&quot;, 
-            &quot;order.created&quot;, order);
+        rabbitTemplate.convertAndSend("order.exchange", 
+            "order.created", order);
         
         // 3. 立即返回成功
-        return Result.success(&quot;订单创建成功&quot;);
+        return Result.success("订单创建成功");
     }
     
     // 消费者：异步处理订单
-    @RabbitListener(queues = &quot;order.queue&quot;)
+    @RabbitListener(queues = "order.queue")
     public void processOrder(Order order) {
         try {
             // 1. 扣减库存
@@ -389,11 +419,15 @@ public class OrderProcessor {
         }
     }
 }
-</code></pre>
-<h2>监控体系</h2>
-<h3>1. 性能监控</h3>
-<p><strong>实时监控指标</strong></p>
-<pre><code class="language-java">@Component
+```
+
+## 监控体系
+
+### 1. 性能监控
+
+**实时监控指标**
+```java
+@Component
 public class MetricsCollector {
     
     private final MeterRegistry meterRegistry;
@@ -404,69 +438,74 @@ public class MetricsCollector {
     
     // 计数器
     public void incrementOrderCount() {
-        Counter.builder(&quot;order.count&quot;)
-            .tag(&quot;status&quot;, &quot;success&quot;)
+        Counter.builder("order.count")
+            .tag("status", "success")
             .register(meterRegistry)
             .increment();
     }
     
     // 计时器
     public void recordOrderProcessTime(long time) {
-        Timer.builder(&quot;order.process.time&quot;)
+        Timer.builder("order.process.time")
             .register(meterRegistry)
             .record(time, TimeUnit.MILLISECONDS);
     }
     
     // 仪表盘
     public void setSystemLoad(double load) {
-        Gauge.builder(&quot;system.load&quot;)
-            .register(meterRegistry, this, obj -&gt; load);
+        Gauge.builder("system.load")
+            .register(meterRegistry, this, obj -> load);
     }
 }
-</code></pre>
-<p><strong>告警配置</strong></p>
-<pre><code class="language-yaml"># Prometheus告警规则
+```
+
+**告警配置**
+```yaml
+# Prometheus告警规则
 groups:
   - name: ecommerce_alerts
     rules:
       - alert: HighErrorRate
-        expr: rate(http_requests_total{status=~&quot;5..&quot;}[5m]) &gt; 0.1
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
         for: 2m
         labels:
           severity: critical
         annotations:
-          summary: &quot;High error rate detected&quot;
+          summary: "High error rate detected"
           
       - alert: HighResponseTime
-        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) &gt; 0.5
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: &quot;High response time detected&quot;
+          summary: "High response time detected"
           
       - alert: LowStock
-        expr: stock_remaining &lt; 100
+        expr: stock_remaining < 100
         for: 1m
         labels:
           severity: warning
         annotations:
-          summary: &quot;Low stock alert&quot;
-</code></pre>
-<h3>2. 链路追踪</h3>
-<p><strong>分布式追踪</strong></p>
-<pre><code class="language-java">@RestController
+          summary: "Low stock alert"
+```
+
+### 2. 链路追踪
+
+**分布式追踪**
+```java
+@RestController
 public class OrderController {
     
     @Autowired
     private Tracer tracer;
     
-    @PostMapping(&quot;/order&quot;)
+    @PostMapping("/order")
     public Result createOrder(@RequestBody Order order) {
         // 创建Span
         Span span = tracer.nextSpan()
-            .name(&quot;order-create&quot;)
-            .tag(&quot;user.id&quot;, order.getUserId().toString())
+            .name("order-create")
+            .tag("user.id", order.getUserId().toString())
             .start();
         
         try (Tracer.SpanInScope ws = tracer.withSpanInScope(span)) {
@@ -477,28 +516,32 @@ public class OrderController {
         }
     }
 }
-</code></pre>
-<h2>应急预案</h2>
-<h3>1. 熔断降级</h3>
-<pre><code class="language-java">@Component
+```
+
+## 应急预案
+
+### 1. 熔断降级
+
+```java
+@Component
 public class CircuitBreakerService {
     
     private final CircuitBreaker circuitBreaker;
     
     public CircuitBreakerService() {
-        this.circuitBreaker = CircuitBreaker.ofDefaults(&quot;orderService&quot;);
+        this.circuitBreaker = CircuitBreaker.ofDefaults("orderService");
     }
     
     public Result createOrder(Order order) {
-        return circuitBreaker.executeSupplier(() -&gt; {
+        return circuitBreaker.executeSupplier(() -> {
             // 正常业务逻辑
             return orderService.processOrder(order);
         });
     }
     
     @Bean
-    public Customizer&lt;CircuitBreakerCustomizer&gt; circuitBreakerCustomizer() {
-        return cb -&gt; cb.configure(cb -&gt; {
+    public Customizer<CircuitBreakerCustomizer> circuitBreakerCustomizer() {
+        return cb -> cb.configure(cb -> {
             cb.failureRateThreshold(50);
             cb.waitDurationInOpenState(Duration.ofSeconds(30));
             cb.slidingWindowSize(10);
@@ -506,38 +549,42 @@ public class CircuitBreakerService {
         });
     }
 }
-</code></pre>
-<h3>2. 数据备份与恢复</h3>
-<pre><code class="language-bash">#!/bin/bash
+```
+
+### 2. 数据备份与恢复
+
+```bash
+#!/bin/bash
 # 数据备份脚本
 backup_database() {
     DATE=$(date +%Y%m%d_%H%M%S)
-    mysqldump -u root -p ecommerce_db &gt; /backup/db_backup_$DATE.sql
+    mysqldump -u root -p ecommerce_db > /backup/db_backup_$DATE.sql
     
     # 上传到云存储
     aws s3 cp /backup/db_backup_$DATE.sql s3://backup-bucket/
     
     # 清理本地备份
-    find /backup -name &quot;db_backup_*.sql&quot; -mtime +7 -delete
+    find /backup -name "db_backup_*.sql" -mtime +7 -delete
 }
 
 # 数据恢复脚本
 restore_database() {
     BACKUP_FILE=$1
-    mysql -u root -p ecommerce_db &lt; $BACKUP_FILE
+    mysql -u root -p ecommerce_db < $BACKUP_FILE
 }
-</code></pre>
-<h2>总结</h2>
-<p>大促活动技术保障是一个系统工程，需要从架构设计、性能优化、监控告警、应急预案等多个维度进行考虑：</p>
-<ol>
-<li><strong>架构设计</strong>：采用高可用、可扩展的架构模式</li>
-<li><strong>流量控制</strong>：通过限流、降级、熔断等手段保护系统</li>
-<li><strong>性能优化</strong>：缓存、异步、批量处理等优化策略</li>
-<li><strong>监控体系</strong>：实时监控、告警、链路追踪</li>
-<li><strong>应急预案</strong>：完善的应急处理和恢复机制</li>
-</ol>
-<p>通过这些技术保障措施，可以确保大促期间系统的稳定运行，为用户提供良好的购物体验。</p>
-2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"大促活动的技术保障"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","电商",{"className":"tag","children":"电商"}],["$","span","大促",{"className":"tag","children":"大促"}],["$","span","技术保障",{"className":"tag","children":"技术保障"}],["$","span","高并发",{"className":"tag","children":"高并发"}],["$","span","性能优化",{"className":"tag","children":"性能优化"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
-7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+```
+
+## 总结
+
+大促活动技术保障是一个系统工程，需要从架构设计、性能优化、监控告警、应急预案等多个维度进行考虑：
+
+1. **架构设计**：采用高可用、可扩展的架构模式
+2. **流量控制**：通过限流、降级、熔断等手段保护系统
+3. **性能优化**：缓存、异步、批量处理等优化策略
+4. **监控体系**：实时监控、告警、链路追踪
+5. **应急预案**：完善的应急处理和恢复机制
+
+通过这些技术保障措施，可以确保大促期间系统的稳定运行，为用户提供良好的购物体验。2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"大促活动的技术保障"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","电商",{"className":"tag","children":"电商"}],["$","span","大促",{"className":"tag","children":"大促"}],["$","span","技术保障",{"className":"tag","children":"技术保障"}],["$","span","高并发",{"className":"tag","children":"高并发"}],["$","span","性能优化",{"className":"tag","children":"性能优化"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","children":["$","$La",null,{"content":"$b"}]}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}],["$","script",null,{"src":"https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lc",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
 8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"大促活动的技术保障 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"深入分析电商大促活动期间的技术保障体系，包括架构设计、性能优化、应急处理等关键技术方案。"}]]
 1:null

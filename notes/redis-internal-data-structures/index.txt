@@ -2,45 +2,55 @@
 6:I[6423,[],""]
 4:["category","notes","d"]
 5:["slug","redis-internal-data-structures","d"]
-0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","redis-internal-data-structures","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"redis-internal-data-structures\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","redis-internal-data-structures","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/55b7a9e84b417e65.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
-9:I[2972,["972","static/chunks/972-17ea62b17795b286.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e1b46fcdbbb20f68.js"],""]
-b:I[7140,["972","static/chunks/972-17ea62b17795b286.js","185","static/chunks/app/layout-ca71fef930ed4111.js"],"default"]
-a:T58dc,<h1>Redis内部数据结构详解</h1>
-<blockquote>
-<p>理解Redis内部数据结构是掌握Redis性能优化的关键</p>
-</blockquote>
-<h2>引言</h2>
-<p>Redis的高性能很大程度上得益于其精心设计的数据结构。Redis不仅提供了丰富的外部数据类型（String、List、Hash、Set、Sorted Set），其内部还使用了多种高效的数据结构来支撑这些外部类型。本文将深入分析Redis内部数据结构的实现原理。</p>
-<h2>Redis数据结构概览</h2>
-<h3>1. 数据结构层次</h3>
-<p><strong>外部数据类型</strong>：</p>
-<ul>
-<li>String：字符串类型</li>
-<li>List：列表类型</li>
-<li>Hash：哈希表类型</li>
-<li>Set：集合类型</li>
-<li>Sorted Set：有序集合类型</li>
-</ul>
-<p><strong>内部数据结构</strong>：</p>
-<ul>
-<li>SDS（Simple Dynamic String）：简单动态字符串</li>
-<li>LinkedList：双向链表</li>
-<li>Dict：字典（哈希表）</li>
-<li>SkipList：跳跃表</li>
-<li>IntSet：整数集合</li>
-<li>ZipList：压缩列表</li>
-<li>QuickList：快速列表</li>
-</ul>
-<h3>2. 数据结构映射关系</h3>
-<pre><code>String  -&gt; SDS
-List    -&gt; LinkedList / ZipList / QuickList
-Hash    -&gt; Dict / ZipList
-Set     -&gt; Dict / IntSet
-Sorted Set -&gt; SkipList + Dict / ZipList
-</code></pre>
-<h2>SDS（简单动态字符串）</h2>
-<h3>1. SDS结构定义</h3>
-<pre><code class="language-c">// sds.h
+0:["build",[[["",{"children":[["category","notes","d"],{"children":[["slug","redis-internal-data-structures","d"],{"children":["__PAGE__?{\"category\":\"notes\",\"slug\":\"redis-internal-data-structures\"}",{}]}]}]},"$undefined","$undefined",true],["",{"children":[["category","notes","d"],{"children":[["slug","redis-internal-data-structures","d"],{"children":["__PAGE__",{},[["$L1","$L2",null],null],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children","$5","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[null,["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children","$4","children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","notFoundStyles":"$undefined"}]],null]},[[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/css/eb4a34bff42c1814.css","precedence":"next","crossOrigin":"$undefined"}]],"$L7"],null],null],["$L8",null]]]]
+9:I[2972,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],""]
+a:I[2024,["972","static/chunks/972-81dbad6abe39d3fa.js","832","static/chunks/832-7ea2624e20755f9f.js","621","static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-e466df95e55c7602.js"],"default"]
+c:I[7140,["972","static/chunks/972-81dbad6abe39d3fa.js","185","static/chunks/app/layout-3ed2f387fb22aa2c.js"],"default"]
+b:T4fc1,
+# Redis内部数据结构详解
+
+> 理解Redis内部数据结构是掌握Redis性能优化的关键
+
+## 引言
+
+Redis的高性能很大程度上得益于其精心设计的数据结构。Redis不仅提供了丰富的外部数据类型（String、List、Hash、Set、Sorted Set），其内部还使用了多种高效的数据结构来支撑这些外部类型。本文将深入分析Redis内部数据结构的实现原理。
+
+## Redis数据结构概览
+
+### 1. 数据结构层次
+
+**外部数据类型**：
+- String：字符串类型
+- List：列表类型
+- Hash：哈希表类型
+- Set：集合类型
+- Sorted Set：有序集合类型
+
+**内部数据结构**：
+- SDS（Simple Dynamic String）：简单动态字符串
+- LinkedList：双向链表
+- Dict：字典（哈希表）
+- SkipList：跳跃表
+- IntSet：整数集合
+- ZipList：压缩列表
+- QuickList：快速列表
+
+### 2. 数据结构映射关系
+
+```
+String  -> SDS
+List    -> LinkedList / ZipList / QuickList
+Hash    -> Dict / ZipList
+Set     -> Dict / IntSet
+Sorted Set -> SkipList + Dict / ZipList
+```
+
+## SDS（简单动态字符串）
+
+### 1. SDS结构定义
+
+```c
+// sds.h
 struct __attribute__ ((__packed__)) sdshdr8 {
     uint8_t len;        // 已使用长度
     uint8_t alloc;      // 总容量
@@ -68,23 +78,26 @@ struct __attribute__ ((__packed__)) sdshdr64 {
     unsigned char flags; // 标志位
     char buf[];         // 字符数组
 };
-</code></pre>
-<h3>2. SDS特性分析</h3>
-<p><strong>空间预分配</strong>：</p>
-<pre><code class="language-c">// sds.c
+```
+
+### 2. SDS特性分析
+
+**空间预分配**：
+```c
+// sds.c
 sds sdsMakeRoomFor(sds s, size_t addlen) {
     struct sdshdr *sh, *newsh;
     size_t free = sdsavail(s);
     size_t len, newlen;
     
-    if (free &gt;= addlen) return s;
+    if (free >= addlen) return s;
     
     len = sdslen(s);
     sh = (void*)(s - (sizeof(struct sdshdr)));
     newlen = (len + addlen);
     
     // 空间预分配策略
-    if (newlen &lt; SDS_MAX_PREALLOC)
+    if (newlen < SDS_MAX_PREALLOC)
         newlen *= 2;
     else
         newlen += SDS_MAX_PREALLOC;
@@ -92,12 +105,14 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
     newsh = zrealloc(sh, sizeof(struct sdshdr) + newlen + 1);
     if (newsh == NULL) return NULL;
     
-    newsh-&gt;free = newlen - len;
-    return newsh-&gt;buf;
+    newsh->free = newlen - len;
+    return newsh->buf;
 }
-</code></pre>
-<p><strong>惰性空间释放</strong>：</p>
-<pre><code class="language-c">sds sdstrim(sds s, const char *cset) {
+```
+
+**惰性空间释放**：
+```c
+sds sdstrim(sds s, const char *cset) {
     struct sdshdr *sh = (void*)(s - (sizeof(struct sdshdr)));
     char *start, *end, *sp, *ep;
     size_t len;
@@ -108,56 +123,39 @@ sds sdsMakeRoomFor(sds s, size_t addlen) {
     end = ep;
     
     // 跳过前置空白字符
-    while(sp &lt;= end &amp;&amp; strchr(cset, *sp)) sp++;
+    while(sp <= end && strchr(cset, *sp)) sp++;
     
     // 跳过后置空白字符
-    while(ep &gt; start &amp;&amp; strchr(cset, *ep)) ep--;
+    while(ep > start && strchr(cset, *ep)) ep--;
     
-    len = (sp &gt; ep) ? 0 : ((ep - sp) + 1);
+    len = (sp > ep) ? 0 : ((ep - sp) + 1);
     
     // 移动字符串，但保留空间
-    if (sh-&gt;buf != sp) memmove(sh-&gt;buf, sp, len);
-    sh-&gt;buf[len] = &#39;\0&#39;;
-    sh-&gt;free = sh-&gt;alloc - len;
-    sh-&gt;len = len;
+    if (sh->buf != sp) memmove(sh->buf, sp, len);
+    sh->buf[len] = '\0';
+    sh->free = sh->alloc - len;
+    sh->len = len;
     
     return s;
 }
-</code></pre>
-<h3>3. SDS与C字符串对比</h3>
-<p><strong>优势对比</strong>：</p>
-<table>
-<thead>
-<tr>
-<th>特性</th>
-<th>C字符串</th>
-<th>SDS</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>获取长度</td>
-<td>O(n)</td>
-<td>O(1)</td>
-</tr>
-<tr>
-<td>避免缓冲区溢出</td>
-<td>容易溢出</td>
-<td>自动检查扩容</td>
-</tr>
-<tr>
-<td>减少内存重分配次数</td>
-<td>每次修改都重分配</td>
-<td>预分配和惰性释放</td>
-</tr>
-<tr>
-<td>二进制安全</td>
-<td>不支持</td>
-<td>支持</td>
-</tr>
-</tbody></table>
-<h2>Dict（字典/哈希表）</h2>
-<h3>1. 字典结构定义</h3>
-<pre><code class="language-c">// dict.h
+```
+
+### 3. SDS与C字符串对比
+
+**优势对比**：
+| 特性 | C字符串 | SDS |
+|------|---------|-----|
+| 获取长度 | O(n) | O(1) |
+| 避免缓冲区溢出 | 容易溢出 | 自动检查扩容 |
+| 减少内存重分配次数 | 每次修改都重分配 | 预分配和惰性释放 |
+| 二进制安全 | 不支持 | 支持 |
+
+## Dict（字典/哈希表）
+
+### 1. 字典结构定义
+
+```c
+// dict.h
 typedef struct dictEntry {
     void *key;              // 键
     union {
@@ -192,9 +190,12 @@ typedef struct dict {
     long rehashidx;         // rehash进度，-1表示不在rehash
     int iterators;          // 迭代器数量
 } dict;
-</code></pre>
-<h3>2. 哈希算法</h3>
-<pre><code class="language-c">// dict.c
+```
+
+### 2. 哈希算法
+
+```c
+// dict.c
 // MurmurHash2哈希算法
 uint64_t dictGenHashFunction(const void *key, int len) {
     uint64_t seed = 5381;
@@ -207,26 +208,26 @@ uint64_t dictGenHashFunction(const void *key, int len) {
     while(data != end) {
         uint64_t k = *data++;
         k *= m;
-        k ^= k &gt;&gt; r;
+        k ^= k >> r;
         k *= m;
         h ^= k;
         h *= m;
     }
     
-    switch(len &amp; 7) {
-        case 7: h ^= ((uint64_t)data[6]) &lt;&lt; 48;
-        case 6: h ^= ((uint64_t)data[5]) &lt;&lt; 40;
-        case 5: h ^= ((uint64_t)data[4]) &lt;&lt; 32;
-        case 4: h ^= ((uint64_t)data[3]) &lt;&lt; 24;
-        case 3: h ^= ((uint64_t)data[2]) &lt;&lt; 16;
-        case 2: h ^= ((uint64_t)data[1]) &lt;&lt; 8;
+    switch(len & 7) {
+        case 7: h ^= ((uint64_t)data[6]) << 48;
+        case 6: h ^= ((uint64_t)data[5]) << 40;
+        case 5: h ^= ((uint64_t)data[4]) << 32;
+        case 4: h ^= ((uint64_t)data[3]) << 24;
+        case 3: h ^= ((uint64_t)data[2]) << 16;
+        case 2: h ^= ((uint64_t)data[1]) << 8;
         case 1: h ^= ((uint64_t)data[0]);
                 h *= m;
     }
     
-    h ^= h &gt;&gt; r;
+    h ^= h >> r;
     h *= m;
-    h ^= h &gt;&gt; r;
+    h ^= h >> r;
     return h;
 }
 
@@ -239,15 +240,15 @@ static unsigned int dictKeyIndex(dict *d, const void *key) {
     h = dictHashKey(d, key);
     
     // 检查两个哈希表
-    for (table = 0; table &lt;= 1; table++) {
-        idx = h &amp; d-&gt;ht[table].sizemask;
-        he = d-&gt;ht[table].table[idx];
+    for (table = 0; table <= 1; table++) {
+        idx = h & d->ht[table].sizemask;
+        he = d->ht[table].table[idx];
         
         // 检查是否已存在相同key
         while(he) {
-            if (dictCompareKeys(d, key, he-&gt;key))
+            if (dictCompareKeys(d, key, he->key))
                 return -1;
-            he = he-&gt;next;
+            he = he->next;
         }
         
         // 如果不在rehash，只需要检查第一个表
@@ -256,55 +257,58 @@ static unsigned int dictKeyIndex(dict *d, const void *key) {
     
     return idx;
 }
-</code></pre>
-<h3>3. 渐进式Rehash</h3>
-<pre><code class="language-c">// 执行单步rehash
+```
+
+### 3. 渐进式Rehash
+
+```c
+// 执行单步rehash
 int dictRehash(dict *d, int n) {
     int empty_visits = n * 10; // 最大访问空槽位数
     
     if (!dictIsRehashing(d)) return 0;
     
-    while(n-- &amp;&amp; d-&gt;ht[0].used != 0) {
+    while(n-- && d->ht[0].used != 0) {
         dictEntry *de, *nextde;
         
         // 找到下一个非空槽位
-        while(d-&gt;ht[0].table[d-&gt;rehashidx] == NULL) {
-            d-&gt;rehashidx++;
+        while(d->ht[0].table[d->rehashidx] == NULL) {
+            d->rehashidx++;
             if (--empty_visits == 0) return 1;
         }
         
-        de = d-&gt;ht[0].table[d-&gt;rehashidx];
+        de = d->ht[0].table[d->rehashidx];
         
         // 迁移该槽位的所有键值对
         while(de) {
             unsigned int h;
-            nextde = de-&gt;next;
+            nextde = de->next;
             
             // 计算在新表中的索引
-            h = dictHashKey(d, de-&gt;key) &amp; d-&gt;ht[1].sizemask;
+            h = dictHashKey(d, de->key) & d->ht[1].sizemask;
             
             // 插入到新表头部
-            de-&gt;next = d-&gt;ht[1].table[h];
-            d-&gt;ht[1].table[h] = de;
+            de->next = d->ht[1].table[h];
+            d->ht[1].table[h] = de;
             
             // 更新计数器
-            d-&gt;ht[0].used--;
-            d-&gt;ht[1].used++;
+            d->ht[0].used--;
+            d->ht[1].used++;
             
             de = nextde;
         }
         
         // 释放旧表槽位
-        d-&gt;ht[0].table[d-&gt;rehashidx] = NULL;
-        d-&gt;rehashidx++;
+        d->ht[0].table[d->rehashidx] = NULL;
+        d->rehashidx++;
     }
     
     // 完成rehash
-    if (d-&gt;ht[0].used == 0) {
-        zfree(d-&gt;ht[0].table);
-        d-&gt;ht[0] = d-&gt;ht[1];
-        _dictReset(&amp;d-&gt;ht[1]);
-        d-&gt;rehashidx = -1;
+    if (d->ht[0].used == 0) {
+        zfree(d->ht[0].table);
+        d->ht[0] = d->ht[1];
+        _dictReset(&d->ht[1]);
+        d->rehashidx = -1;
         return 0;
     }
     
@@ -318,15 +322,19 @@ int dictRehashMilliseconds(dict *d, int ms) {
     
     while(dictRehash(d, 100)) {
         rehashes += 100;
-        if (timeInMilliseconds() - start &gt; ms) break;
+        if (timeInMilliseconds() - start > ms) break;
     }
     
     return rehashes;
 }
-</code></pre>
-<h2>SkipList（跳跃表）</h2>
-<h3>1. 跳跃表结构定义</h3>
-<pre><code class="language-c">// redis.h
+```
+
+## SkipList（跳跃表）
+
+### 1. 跳跃表结构定义
+
+```c
+// redis.h
 typedef struct zskiplistNode {
     sds ele;                     // 成员对象
     double score;                // 分值
@@ -342,101 +350,107 @@ typedef struct zskiplist {
     unsigned long length;         // 节点数量
     int level;                    // 最大层级
 } zskiplist;
-</code></pre>
-<h3>2. 跳跃表插入操作</h3>
-<pre><code class="language-c">// t_zset.c
+```
+
+### 2. 跳跃表插入操作
+
+```c
+// t_zset.c
 zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) {
     zskiplistNode *update[ZSKIPLIST_MAXLEVEL], *x;
     unsigned int rank[ZSKIPLIST_MAXLEVEL];
     int i, level;
     
     // 获取当前最大层级
-    serverAssert(!zslIsInRange(zsl, &amp;range));
+    serverAssert(!zslIsInRange(zsl, &range));
     
     // 从最高层开始查找插入位置
-    x = zsl-&gt;header;
-    for (i = zsl-&gt;level-1; i &gt;= 0; i--) {
-        rank[i] = i == (zsl-&gt;level-1) ? 0 : rank[i+1];
-        while (x-&gt;level[i].forward &amp;&amp;
-                (x-&gt;level[i].forward-&gt;score &lt; score ||
-                    (x-&gt;level[i].forward-&gt;score == score &amp;&amp;
-                    sdscmp(x-&gt;level[i].forward-&gt;ele,ele) &lt; 0))) {
-            rank[i] += x-&gt;level[i].span;
-            x = x-&gt;level[i].forward;
+    x = zsl->header;
+    for (i = zsl->level-1; i >= 0; i--) {
+        rank[i] = i == (zsl->level-1) ? 0 : rank[i+1];
+        while (x->level[i].forward &&
+                (x->level[i].forward->score < score ||
+                    (x->level[i].forward->score == score &&
+                    sdscmp(x->level[i].forward->ele,ele) < 0))) {
+            rank[i] += x->level[i].span;
+            x = x->level[i].forward;
         }
         update[i] = x;
     }
     
     // 随机生成新节点的层数
     level = zslRandomLevel();
-    if (level &gt; zsl-&gt;level) {
-        for (i = zsl-&gt;level; i &lt; level; i++) {
+    if (level > zsl->level) {
+        for (i = zsl->level; i < level; i++) {
             rank[i] = 0;
-            update[i] = zsl-&gt;header;
-            update[i]-&gt;level[i].span = zsl-&gt;length;
+            update[i] = zsl->header;
+            update[i]->level[i].span = zsl->length;
         }
-        zsl-&gt;level = level;
+        zsl->level = level;
     }
     
     // 创建新节点
     x = zslCreateNode(level, score, ele);
-    for (i = 0; i &lt; level; i++) {
-        x-&gt;level[i].forward = update[i]-&gt;level[i].forward;
-        update[i]-&gt;level[i].forward = x;
+    for (i = 0; i < level; i++) {
+        x->level[i].forward = update[i]->level[i].forward;
+        update[i]->level[i].forward = x;
         
-        x-&gt;level[i].span = update[i]-&gt;level[i].span - (rank[0] - rank[i]);
-        update[i]-&gt;level[i].span = (rank[0] - rank[i]) + 1;
+        x->level[i].span = update[i]->level[i].span - (rank[0] - rank[i]);
+        update[i]->level[i].span = (rank[0] - rank[i]) + 1;
     }
     
     // 更新其他层的跨度
-    for (i = level; i &lt; zsl-&gt;level; i++) {
-        update[i]-&gt;level[i].span++;
+    for (i = level; i < zsl->level; i++) {
+        update[i]->level[i].span++;
     }
     
-    x-&gt;backward = (update[0] == zsl-&gt;header) ? NULL : update[0];
-    if (x-&gt;level[0].forward)
-        x-&gt;level[0].forward-&gt;backward = x;
+    x->backward = (update[0] == zsl->header) ? NULL : update[0];
+    if (x->level[0].forward)
+        x->level[0].forward->backward = x;
     else
-        zsl-&gt;tail = x;
+        zsl->tail = x;
     
-    zsl-&gt;length++;
+    zsl->length++;
     return x;
 }
 
 // 随机生成层数
 int zslRandomLevel(void) {
     int level = 1;
-    while ((random() &amp; 0xFFFF) &lt; (ZSKIPLIST_P * 0xFFFF))
+    while ((random() & 0xFFFF) < (ZSKIPLIST_P * 0xFFFF))
         level += 1;
-    return (level &lt; ZSKIPLIST_MAXLEVEL) ? level : ZSKIPLIST_MAXLEVEL;
+    return (level < ZSKIPLIST_MAXLEVEL) ? level : ZSKIPLIST_MAXLEVEL;
 }
-</code></pre>
-<h3>3. 跳跃表删除操作</h3>
-<pre><code class="language-c">void zslDeleteNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **update) {
+```
+
+### 3. 跳跃表删除操作
+
+```c
+void zslDeleteNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **update) {
     int i;
     
     // 更新每一层的指针
-    for (i = 0; i &lt; zsl-&gt;level; i++) {
-        if (update[i]-&gt;level[i].forward == x) {
-            update[i]-&gt;level[i].span += x-&gt;level[i].span - 1;
-            update[i]-&gt;level[i].forward = x-&gt;level[i].forward;
+    for (i = 0; i < zsl->level; i++) {
+        if (update[i]->level[i].forward == x) {
+            update[i]->level[i].span += x->level[i].span - 1;
+            update[i]->level[i].forward = x->level[i].forward;
         } else {
-            update[i]-&gt;level[i].span -= 1;
+            update[i]->level[i].span -= 1;
         }
     }
     
     // 更新后退指针
-    if (x-&gt;level[0].forward) {
-        x-&gt;level[0].forward-&gt;backward = x-&gt;backward;
+    if (x->level[0].forward) {
+        x->level[0].forward->backward = x->backward;
     } else {
-        zsl-&gt;tail = x-&gt;backward;
+        zsl->tail = x->backward;
     }
     
     // 减少层级
-    while(zsl-&gt;level &gt; 1 &amp;&amp; zsl-&gt;header-&gt;level[zsl-&gt;level-1].forward == NULL)
-        zsl-&gt;level--;
+    while(zsl->level > 1 && zsl->header->level[zsl->level-1].forward == NULL)
+        zsl->level--;
     
-    zsl-&gt;length--;
+    zsl->length--;
 }
 
 int zslDelete(zskiplist *zsl, double score, sds ele, zskiplistNode **node) {
@@ -444,19 +458,19 @@ int zslDelete(zskiplist *zsl, double score, sds ele, zskiplistNode **node) {
     int i;
     
     // 查找删除位置
-    x = zsl-&gt;header;
-    for (i = zsl-&gt;level-1; i &gt;= 0; i--) {
-        while (x-&gt;level[i].forward &amp;&amp;
-                (x-&gt;level[i].forward-&gt;score &lt; score ||
-                    (x-&gt;level[i].forward-&gt;score == score &amp;&amp;
-                    sdscmp(x-&gt;level[i].forward-&gt;ele,ele) &lt; 0))) {
-            x = x-&gt;level[i].forward;
+    x = zsl->header;
+    for (i = zsl->level-1; i >= 0; i--) {
+        while (x->level[i].forward &&
+                (x->level[i].forward->score < score ||
+                    (x->level[i].forward->score == score &&
+                    sdscmp(x->level[i].forward->ele,ele) < 0))) {
+            x = x->level[i].forward;
         }
         update[i] = x;
     }
     
-    x = x-&gt;level[0].forward;
-    if (x &amp;&amp; score == x-&gt;score &amp;&amp; sdscmp(x-&gt;ele,ele) == 0) {
+    x = x->level[0].forward;
+    if (x && score == x->score && sdscmp(x->ele,ele) == 0) {
         zslDeleteNode(zsl, x, update);
         if (!node)
             zslFreeNode(x);
@@ -467,10 +481,14 @@ int zslDelete(zskiplist *zsl, double score, sds ele, zskiplistNode **node) {
     
     return 0;
 }
-</code></pre>
-<h2>ZipList（压缩列表）</h2>
-<h3>1. 压缩列表结构</h3>
-<pre><code>&lt;zlbytes&gt; &lt;zltail&gt; &lt;zllen&gt; &lt;entry&gt;... &lt;entry&gt; &lt;zlend&gt;
+```
+
+## ZipList（压缩列表）
+
+### 1. 压缩列表结构
+
+```
+<zlbytes> <zltail> <zllen> <entry>... <entry> <zlend>
 
 各字段含义：
 - zlbytes: 压缩列表总字节数
@@ -478,33 +496,39 @@ int zslDelete(zskiplist *zsl, double score, sds ele, zskiplistNode **node) {
 - zllen: entry的数量
 - entry: 具体的数据项
 - zlend: 压缩列表结束标记，值为255
-</code></pre>
-<h3>2. Entry结构</h3>
-<pre><code>&lt;prevlen&gt; &lt;encoding&gt; &lt;len&gt; &lt;data&gt;
+```
+
+### 2. Entry结构
+
+```
+<prevlen> <encoding> <len> <data>
 
 各字段含义：
 - prevlen: 前一个entry的长度
 - encoding: 数据类型和长度编码
 - len: 数据长度（某些编码方式下不需要）
 - data: 实际数据
-</code></pre>
-<h3>3. 压缩列表操作</h3>
-<pre><code class="language-c">// zip_list.h
+```
+
+### 3. 压缩列表操作
+
+```c
+// zip_list.h
 #define ZIP_END 255
 #define ZIP_BIGLEN 254
 
 /* encoding */
 #define ZIP_STR_MASK 0xc0
-#define ZIP_STR_06B (0 &lt;&lt; 6)
-#define ZIP_STR_14B (1 &lt;&lt; 6)
-#define ZIP_STR_32B (2 &lt;&lt; 6)
+#define ZIP_STR_06B (0 << 6)
+#define ZIP_STR_14B (1 << 6)
+#define ZIP_STR_32B (2 << 6)
 
 #define ZIP_INT_MASK 0x30
-#define ZIP_INT_16B (0xc0 | 0 &lt;&lt; 4)
-#define ZIP_INT_32B (0xc0 | 1 &lt;&lt; 4)
-#define ZIP_INT_64B (0xc0 | 2 &lt;&lt; 4)
-#define ZIP_INT_24B (0xc0 | 3 &lt;&lt; 4)
-#define ZIP_INT_8B  (0xc0 | 4 &lt;&lt; 4)
+#define ZIP_INT_16B (0xc0 | 0 << 4)
+#define ZIP_INT_32B (0xc0 | 1 << 4)
+#define ZIP_INT_64B (0xc0 | 2 << 4)
+#define ZIP_INT_24B (0xc0 | 3 << 4)
+#define ZIP_INT_8B  (0xc0 | 4 << 4)
 
 // 创建压缩列表
 unsigned char *ziplistNew(void) {
@@ -529,10 +553,14 @@ unsigned char *ziplistDelete(unsigned char *zl, unsigned char **p) {
     *p = zl + offset;
     return zl;
 }
-</code></pre>
-<h2>IntSet（整数集合）</h2>
-<h3>1. 整数集合结构</h3>
-<pre><code class="language-c">// intset.h
+```
+
+## IntSet（整数集合）
+
+### 1. 整数集合结构
+
+```c
+// intset.h
 typedef struct intset {
     uint32_t encoding;  // 编码方式
     uint32_t length;    // 元素数量
@@ -543,27 +571,30 @@ typedef struct intset {
 #define INTSET_ENC_INT16 (sizeof(int16_t))
 #define INTSET_ENC_INT32 (sizeof(int32_t))
 #define INTSET_ENC_INT64 (sizeof(int64_t))
-</code></pre>
-<h3>2. 升级操作</h3>
-<pre><code class="language-c">// intset.c
+```
+
+### 2. 升级操作
+
+```c
+// intset.c
 intset *intsetUpgradeAndAdd(intset *is, int64_t value) {
-    uint8_t curenc = intrev32ifbe(is-&gt;encoding);
+    uint8_t curenc = intrev32ifbe(is->encoding);
     uint8_t newenc = _intsetValueEncoding(value);
-    int length = intrev32ifbe(is-&gt;length);
-    int prepend = value &lt; 0 ? 1 : 0;
+    int length = intrev32ifbe(is->length);
+    int prepend = value < 0 ? 1 : 0;
     
     // 设置新的编码方式
-    is-&gt;encoding = intrev32ifbe(newenc);
-    is-&gt;length = intrev32ifbe(length+1);
+    is->encoding = intrev32ifbe(newenc);
+    is->length = intrev32ifbe(length+1);
     
     // 根据新编码方式扩展空间
     is = zrealloc(is, sizeof(intset)+newenc*(length+1));
     
     // 移动原有数据
     if (prepend) {
-        memmove(is-&gt;contents+newenc, is-&gt;contents, length*newenc);
+        memmove(is->contents+newenc, is->contents, length*newenc);
     } else {
-        memmove(is-&gt;contents+newenc*prepend, is-&gt;contents, length*newenc);
+        memmove(is->contents+newenc*prepend, is->contents, length*newenc);
     }
     
     // 设置新值
@@ -584,30 +615,34 @@ intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
     if (success) *success = 1;
     
     // 如果需要升级
-    if (valenc &gt; intrev32ifbe(is-&gt;encoding)) {
+    if (valenc > intrev32ifbe(is->encoding)) {
         return intsetUpgradeAndAdd(is, value);
     }
     
     // 检查是否已存在
-    if (intsetSearch(is, value, &amp;pos)) {
+    if (intsetSearch(is, value, &pos)) {
         if (success) *success = 0;
         return is;
     }
     
     // 扩展空间并插入
-    is = intsetResize(is, intrev32ifbe(is-&gt;length)+1);
-    if (pos &lt; intrev32ifbe(is-&gt;length))
+    is = intsetResize(is, intrev32ifbe(is->length)+1);
+    if (pos < intrev32ifbe(is->length))
         intsetMoveTail(is, pos, pos+1);
     
     _intsetSet(is, pos, value);
-    is-&gt;length = intrev32ifbe(intrev32ifbe(is-&gt;length)+1);
+    is->length = intrev32ifbe(intrev32ifbe(is->length)+1);
     
     return is;
 }
-</code></pre>
-<h2>QuickList（快速列表）</h2>
-<h3>1. 快速列表结构</h3>
-<pre><code class="language-c">// quicklist.h
+```
+
+## QuickList（快速列表）
+
+### 1. 快速列表结构
+
+```c
+// quicklist.h
 typedef struct quicklistNode {
     struct quicklistNode *prev;   // 前一个节点
     struct quicklistNode *next;   // 后一个节点
@@ -634,89 +669,60 @@ typedef struct quicklist {
     int fill : 16;                // 填充因子
     unsigned int compress : 16;   // 压缩深度
 } quicklist;
-</code></pre>
-<h3>2. 快速列表操作</h3>
-<pre><code class="language-c">// quicklist.c
+```
+
+### 2. 快速列表操作
+
+```c
+// quicklist.c
 quicklist *quicklistCreate(void) {
     struct quicklist *quicklist;
     
     quicklist = zmalloc(sizeof(*quicklist));
-    quicklist-&gt;head = quicklist-&gt;tail = NULL;
-    quicklist-&gt;len = 0;
-    quicklist-&gt;count = 0;
-    quicklist-&gt;compress = 0;
-    quicklist-&gt;fill = -2;
+    quicklist->head = quicklist->tail = NULL;
+    quicklist->len = 0;
+    quicklist->count = 0;
+    quicklist->compress = 0;
+    quicklist->fill = -2;
     return quicklist;
 }
 
 int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
-    quicklistNode *orig_head = quicklist-&gt;head;
+    quicklistNode *orig_head = quicklist->head;
     
     if (likely(
-            _quicklistNodeAllowInsert(quicklist-&gt;head, quicklist-&gt;fill, sz))) {
-        quicklist-&gt;head-&gt;zl = ziplistPush(quicklist-&gt;head-&gt;zl, value, sz, ZIPLIST_HEAD);
-        quicklist-&gt;head-&gt;count++;
+            _quicklistNodeAllowInsert(quicklist->head, quicklist->fill, sz))) {
+        quicklist->head->zl = ziplistPush(quicklist->head->zl, value, sz, ZIPLIST_HEAD);
+        quicklist->head->count++;
     } else {
         quicklistNode *node = quicklistCreateNode();
-        node-&gt;zl = ziplistPush(ziplistNew(), value, sz, ZIPLIST_HEAD);
-        node-&gt;count++;
-        _quicklistInsertNodeBefore(quicklist, quicklist-&gt;head, node);
+        node->zl = ziplistPush(ziplistNew(), value, sz, ZIPLIST_HEAD);
+        node->count++;
+        _quicklistInsertNodeBefore(quicklist, quicklist->head, node);
     }
-    quicklist-&gt;count++;
+    quicklist->count++;
     return 1;
 }
-</code></pre>
-<h2>性能分析和优化建议</h2>
-<h3>1. 数据结构复杂度分析</h3>
-<table>
-<thead>
-<tr>
-<th>数据结构</th>
-<th>时间复杂度</th>
-<th>空间复杂度</th>
-<th>适用场景</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>SDS</td>
-<td>O(1)</td>
-<td>O(n)</td>
-<td>字符串操作</td>
-</tr>
-<tr>
-<td>Dict</td>
-<td>O(1)平均</td>
-<td>O(n)</td>
-<td>键值对存储</td>
-</tr>
-<tr>
-<td>SkipList</td>
-<td>O(log n)</td>
-<td>O(n)</td>
-<td>排序集合</td>
-</tr>
-<tr>
-<td>ZipList</td>
-<td>O(n)</td>
-<td>O(n)</td>
-<td>小数据集合</td>
-</tr>
-<tr>
-<td>IntSet</td>
-<td>O(log n)</td>
-<td>O(n)</td>
-<td>整数集合</td>
-</tr>
-<tr>
-<td>QuickList</td>
-<td>O(n)</td>
-<td>O(n)</td>
-<td>列表操作</td>
-</tr>
-</tbody></table>
-<h3>2. 内存优化策略</h3>
-<p><strong>选择合适的数据结构</strong>：</p>
-<pre><code class="language-redis"># 小Hash使用ZipList
+```
+
+## 性能分析和优化建议
+
+### 1. 数据结构复杂度分析
+
+| 数据结构 | 时间复杂度 | 空间复杂度 | 适用场景 |
+|----------|------------|------------|----------|
+| SDS | O(1) | O(n) | 字符串操作 |
+| Dict | O(1)平均 | O(n) | 键值对存储 |
+| SkipList | O(log n) | O(n) | 排序集合 |
+| ZipList | O(n) | O(n) | 小数据集合 |
+| IntSet | O(log n) | O(n) | 整数集合 |
+| QuickList | O(n) | O(n) | 列表操作 |
+
+### 2. 内存优化策略
+
+**选择合适的数据结构**：
+```redis
+# 小Hash使用ZipList
 # 当Hash元素数量小于512且每个元素值小于64字节时，使用ZipList
 hash-max-ziplist-entries 512
 hash-max-ziplist-value 64
@@ -732,29 +738,33 @@ set-max-intset-entries 512
 # 小Sorted Set使用ZipList
 zset-max-ziplist-entries 128
 zset-max-ziplist-value 64
-</code></pre>
-<h3>3. 性能监控</h3>
-<pre><code class="language-bash"># 查看内存使用情况
+```
+
+### 3. 性能监控
+
+```bash
+# 查看内存使用情况
 redis-cli info memory | grep used_memory_human
 
 # 查看数据结构信息
 redis-cli memory usage key_name
 
 # 监控数据结构变化
-redis-cli monitor | grep -E &quot;(SET|HSET|LPUSH|SADD|ZADD)&quot;
-</code></pre>
-<h2>总结</h2>
-<p>Redis的内部数据结构设计体现了高性能和高效率的追求：</p>
-<ol>
-<li><strong>SDS</strong>：通过预分配和惰性释放机制优化字符串操作</li>
-<li><strong>Dict</strong>：采用渐进式rehash和链地址法解决哈希冲突</li>
-<li><strong>SkipList</strong>：提供O(log n)的查找性能，同时支持范围查询</li>
-<li><strong>ZipList</strong>：通过连续内存存储节省空间，适合小数据集合</li>
-<li><strong>IntSet</strong>：针对整数集合优化，支持自动升级</li>
-<li><strong>QuickList</strong>：结合链表和ZipList的优势，平衡性能和内存使用</li>
-</ol>
-<p>理解这些内部数据结构的工作原理，有助于我们更好地使用Redis，选择合适的数据类型，进行性能调优和问题诊断。在实际应用中，应该根据具体场景选择最适合的数据结构，充分发挥Redis的性能优势。</p>
-2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"Redis内部数据结构详解"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","Redis",{"className":"tag","children":"Redis"}],["$","span","数据结构",{"className":"tag","children":"数据结构"}],["$","span","源码分析",{"className":"tag","children":"源码分析"}],["$","span","算法",{"className":"tag","children":"算法"}],["$","span","底层实现",{"className":"tag","children":"底层实现"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","dangerouslySetInnerHTML":{"__html":"$a"}}]]}]]}]
-7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lb",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
+redis-cli monitor | grep -E "(SET|HSET|LPUSH|SADD|ZADD)"
+```
+
+## 总结
+
+Redis的内部数据结构设计体现了高性能和高效率的追求：
+
+1. **SDS**：通过预分配和惰性释放机制优化字符串操作
+2. **Dict**：采用渐进式rehash和链地址法解决哈希冲突
+3. **SkipList**：提供O(log n)的查找性能，同时支持范围查询
+4. **ZipList**：通过连续内存存储节省空间，适合小数据集合
+5. **IntSet**：针对整数集合优化，支持自动升级
+6. **QuickList**：结合链表和ZipList的优势，平衡性能和内存使用
+
+理解这些内部数据结构的工作原理，有助于我们更好地使用Redis，选择合适的数据类型，进行性能调优和问题诊断。在实际应用中，应该根据具体场景选择最适合的数据结构，充分发挥Redis的性能优势。2:["$","div",null,{"children":[["$","$L9",null,{"href":"/notes","className":"back-button","style":{"display":"inline-block","background":"var(--primary-color)","color":"white","border":"none","padding":"10px 20px","borderRadius":"6px","cursor":"pointer","marginBottom":"20px","textDecoration":"none"},"children":["← 返回","笔记","列表"]}],["$","article",null,{"className":"section","children":[["$","header",null,{"className":"article-header","children":[["$","h1",null,{"className":"article-title","children":"Redis内部数据结构详解"}],["$","div",null,{"className":"article-meta","children":[["$","div",null,{"className":"article-meta-info","children":[["$","span",null,{"className":"article-date","children":"2024-10-14"}],["$","span",null,{"className":"article-category","children":["• ","笔记"]}]]}],["$","div",null,{"className":"article-tags","children":[["$","span","Redis",{"className":"tag","children":"Redis"}],["$","span","数据结构",{"className":"tag","children":"数据结构"}],["$","span","源码分析",{"className":"tag","children":"源码分析"}],["$","span","算法",{"className":"tag","children":"算法"}],["$","span","底层实现",{"className":"tag","children":"底层实现"}]]}]]}]]}],["$","div",null,{"className":"card markdown-content","children":["$","$La",null,{"content":"$b"}]}]]}]]}]
+7:["$","html",null,{"lang":"zh-CN","children":[["$","head",null,{"children":[["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"}],["$","link",null,{"rel":"stylesheet","href":"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"}],["$","script",null,{"src":"https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"}]]}],["$","body",null,{"children":["$","div",null,{"className":"app","children":[["$","$Lc",null,{"siteConfig":{"name":"Rudy Yang","bio":"JAVA | AI | WEB3","social":[{"name":"github","icon":"fab fa-github","url":"https://github.com/suogongy"},{"name":"twitter","icon":"fab fa-twitter","url":"https://twitter.com/suogongy"},{"name":"email","icon":"fas fa-envelope","url":"mailto:haiyuan1832@163.com"}]}}],["$","main",null,{"className":"main-content","children":["$","$L3",null,{"parallelRouterKey":"children","segmentPath":["children"],"error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L6",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":"404"}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],"notFoundStyles":[]}]}]]}]}]]}]
 8:[["$","meta","0",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","1",{"charSet":"utf-8"}],["$","title","2",{"children":"Redis内部数据结构详解 - Personal GitHub Page"}],["$","meta","3",{"name":"description","content":"深入剖析Redis内部数据结构的实现原理，包括简单动态字符串、链表、字典、跳跃表、整数集合、压缩列表等核心数据结构的详细解析。"}]]
 1:null
