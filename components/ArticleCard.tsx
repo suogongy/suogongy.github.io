@@ -26,12 +26,18 @@ export default function ArticleCard({ article, category }: ArticleCardProps) {
     <Link href={`/${categoryPath}/${articleSlug}`} className="article-card-link">
       <div className="article-card">
         <h3 className="article-title">{article.title}</h3>
-        <div className="article-meta">
-          {`${article.date || '2024-01-01'} • ${category}`}
-        </div>
         <p className="article-excerpt">
-          {article.excerpt || article.description}
+          {article.excerpt}
         </p>
+        {article.tags && article.tags.length > 0 && (
+          <div className="article-tags">
+            {article.tags.map(tag => (
+              <span key={tag} className="tag">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </Link>
   )
