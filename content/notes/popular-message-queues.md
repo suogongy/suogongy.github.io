@@ -215,37 +215,103 @@ for (Future<RecordMetadata> future : futures) {
 
 ### 1. RocketMQ架构
 
-```
-RocketMQ架构图：
-┌─────────────────────────────────────────────────────────────┐
-│                    Name Server                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
-│  │ NameServer1 │  │ NameServer2 │  │ NameServer3 │           │
-│  └─────────────┘  └─────────────┘  └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
-         ↓                    ↓                    ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    Broker Cluster                           │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
-│  │  Master 1   │  │  Master 2   │  │  Master 3   │           │
-│  │             │  │             │  │             │           │
-│  │ ┌─────────┐ │  │ ┌─────────┐ │  │ ┌─────────┐ │           │
-│  │ │ Topic A │ │  │ │ Topic B │ │  │ │ Topic C │ │           │
-│  │ └─────────┘ │  │ └─────────┘ │  │ └─────────┘ │           │
-│  └─────────────┘  └─────────────┘  └─────────────┘           │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
-│  │  Slave 1    │  │  Slave 2    │  │  Slave 3    │           │
-│  └─────────────┘  └─────────────┘  └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
-         ↑                    ↑                    ↑
-    ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-    │   Producer  │     │  Producer   │     │  Producer   │
-    └─────────────┘     └─────────────┘     └─────────────┘
-         ↓                    ↓                    ↓
-    ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-    │   Consumer  │     │  Consumer   │     │  Consumer   │
-    └─────────────┘     └─────────────┘     └─────────────┘
+```mermaid
+graph TB
+    %% Name Server集群
+    subgraph NameServerCluster["Name Server Cluster"]
+        style NameServerCluster fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#2e7d32
+
+        NS1[NameServer 1]
+        NS2[NameServer 2]
+        NS3[NameServer 3]
+    end
+
+    %% Broker集群
+    subgraph BrokerCluster["Broker Cluster"]
+        style BrokerCluster fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+
+        subgraph Master1["Master 1"]
+            style Master1 fill:#f8fff8,stroke:#66bb6a,stroke-width:2px,color:#2e7d32
+            T1A[Topic A]
+        end
+
+        subgraph Master2["Master 2"]
+            style Master2 fill:#f8fff8,stroke:#66bb6a,stroke-width:2px,color:#2e7d32
+            T2B[Topic B]
+        end
+
+        subgraph Master3["Master 3"]
+            style Master3 fill:#f8fff8,stroke:#66bb6a,stroke-width:2px,color:#2e7d32
+            T3C[Topic C]
+        end
+
+        subgraph Slave1["Slave 1"]
+            style Slave1 fill:#fff3e0,stroke:#ffa726,stroke-width:2px,color:#e65100
+            S1A[Topic A<br/>Backup]
+        end
+
+        subgraph Slave2["Slave 2"]
+            style Slave2 fill:#fff3e0,stroke:#ffa726,stroke-width:2px,color:#e65100
+            S2B[Topic B<br/>Backup]
+        end
+
+        subgraph Slave3["Slave 3"]
+            style Slave3 fill:#fff3e0,stroke:#ffa726,stroke-width:2px,color:#e65100
+            S3C[Topic C<br/>Backup]
+        end
+    end
+
+    %% 生产者
+    subgraph Producers["生产者集群"]
+        style Producers fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#880e4f
+
+        P1[Producer 1]
+        P2[Producer 2]
+        P3[Producer 3]
+    end
+
+    %% 消费者
+    subgraph Consumers["消费者集群"]
+        style Consumers fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c
+
+        C1[Consumer 1]
+        C2[Consumer 2]
+        C3[Consumer 3]
+    end
+
+    %% 连接关系
+    Producers --> NameServerCluster
+    NameServerCluster --> BrokerCluster
+    BrokerCluster --> Consumers
+
+    %% 主从同步关系
+    Master1 -.-> Slave1
+    Master2 -.-> Slave2
+    Master3 -.-> Slave3
+
+    %% 生产者发送消息
+    P1 --> T1A
+    P2 --> T2B
+    P3 --> T3C
+
+    %% 消费者消费消息
+    T1A --> C1
+    T2B --> C2
+    T3C --> C3
+
+    %% 样式定义
+    classDef nameserver fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#1b5e20
+    classDef master fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#2e7d32
+    classDef slave fill:#fff8e1,stroke:#ffc107,stroke-width:2px,color:#f57f17
+    classDef topic fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#01579b
+    classDef producer fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#880e4f
+    classDef consumer fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c
+
+    class NS1,NS2,NS3 nameserver
+    class T1A,T2B,T3C topic
+    class S1A,S2B,S3C topic
+    class P1,P2,P3 producer
+    class C1,C2,C3 consumer
 ```
 
 ### 2. RocketMQ特性
@@ -331,27 +397,99 @@ consumer.start();
 
 ### 1. RabbitMQ架构
 
-```
-RabbitMQ架构图：
-┌─────────────────────────────────────────────────────────────┐
-│                    RabbitMQ                                │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
-│  │   Exchange  │  │   Exchange  │  │   Exchange  │           │
-│  │    Direct   │  │   Topic     │  │   Fanout    │           │
-│  └─────────────┘  └─────────────┘  └─────────────┘           │
-│         ↓                   ↓                   ↓           │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │                   Queue                                │ │
-│  │  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐   │ │
-│  │  │ Queue 1 │  │ Queue 2 │  │ Queue 3 │  │ Queue 4 │   │ │
-│  │  └─────────┘  └─────────┘  └─────────┘  └─────────┘   │ │
-│  └─────────────────────────────────────────────────────────┘ │
-│         ↓                   ↓                   ↓           │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
-│  │   Consumer  │  │   Consumer  │  │   Consumer  │           │
-│  └─────────────┘  └─────────────┘  └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    %% 生产者
+    subgraph Producers["生产者集群"]
+        style Producers fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#2e7d32
+
+        P1[Producer 1]
+        P2[Producer 2]
+        P3[Producer 3]
+    end
+
+    %% RabbitMQ核心
+    subgraph RabbitMQ["RabbitMQ Broker"]
+        style RabbitMQ fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+
+        %% 交换机层
+        subgraph Exchanges["交换机层"]
+            style Exchanges fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c
+
+            subgraph DirectEx["Direct Exchange"]
+                style DirectEx fill:#e8f5e8,stroke:#66bb6a,stroke-width:2px,color:#2e7d32
+                DE[Direct<br/>Route]
+            end
+
+            subgraph TopicEx["Topic Exchange"]
+                style TopicEx fill:#fff3e0,stroke:#ffa726,stroke-width:2px,color:#e65100
+                TE[Topic<br/>Pattern]
+            end
+
+            subgraph FanoutEx["Fanout Exchange"]
+                style FanoutEx fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#880e4f
+                FE[Fanout<br/>Broadcast]
+            end
+        end
+
+        %% 队列层
+        subgraph Queues["消息队列层"]
+            style Queues fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#01579b
+
+            Q1[Queue 1<br/>Direct]
+            Q2[Queue 2<br/>Topic]
+            Q3[Queue 3<br/>Topic]
+            Q4[Queue 4<br/>Fanout]
+        end
+    end
+
+    %% 消费者
+    subgraph Consumers["消费者集群"]
+        style Consumers fill:#fff8e1,stroke:#ffc107,stroke-width:2px,color:#f57f17
+
+        C1[Consumer 1]
+        C2[Consumer 2]
+        C3[Consumer 3]
+        C4[Consumer 4]
+    end
+
+    %% 连接关系
+    P1 --> DE
+    P2 --> TE
+    P3 --> FE
+
+    %% Direct Exchange路由
+    DE --> Q1
+
+    %% Topic Exchange路由
+    TE --> Q2
+    TE --> Q3
+
+    %% Fanout Exchange广播
+    FE --> Q4
+
+    %% 消费者消费
+    Q1 --> C1
+    Q2 --> C2
+    Q3 --> C3
+    Q4 --> C4
+
+    %% 样式定义
+    classDef producer fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#1b5e20
+    classDef exchange fill:#e1bee7,stroke:#8e24aa,stroke-width:2px,color:#4a148c
+    classDef direct fill:#a5d6a7,stroke:#43a047,stroke-width:2px,color:#1b5e20
+    classDef topic fill:#ffe0b2,stroke:#fb8c00,stroke-width:2px,color:#e65100
+    classDef fanout fill:#f8bbd9,stroke:#c2185b,stroke-width:2px,color:#880e4f
+    classDef queue fill:#b3e5fc,stroke:#0288d1,stroke-width:2px,color:#01579b
+    classDef consumer fill:#ffecb3,stroke:#ffa000,stroke-width:2px,color:#f57f17
+
+    class P1,P2,P3 producer
+    class DE,TE,FE exchange
+    class DE direct
+    class TE topic
+    class FE fanout
+    class Q1,Q2,Q3,Q4 queue
+    class C1,C2,C3,C4 consumer
 ```
 
 ### 2. RabbitMQ特性
@@ -460,45 +598,71 @@ public void handleMessage(Message message, Channel channel) {
 
 ### 1. 选型维度
 
-```
-MQ选型评估维度：
-├── 性能要求
-│   ├── 吞吐量
-│   ├── 延迟
-│   └── 并发能力
-├── 功能需求
-│   ├── 消息顺序
-│   ├── 事务消息
-│   ├── 消息重试
-│   └── 死信队列
-├── 可靠性
-│   ├── 数据持久化
-│   ├── 集群支持
-│   ├── 故障恢复
-│   └── 数据备份
-├── 运维复杂度
-│   ├── 部署难度
-│   ├── 监控能力
-│   ├── 故障排查
-│   └── 扩展性
-└── 生态系统
-    ├── 社区活跃度
-    ├── 文档完整性
-    ├── 工具支持
-    └── 学习成本
+```markmap
+# MQ选型
+
+## 性能要求
+- 吞吐量
+- 延迟
+- 并发能力
+
+## 功能需求
+- 消息顺序
+- 事务消息
+- 消息重试
+- 死信队列
+
+## 可靠性
+- 数据持久化
+- 集群支持
+- 故障恢复
+- 数据备份
+
+## 运维复杂度
+- 部署难度
+- 监控能力
+- 故障排查
+- 扩展性
+
+## 生态系统
+- 社区活跃度
+- 文档完整性
+- 工具支持
+- 学习成本
 ```
 
 ### 2. 选型决策树
 
-```
-选型决策流程：
-是否需要高吞吐量？
-├── 是 → 是否需要强顺序性？
-│   ├── 是 → RocketMQ
-│   └── 否 → Kafka
-└── 否 → 是否需要复杂路由？
-    ├── 是 → RabbitMQ
-    └── 否 → ActiveMQ/RocketMQ
+```mermaid
+graph TD
+    Start[开始选型] --> Question1["是否需要高吞吐量？"]
+
+    Question1 -->|是| Question2["是否需要强顺序性？"]
+    Question1 -->|否| Question3["是否需要复杂路由？"]
+
+    Question2 -->|是| RocketMQ["RocketMQ<br/>金融级可靠性<br/>强顺序性保证"]
+    Question2 -->|否| Kafka["Kafka<br/>超高吞吐量<br/>大数据场景"]
+
+    Question3 -->|是| RabbitMQ["RabbitMQ<br/>灵活路由<br/>企业应用"]
+    Question3 -->|否| ActiveMQ["ActiveMQ/RocketMQ<br/>简单场景<br/>传统应用"]
+
+    %% 样式定义
+    style Start fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#2e7d32
+    style Question1 fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+    style Question2 fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+    style Question3 fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+    style RocketMQ fill:#fff3e0,stroke:#ffa726,stroke-width:2px,color:#e65100
+    style Kafka fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#880e4f
+    style RabbitMQ fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#4a148c
+    style ActiveMQ fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#01579b
+
+    classDef question fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+    classDef result fill:#f8fff8,stroke:#66bb6a,stroke-width:2px,color:#2e7d32
+    classDef start fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#1b5e20
+
+    class Question1,Question2,Question3 question
+    class RocketMQ,Kafka,RabbitMQ,ActiveMQ result
+    class Start start
 ```
 
 ### 3. 最佳实践

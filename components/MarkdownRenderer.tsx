@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { marked } from 'marked'
 import Mermaid from './Mermaid'
+import MarkmapRenderer from './MarkmapRenderer'
 import hljs from 'highlight.js'
 
 interface MarkdownRendererProps {
@@ -12,6 +13,12 @@ interface MarkdownRendererProps {
 interface MermaidBlock {
   id: string
   chart: string
+  position: number
+}
+
+interface MarkmapBlock {
+  id: string
+  content: string
   position: number
 }
 
@@ -30,13 +37,14 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     gfm: true
   })
 
-  // 处理Markdown内容，保留Mermaid位置信息
-  const { processedParts, mermaidBlocks } = useMemo(() => {
+  // 处理Markdown内容，保留Mermaid和Markmap位置信息
+  const { processedParts, mermaidBlocks, markmapBlocks } = useMemo(() => {
     const mermaidBlocks: MermaidBlock[] = []
+    const markmapBlocks: MarkmapBlock[] = []
     let position = 0
 
-    // 分割内容，保留Mermaid代码块的位置（支持多种换行符格式）
-    const parts = content.split(/(```mermaid[\r\n]+[\s\S]*?```)/g)
+    // 分割内容，保留代码块的位置
+    const parts = content.split(/(```(?:mermaid|markmap)[\r\n]+[\s\S]*?```)/g)
 
     const processedParts = parts.map((part) => {
       const mermaidMatch = part.match(/```mermaid[\r\n]+([\s\S]*?)```/)
@@ -46,7 +54,18 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
         mermaidBlocks.push({ id, chart, position })
         position++
         return { type: 'mermaid', id, chart }
-      } else if (part.trim()) {
+      }
+
+      const markmapMatch = part.match(/```markmap[\r\n]+([\s\S]*?)```/)
+      if (markmapMatch) {
+        const id = `markmap-${Math.random().toString(36).substring(2, 11)}`
+        const content = markmapMatch[1].trim()
+        markmapBlocks.push({ id, content, position })
+        position++
+        return { type: 'markmap', id, content }
+      }
+
+      if (part.trim()) {
         // 处理普通Markdown内容
         let htmlContent = marked.parse(part)
         // 为表格添加包装器以便更好的样式控制
@@ -59,7 +78,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       return null
     }).filter(Boolean)
 
-    return { processedParts, mermaidBlocks }
+    return { processedParts, mermaidBlocks, markmapBlocks }
   }, [content])
 
   // 优化表格包装器宽度
@@ -92,6 +111,8 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
         )
       } else if (part && part.type === 'mermaid') {
         return <Mermaid key={part.id} chart={part.chart} id={part.id} />
+      } else if (part && part.type === 'markmap') {
+        return <MarkmapRenderer key={part.id} content={part.content} id={part.id} />
       }
       return null
     })
