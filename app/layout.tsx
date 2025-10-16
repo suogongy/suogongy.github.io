@@ -30,13 +30,7 @@ export default async function RootLayout({
           async
         ></script>
         <script
-          src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"
-        ></script>
-        <script
-          src="https://cdn.jsdelivr.net/npm/markmap-view@0.17.2/dist/browser/index.js"
-        ></script>
-        <script
-          src="https://cdn.jsdelivr.net/npm/markmap-lib@0.17.2/dist/browser/index.js"
+          src="https://unpkg.com/markmap-autoloader@0.17.2"
         ></script>
       </head>
       <body>
