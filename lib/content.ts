@@ -100,24 +100,6 @@ export async function getProjects(): Promise<Project[]> {
     return JSON.parse(projectsData)
   } catch (error) {
     console.warn('Could not load projects, using default data')
-    return [
-      {
-        title: 'React 个人博客',
-        description: '使用 React 构建的现代化个人博客系统，支持 Markdown 渲染和响应式设计。',
-        tags: ['React', 'JavaScript', 'CSS'],
-        icon: 'fas fa-blog',
-        demoUrl: '#',
-        githubUrl: '#'
-      },
-      {
-        title: '数据可视化工具',
-        description: '基于 D3.js 的交互式数据可视化平台，支持多种图表类型和实时数据更新。',
-        tags: ['D3.js', 'JavaScript', 'SVG'],
-        icon: 'fas fa-chart-bar',
-        demoUrl: '#',
-        githubUrl: '#'
-      }
-    ]
   }
 }
 
