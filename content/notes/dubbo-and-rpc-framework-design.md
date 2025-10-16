@@ -23,70 +23,323 @@ Apache Dubbo是一款高性能的Java RPC框架，具有以下特点：
 
 ### 2. Dubbo架构
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Dubbo 架构                                 │
-├─────────────────────────────────────────────────────────────┤
-│  Consumer  ←───  Registry  ←───  Provider                   │
-│     │                    │                    │             │
-│     └───────  Monitor  ←───────┘                    │         │
-│                                                        │     │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │     │
-│  │   Protocol   │  │   Filter    │  │   Cluster   │   │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘   │     │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │     │
-│  │   Proxy     │  │   Router    │  │   Config    │   │     │
-│  └─────────────┘  └─────────────┘  └─────────────┘   │     │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph "Dubbo 架构"
+        Consumer[Consumer] -->|服务调用| Provider[Provider]
+
+        subgraph "核心组件层"
+            Proxy[Proxy] -->|代理调用| Protocol[Protocol]
+            Protocol -->|协议处理| Filter[Filter]
+            Filter -->|过滤处理| Router[Router]
+            Router -->|路由选择| Cluster[Cluster]
+            Cluster -->|集群调用| Config[Config]
+        end
+
+        Consumer --> Proxy
+        Provider --> Protocol
+
+        subgraph "治理层"
+            Registry[Registry]
+            Monitor[Monitor]
+        end
+
+        Consumer -->|服务发现| Registry
+        Provider -->|服务注册| Registry
+        Consumer -->|监控上报| Monitor
+        Provider -->|监控上报| Monitor
+
+        Registry -.->|配置同步| Config
+        Monitor -.->|监控数据| Cluster
+    end
+
+    style Consumer fill:#e1f5fe
+    style Provider fill:#e8f5e8
+    style Registry fill:#fff3e0
+    style Monitor fill:#fce4ec
+    style Proxy fill:#f3e5f5
+    style Protocol fill:#e0f2f1
+    style Filter fill:#e1f5fe
+    style Router fill:#e8f5e8
+    style Cluster fill:#fff3e0
+    style Config fill:#fce4ec
 ```
 
 ## RPC原理分析
 
 ### 1. RPC调用流程
 
-```
-Client                                              Server
-  │                                                   │
-  │ 1. 方法调用                                        │
-  │──────────────────────────────────────────────────→│
-  │                                                   │ 2. 接收请求
-  │ 3. 方法序列化                                      │
-  │──────────────────────────────────────────────────→│
-  │                                                   │ 4. 方法反序列化
-  │ 5. 网络传输                                        │
-  │──────────────────────────────────────────────────→│
-  │                                                   │ 6. 业务逻辑处理
-  │ 7. 结果返回                                        │
-  │←──────────────────────────────────────────────────│
-  │                                                   │ 8. 结果序列化
-  │ 9. 结果反序列化                                    │
-  │←──────────────────────────────────────────────────│
-  │                                                  10. 返回结果
+```mermaid
+sequenceDiagram
+    participant Client as 客户端
+    participant Server as 服务端
+
+    Client->>Client: 1. 代理调用
+    Client->>Client: 2. 参数序列化
+    Client->>+Server: 3. 网络传输
+    Server->>+Server: 4. 请求解析
+    Server->>+Server: 5. 参数反序列化
+    Server->>+Server: 6. 方法调用
+    Server->>+Server: 7. 结果序列化
+    Server-->>-Client: 8. 响应返回
+    Client->>+Client: 9. 结果反序列化
+    Client->>+Client: 10. 返回结果
 ```
 
-### 2. Dubbo核心组件
+### 2. RPC调用原理详解
 
+**RPC的本质**
+
+RPC（Remote Procedure Call，远程过程调用）的本质是让调用者像调用本地方法一样调用远程服务，其核心目标是屏蔽网络通信的复杂性，让开发者专注于业务逻辑。
+
+**RPC框架的核心挑战**
+
+1. **透明性**：如何让远程调用看起来像本地调用
+2. **数据传输**：如何将复杂的对象在网络中传输
+3. **服务发现**：如何找到远程服务的地址
+4. **负载均衡**：如何在多个服务实例间分配请求
+5. **容错处理**：如何处理网络故障和服务不可用
+
+**详细调用流程解析**
+
+**1. 代理调用阶段**
 ```java
-// 服务提供者
-@Service
+// 客户端通过动态代理拦截方法调用
+UserService userService = DubboProxyFactory.createProxy(UserService.class);
+User user = userService.getUserById(123L); // 实际被代理拦截
+```
+
+**核心机制**：
+- 使用JDK动态代理或CGLIB创建代理对象
+- 拦截所有方法调用，转为远程调用请求
+- 维护调用上下文信息（如调用链、超时时间等）
+
+**2. 参数序列化阶段**
+```java
+// Dubbo序列化接口
+public interface Serialization {
+    void serialize(Object obj, OutputStream output) throws IOException;
+    Object deserialize(InputStream input) throws IOException;
+}
+```
+
+**序列化策略选择**：
+- **Hessian2**：默认选择，性能好，跨语言支持
+- **JSON**：可读性好，但性能较差
+- **ProtoBuf**：高性能，适合内部系统
+- **Java原生**：仅限Java，有版本兼容问题
+
+**3. 网络传输阶段**
+```java
+// Dubbo协议头结构
+public class DubboHeader {
+    private byte[] magic = new byte[] {(byte) 0xda, (byte) 0xbb}; // 魔数
+    private byte flag; // 标志位（请求/响应、单向/双向、序列化类型）
+    private long requestId; // 请求ID，用于异步匹配
+    private int dataLength; // 数据体长度
+}
+```
+
+**传输层协议**：
+- **Dubbo协议**：基于TCP，自定义二进制协议
+- **HTTP协议**：基于HTTP，便于调试和监控
+- **gRPC协议**：基于HTTP/2，性能优秀
+
+**4. 服务端处理阶段**
+```java
+// Dubbo服务端处理器
+public class DubboProtocol extends AbstractProtocol {
+    public Object reply(ExchangeChannel channel, Request request) {
+        // 1. 反序列化请求参数
+        Invocation invocation = (Invocation) decode(request.getData());
+
+        // 2. 根据接口名找到具体实现
+        Invoker<?> invoker = getInvoker(channel, invocation);
+
+        // 3. 执行具体方法调用
+        Result result = invoker.invoke(invocation);
+
+        // 4. 序列化返回结果
+        return encode(result);
+    }
+}
+```
+
+**服务治理机制**
+
+**1. 服务注册与发现**
+```java
+// 服务注册
+Registry registry = new ZookeeperRegistry("127.0.0.1:2181");
+registry.register(URL.valueOf("dubbo://127.0.0.1:20880/com.example.UserService"));
+
+// 服务发现
+List<URL> providerUrls = registry.lookup(URL.valueOf("consumer://127.0.0.1/com.example.UserService"));
+```
+
+**2. 负载均衡策略**
+- **Random LoadBalance**：随机选择，适合均匀分布
+- **RoundRobin LoadBalance**：轮询选择，适合性能相近实例
+- **LeastActive LoadBalance**：最少活跃数，适合处理能力不均场景
+- **ConsistentHash LoadBalance**：一致性哈希，适合有状态服务
+
+**3. 集群容错机制**
+- **Failover Cluster**：失败自动重试其他实例
+- **Failfast Cluster**：快速失败，适合写操作
+- **Failsafe Cluster**：失败安全，适合日志记录等
+- **Failback Cluster**：失败定时重试，适合异步场景
+
+### 3. Dubbo核心组件
+
+**Dubbo架构分层设计**
+
+Dubbo采用分层架构设计，每一层都有明确的职责，这种设计使得Dubbo具有良好的扩展性和可维护性。
+
+```mermaid
+graph TB
+    subgraph "Dubbo分层架构"
+        Business[业务层] --> RPC[RPC层]
+        RPC --> Remote[远程调用层]
+        Remote --> Exchange[信息交换层]
+        Exchange --> Transport[网络传输层]
+        Transport --> Serialize[数据序列化层]
+    end
+
+    style Business fill:#e1f5fe
+    style RPC fill:#e8f5e8
+    style Remote fill:#fff3e0
+    style Exchange fill:#fce4ec
+    style Transport fill:#f3e5f5
+    style Serialize fill:#e0f2f1
+```
+
+**核心组件详解**
+
+**1. 服务提供者（Provider）**
+```java
+@Service(version = "1.0.0", timeout = 3000, retries = 2)
 public class UserServiceImpl implements UserService {
-    
+
     @Override
     public User getUserById(Long id) {
         // 业务逻辑实现
         return userMapper.selectById(id);
     }
-}
 
-// 服务消费者
+    @Override
+    public List<User> listUsers() {
+        return userMapper.selectAll();
+    }
+}
+```
+
+**服务导出过程**：
+1. **接口解析**：扫描带有@Service注解的类
+2. **URL构建**：构建服务URL（协议、主机、端口、接口名等）
+3. **协议启动**：启动对应协议的服务器（如Netty）
+4. **服务注册**：向注册中心注册服务地址
+
+**2. 服务消费者（Consumer）**
+```java
 @Component
 public class UserController {
-    
-    @Reference
+
+    @Reference(version = "1.0.0", timeout = 5000, check = false)
     private UserService userService;
-    
+
     public User getUser(Long id) {
         return userService.getUserById(id);
+    }
+
+    public List<User> getAllUsers() {
+        return userService.listUsers();
+    }
+}
+```
+
+**服务引用过程**：
+1. **接口解析**：创建接口的代理对象
+2. **服务发现**：从注册中心获取服务提供者列表
+3. **负载均衡**：选择合适的服务提供者
+4. **远程调用**：通过网络调用远程服务
+
+**3. 注册中心（Registry）**
+```java
+// 注册中心配置
+@Bean
+public RegistryConfig registryConfig() {
+    RegistryConfig config = new RegistryConfig();
+    config.setAddress("zookeeper://127.0.0.1:2181");
+    config.setProtocol("zookeeper");
+    config.setTimeout(5000);
+    return config;
+}
+```
+
+**注册中心的作用**：
+- **服务注册**：Provider启动时注册服务地址
+- **服务发现**：Consumer启动时订阅服务
+- **健康检查**：定期检查服务提供者状态
+- **配置推送**：动态推送配置变更
+
+**4. 协议（Protocol）**
+```java
+// Dubbo协议配置
+@Bean
+public ProtocolConfig protocolConfig() {
+    ProtocolConfig config = new ProtocolConfig();
+    config.setName("dubbo");
+    config.setPort(20880);
+    config.setThreads(200);
+    config.setHeartbeat(60000);
+    return config;
+}
+```
+
+**协议对比**：
+- **Dubbo协议**：高性能二进制协议，默认选择
+- **HTTP协议**：RESTful风格，便于跨语言调用
+- **gRPC协议**：基于HTTP/2，支持流式传输
+- **Hessian协议**：二进制协议，跨语言支持好
+
+**5. 集群（Cluster）**
+```java
+// 集群配置
+@Bean
+public ClusterConfig clusterConfig() {
+    ClusterConfig config = new ClusterConfig();
+    config.setLoadbalance("roundrobin");
+    config.setCluster("failover");
+    config.setRetries(2);
+    return config;
+}
+```
+
+**集群策略实现**：
+```java
+public class FailoverCluster implements Cluster {
+
+    @Override
+    public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
+        return new AbstractClusterInvoker<T>(directory) {
+            @Override
+            public Result doInvoke(Invocation invocation, List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
+                checkInvokers(invokers, invocation);
+                RpcException exception = null;
+
+                for (int i = 0; i < retries + 1; i++) {
+                    Invoker<T> invoker = select(loadbalance, invocation, invokers, null);
+                    try {
+                        return invoker.invoke(invocation);
+                    } catch (RpcException e) {
+                        exception = e;
+                        // 继续重试
+                    }
+                }
+
+                throw exception;
+            }
+        };
     }
 }
 ```
@@ -161,55 +414,231 @@ public class ConsumerConfig {
 
 ## Dubbo扩展机制
 
-### 1. SPI机制
+### 1. SPI机制深度解析
+
+**Dubbo SPI与Java SPI的区别**
+
+传统的Java SPI（Service Provider Interface）存在以下问题：
+- **性能问题**：一次性加载所有实现类，浪费资源
+- **功能限制**：不支持按需加载和依赖注入
+- **配置固化**：无法动态选择具体实现
+
+**Dubbo SPI的改进**
 
 ```java
-// SPI接口定义
+// Dubbo SPI接口定义
 @SPI("default")
 public interface LoadBalance {
-    
+
     @Adaptive("loadbalance")
-    <T> Invoker<T> select(List<Invoker<T>> invokers, 
-                         URL url, 
-                         Invocation invocation) 
+    <T> Invoker<T> select(List<Invoker<T>> invokers,
+                         URL url,
+                         Invocation invocation)
                          throws RpcException;
 }
 
 // 实现类
 public class RandomLoadBalance implements LoadBalance {
-    
+
     @Override
-    public <T> Invoker<T> select(List<Invoker<T>> invokers, 
-                                URL url, 
+    public <T> Invoker<T> select(List<Invoker<T>> invokers,
+                                URL url,
                                 Invocation invocation) {
         return invokers.get(ThreadLocalRandom.current().nextInt(invokers.size()));
     }
 }
 ```
 
-### 2. 自定义扩展
+**SPI工作原理**
+
+1. **加载机制**：
+```java
+// ExtensionLoader核心实现
+public class ExtensionLoader<T> {
+
+    // 缓存已加载的扩展实例
+    private static final ConcurrentMap<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS =
+        new ConcurrentHashMap<Class<?>, ExtensionLoader<?>>();
+
+    // 缓存扩展实例
+    private static final ConcurrentMap<Class<?>, Object> EXTENSION_INSTANCES =
+        new ConcurrentHashMap<Class<?>, Object>();
+
+    // 根据名称获取扩展实例
+    public T getExtension(String name) {
+        if (name == null || name.length() == 0) {
+            throw new IllegalArgumentException("Extension name == null");
+        }
+
+        // 从缓存中获取
+        Holder<Object> holder = cachedInstances.get(name);
+        if (holder == null) {
+            cachedInstances.putIfAbsent(name, new Holder<Object>());
+            holder = cachedInstances.get(name);
+        }
+
+        Object instance = holder.get();
+        if (instance == null) {
+            synchronized (holder) {
+                instance = holder.get();
+                if (instance == null) {
+                    instance = createExtension(name);
+                    holder.set(instance);
+                }
+            }
+        }
+        return (T) instance;
+    }
+}
+```
+
+2. **自适应扩展**：
+```java
+// Adaptive注解的处理
+@Adaptive("loadbalance")
+public <T> Invoker<T> select(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+    // 运行时根据URL参数选择具体实现
+    String loadbalanceName = url.getParameter("loadbalance", "default");
+    LoadBalance loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class)
+        .getExtension(loadbalanceName);
+    return loadbalance.select(invokers, url, invocation);
+}
+```
+
+**IoC（依赖注入）机制**
 
 ```java
-// 自定义负载均衡
-public class CustomLoadBalance extends AbstractLoadBalance {
-    
-    @Override
-    protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, 
-                                    URL url, 
-                                    Invocation invocation) {
-        // 自定义负载均衡逻辑
-        return selectByWeight(invokers);
+// Dubbo SPI支持依赖注入
+public class ProtocolFilterWrapper implements Protocol {
+
+    private final Protocol protocol;
+
+    // 通过setter注入依赖
+    public void setProtocol(Protocol protocol) {
+        this.protocol = protocol;
     }
-    
-    private <T> Invoker<T> selectByWeight(List<Invoker<T>> invokers) {
-        // 权重算法实现
-        return null;
+
+    @Override
+    public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+        // 包装器模式，在真实协议前后添加过滤器
+        return protocol.export(invoker);
+    }
+}
+```
+
+### 2. 自定义扩展实战
+
+**自定义负载均衡实现**
+
+```java
+// 基于响应时间的负载均衡
+public class ResponseTimeLoadBalance extends AbstractLoadBalance {
+
+    @Override
+    protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers,
+                                    URL url,
+                                    Invocation invocation) {
+        // 计算每个invoker的权重（基于响应时间）
+        int length = invokers.size();
+        int[] weights = new int[length];
+        int totalWeight = 0;
+
+        for (int i = 0; i < length; i++) {
+            Invoker<T> invoker = invokers.get(i);
+            // 响应时间越短，权重越高
+            int responseTime = getResponseTime(invoker);
+            int weight = calculateWeight(responseTime);
+            weights[i] = weight;
+            totalWeight += weight;
+        }
+
+        // 加权随机选择
+        int randomWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+        for (int i = 0; i < length; i++) {
+            randomWeight -= weights[i];
+            if (randomWeight <= 0) {
+                return invokers.get(i);
+            }
+        }
+
+        return invokers.get(length - 1);
+    }
+
+    private int getResponseTime(Invoker<?> invoker) {
+        // 从监控数据获取平均响应时间
+        return invoker.getUrl().getMethodParameter(invocation.getMethodName(),
+            "avg.response.time", 100);
+    }
+
+    private int calculateWeight(int responseTime) {
+        // 响应时间与权重成反比
+        return Math.max(1, 1000 / responseTime);
+    }
+}
+```
+
+**注册自定义扩展**
+
+```properties
+# META-INF/dubbo/internal/com.alibaba.dubbo.rpc.cluster.LoadBalance
+responseTime=com.example.ResponseTimeLoadBalance
+```
+
+**使用自定义扩展**
+
+```java
+// 在URL中指定负载均衡策略
+URL url = URL.valueOf("dubbo://127.0.0.1:20880/com.example.UserService")
+    .addParameter("loadbalance", "responseTime");
+
+// 或者在配置中指定
+<dubbo:reference interface="com.example.UserService"
+                loadbalance="responseTime" />
+```
+
+### 3. 扩展点加载机制
+
+**扩展点目录结构**
+
+```
+META-INF/
+├── dubbo/
+│   └── internal/
+│       └── com.alibaba.dubbo.rpc.cluster.LoadBalance
+├── dubbo/
+│   └── com.alibaba.dubbo.rpc.cluster.LoadBalance
+└── services/
+    └── com.alibaba.dubbo.rpc.cluster.LoadBalance
+```
+
+**加载优先级**
+1. **internal目录**：Dubbo内置实现，优先级最高
+2. **dubbo目录**：用户自定义实现
+3. **services目录**：Java SPI兼容实现
+
+**扩展激活机制**
+
+```java
+// Activate注解支持条件激活
+@Activate(group = {Constants.PROVIDER}, order = -1000)
+public class ProviderFilter implements Filter {
+
+    @Override
+    public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        // 提供者端过滤器逻辑
+        return invoker.invoke(invocation);
     }
 }
 
-// 注册扩展
-META-INF/dubbo/internal/com.alibaba.dubbo.rpc.cluster.LoadBalance:
-custom=com.example.CustomLoadBalance
+@Activate(group = {Constants.CONSUMER}, order = -1000)
+public class ConsumerFilter implements Filter {
+
+    @Override
+    public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        // 消费者端过滤器逻辑
+        return invoker.invoke(invocation);
+    }
+}
 ```
 
 ## Dubbo高级特性
@@ -286,77 +715,344 @@ public class UserServiceMock implements UserService {
 
 ## RPC框架设计要点
 
-### 1. 通信协议设计
+### 1. 通信协议设计深度解析
+
+**协议设计的基本原则**
+
+1. **高效性**：减少数据传输量，提高序列化/反序列化效率
+2. **扩展性**：支持协议版本升级和新功能扩展
+3. **可读性**：便于调试和问题排查
+4. **兼容性**：向后兼容，平滑升级
+
+**Dubbo协议详细结构**
 
 ```java
-// Dubbo协议结构
+// Dubbo协议头（16字节）
+public class DubboHeader {
+    // 魔数（2字节）：0xdabb，用于协议识别
+    private byte[] magic = new byte[] {(byte) 0xda, (byte) 0xbb};
+
+    // 标志位（1字节）：
+    // bit 0-7: 请求/响应标志 (0: request, 1: response)
+    // bit 1-7: 单向/双向标志 (0: twoway, 1: oneway)
+    // bit 2-7: 事件标志 (0: normal, 1: heartbeat)
+    // bit 3-7: 序列化类型 (0: hessian2, 1: java, 2: compacted, 3: json, 4: hessian2, etc.)
+    private byte flag;
+
+    // 状态码（1字节）：仅响应消息使用
+    // 20: OK, 30: CLIENT_TIMEOUT, 31: SERVER_TIMEOUT
+    // 40: BAD_REQUEST, 50: BAD_RESPONSE, 60: SERVICE_NOT_FOUND, etc.
+    private byte status;
+
+    // 请求ID（8字节）：用于异步请求响应匹配
+    private long requestId;
+
+    // 数据长度（4字节）：消息体长度
+    private int dataLength;
+}
+```
+
+**协议编码实现**
+
+```java
 public class DubboCodec implements Codec2 {
-    
+
     @Override
     public void encode(Channel channel, ChannelBuffer buffer, Object msg) {
-        // 魔数
+        if (msg instanceof Request) {
+            encodeRequest(channel, buffer, (Request) msg);
+        } else if (msg instanceof Response) {
+            encodeResponse(channel, buffer, (Response) msg);
+        }
+    }
+
+    private void encodeRequest(Channel channel, ChannelBuffer buffer, Request req) {
+        // 1. 写入魔数
         buffer.writeBytes(MAGIC);
-        // 标志位
+
+        // 2. 构造标志位
+        byte flag = 0x00;
+        flag |= (byte) FLAG_REQUEST;
+        if (req.isTwoWay()) {
+            flag |= (byte) FLAG_TWOWAY;
+        }
+        if (req.isEvent()) {
+            flag |= (byte) FLAG_EVENT;
+        }
+        flag |= (byte) getSerializationId(channel);
+
+        // 3. 写入协议头
         buffer.writeByte(flag);
-        // 状态码
-        buffer.writeByte(status);
-        // 请求ID
-        buffer.writeLong(id);
-        // 数据长度
-        buffer.writeInt(len);
-        // 数据内容
+        buffer.writeByte(OK);
+        buffer.writeLong(req.getId());
+
+        // 4. 序列化请求体
+        Serialization serialization = getSerialization(channel);
+        ByteArrayOutput byteArrayOutput = new ByteArrayOutput();
+        ObjectOutput objectOutput = serialization.serialize(channel.getUrl(), byteArrayOutput);
+
+        // 5. 序列化调用信息
+        if (req.isEvent()) {
+            encodeEventData(objectOutput, req.getData());
+        } else {
+            encodeRequestData(objectOutput, req.getData());
+        }
+
+        objectOutput.flushBuffer();
+
+        // 6. 写入数据长度和内容
+        byte[] data = byteArrayOutput.toByteArray();
+        buffer.writeInt(data.length);
         buffer.writeBytes(data);
     }
 }
 ```
 
-### 2. 序列化机制
+### 2. 序列化机制深度分析
+
+**序列化性能对比**
+
+| 序列化方式 | 性能 | 跨语言 | 可读性 | 压缩率 | 适用场景 |
+|------------|------|--------|--------|--------|----------|
+| Hessian2 | 高 | 支持 | 二进制 | 中等 | 通用场景 |
+| ProtoBuf | 很高 | 支持 | 二进制 | 高 | 高性能场景 |
+| JSON | 低 | 支持 | 文本 | 低 | 调试场景 |
+| Java原生 | 中等 | 不支持 | 二进制 | 低 | Java内部 |
+
+**Hessian2序列化原理**
 
 ```java
-// 序列化接口
-public interface Serialization {
-    
-    byte getContentTypeId();
-    
-    ObjectOutput serialize(URL url, OutputStream output) throws IOException;
-    
-    ObjectInput deserialize(URL url, InputStream input) throws IOException;
-}
+public class Hessian2ObjectOutput implements ObjectOutput {
 
-// Hessian序列化实现
-public class Hessian2Serialization implements Serialization {
-    
+    private final Hessian2Output hessian2Output;
+
     @Override
-    public ObjectOutput serialize(URL url, OutputStream output) throws IOException {
-        return new Hessian2ObjectOutput(output);
+    public void writeObject(Object obj) throws IOException {
+        if (obj == null) {
+            hessian2Output.writeNull();
+            return;
+        }
+
+        Class<?> cl = obj.getClass();
+
+        // 基本类型处理
+        if (cl == String.class) {
+            hessian2Output.writeString((String) obj);
+        } else if (cl == Integer.class || cl == int.class) {
+            hessian2Output.writeInt((Integer) obj);
+        } else if (cl == Long.class || cl == long.class) {
+            hessian2Output.writeLong((Long) obj);
+        } else if (cl == Boolean.class || cl == boolean.class) {
+            hessian2Output.writeBoolean((Boolean) obj);
+        } else if (cl == Double.class || cl == double.class) {
+            hessian2Output.writeDouble((Double) obj);
+        }
+        // 集合类型处理
+        else if (Collection.class.isAssignableFrom(cl)) {
+            writeCollection((Collection<?>) obj);
+        } else if (Map.class.isAssignableFrom(cl)) {
+            writeMap((Map<?, ?>) obj);
+        }
+        // 自定义对象处理
+        else {
+            writeObjectField(obj);
+        }
+    }
+
+    private void writeObjectField(Object obj) throws IOException {
+        // 使用反射获取字段信息
+        Field[] fields = obj.getClass().getDeclaredFields();
+        hessian2Output.writeObject(fields.length);
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            Object value = field.get(obj);
+            hessian2Output.writeString(field.getName());
+            hessian2Output.writeObject(value);
+        }
     }
 }
 ```
 
-### 3. 负载均衡设计
+### 3. 负载均衡算法详解
+
+**加权随机算法（Weighted Random）**
 
 ```java
-// 负载均衡抽象类
-public abstract class AbstractLoadBalance implements LoadBalance {
-    
+public class RandomWeightedLoadBalance extends AbstractLoadBalance {
+
     @Override
-    public <T> Invoker<T> select(List<Invoker<T>> invokers, 
-                                URL url, 
-                                Invocation invocation) {
-        if (invokers == null || invokers.isEmpty()) {
-            return null;
+    protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        int length = invokers.size();
+        int totalWeight = 0;
+        boolean sameWeight = true;
+
+        // 1. 计算总权重，检查权重是否相同
+        for (int i = 0; i < length; i++) {
+            int weight = getWeight(invokers.get(i), invocation);
+            totalWeight += weight;
+            if (sameWeight && i > 0 && weight != getWeight(invokers.get(i - 1), invocation)) {
+                sameWeight = false;
+            }
         }
-        
-        if (invokers.size() == 1) {
-            return invokers.get(0);
+
+        // 2. 权重相同，随机选择
+        if (totalWeight > 0 && !sameWeight) {
+            int offset = ThreadLocalRandom.current().nextInt(totalWeight);
+            for (int i = 0; i < length; i++) {
+                offset -= getWeight(invokers.get(i), invocation);
+                if (offset < 0) {
+                    return invokers.get(i);
+                }
+            }
         }
-        
-        return doSelect(invokers, url, invocation);
+
+        // 3. 权重不同或总权重为0，随机选择
+        return invokers.get(ThreadLocalRandom.current().nextInt(length));
     }
-    
-    protected abstract <T> Invoker<T> doSelect(List<Invoker<T>> invokers, 
-                                             URL url, 
-                                             Invocation invocation);
+}
+```
+
+**最少活跃数算法（Least Active）**
+
+```java
+public class LeastActiveLoadBalance extends AbstractLoadBalance {
+
+    @Override
+    protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        int length = invokers.size();
+        int leastActive = -1; // 最小活跃数
+        int leastCount = 0; // 相同最小活跃数的个数
+        int[] leastIndexes = new int[length]; // 相同最小活跃数的下标
+
+        for (int i = 0; i < length; i++) {
+            Invoker<T> invoker = invokers.get(i);
+            int active = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName()).getActive();
+            int weight = invoker.getUrl().getMethodParameter(invocation.getMethodName(), "weight", 100);
+
+            if (leastActive == -1 || active < leastActive) {
+                // 发现更小的活跃数，重置
+                leastActive = active;
+                leastCount = 1;
+                leastIndexes[0] = i;
+            } else if (active == leastActive) {
+                // 相同活跃数，记录下标
+                leastIndexes[leastCount++] = i;
+            }
+        }
+
+        // 4. 根据权重选择
+        if (leastCount == 1) {
+            return invokers.get(leastIndexes[0]);
+        }
+
+        int totalWeight = 0;
+        int firstWeight = getWeight(invokers.get(leastIndexes[0]), invocation);
+        boolean sameWeight = true;
+
+        for (int i = 0; i < leastCount; i++) {
+            int weight = getWeight(invokers.get(leastIndexes[i]), invocation);
+            totalWeight += weight;
+            if (sameWeight && i > 0 && weight != firstWeight) {
+                sameWeight = false;
+            }
+        }
+
+        if (totalWeight > 0 && !sameWeight) {
+            int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+            for (int i = 0; i < leastCount; i++) {
+                offsetWeight -= getWeight(invokers.get(leastIndexes[i]), invocation);
+                if (offsetWeight <= 0) {
+                    return invokers.get(leastIndexes[i]);
+                }
+            }
+        }
+
+        return invokers.get(leastIndexes[ThreadLocalRandom.current().nextInt(leastCount)]);
+    }
+}
+```
+
+### 4. 网络通信优化
+
+**连接池管理**
+
+```java
+public class DubboClientHandler extends SimpleChannelInboundHandler<Object> {
+
+    private final Map<String, Channel> channels = new ConcurrentHashMap<>();
+    private final int maxConnections = 100;
+    private final AtomicInteger connectionCount = new AtomicInteger(0);
+
+    public Channel getChannel(URL url) {
+        String address = url.getAddress();
+        Channel channel = channels.get(address);
+
+        if (channel != null && channel.isActive()) {
+            return channel;
+        }
+
+        synchronized (this) {
+            if (connectionCount.get() >= maxConnections) {
+                throw new RpcException("Too many connections");
+            }
+
+            Bootstrap bootstrap = new Bootstrap();
+            bootstrap.group(eventLoopGroup)
+                    .channel(NioSocketChannel.class)
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
+                    .handler(new DubboClientInitializer());
+
+            ChannelFuture future = bootstrap.connect(address);
+            channel = future.channel();
+            channels.put(address, channel);
+            connectionCount.incrementAndGet();
+        }
+
+        return channel;
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        String address = ctx.channel().remoteAddress().toString();
+        channels.remove(address);
+        connectionCount.decrementAndGet();
+        super.channelInactive(ctx);
+    }
+}
+```
+
+**心跳机制**
+
+```java
+public class HeartbeatTimerTask implements TimerTask {
+
+    private final Channel channel;
+    private final int heartbeatInterval;
+
+    @Override
+    public void run(Timeout timeout) throws Exception {
+        if (channel == null || !channel.isActive()) {
+            return;
+        }
+
+        // 发送心跳请求
+        Request request = new Request();
+        request.setTwoWay(true);
+        request.setEvent(HEARTBEAT_EVENT);
+        request.setData(null);
+
+        channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if (!future.isSuccess()) {
+                    // 心跳失败，关闭连接
+                    channel.close();
+                }
+            }
+        });
+    }
 }
 ```
 
