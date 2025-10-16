@@ -411,19 +411,55 @@ body {
     font-size: 0.9rem;
 }
 
+/* 基本的代码高亮样式 */
 .markdown-content pre {
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
-    overflow-x: auto;
-    margin: 20px 0;
+    background: #f6f8fa;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 16px;
+    overflow: auto;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    margin: 16px 0;
 }
 
 .markdown-content pre code {
     background: none;
     padding: 0;
-    color: var(--text-color);
+    color: #24292f;
+    display: block;
+}
+
+/* 暗黑模式 */
+@media (prefers-color-scheme: dark) {
+    .markdown-content pre {
+        background: #161b22;
+        border-color: #30363d;
+    }
+
+    .markdown-content pre code {
+        color: #c9d1d9;
+    }
+}
+
+/* 行内代码 */
+.markdown-content :not(pre) > code {
+    background: rgba(175, 184, 193, 0.2);
+    color: #24292f;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    border: 1px solid rgba(175, 184, 193, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+    .markdown-content :not(pre) > code {
+        background: rgba(110, 118, 129, 0.3);
+        color: #58a6ff;
+        border-color: rgba(110, 118, 129, 0.5);
+    }
 }
 
 .markdown-content ul,
@@ -1072,4 +1108,9 @@ body {
         padding: 0.5rem;
         margin: 1rem 0;
     }
+}
+
+/* 简单的过渡效果 */
+body {
+    transition: background-color 0.2s ease, color 0.2s ease;
 }

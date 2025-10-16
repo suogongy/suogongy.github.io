@@ -29,12 +29,15 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   marked.setOptions({
     highlight: function(code: string, lang: string) {
       if (lang && hljs.getLanguage(lang)) {
-        return hljs.highlight(code, { language: lang }).value
+        const result = hljs.highlight(code, { language: lang })
+        return result.value
       }
-      return hljs.highlightAuto(code).value
+      const result = hljs.highlightAuto(code)
+      return result.value
     },
     breaks: true,
-    gfm: true
+    gfm: true,
+    langPrefix: 'hljs language-'
   })
 
   // 处理Markdown内容，保留Mermaid和Markmap位置信息

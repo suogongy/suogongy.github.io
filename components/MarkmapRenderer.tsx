@@ -180,91 +180,48 @@ export default function MarkmapRenderer({ content, id }: MarkmapProps) {
 
       const win = window as any
 
-      // 详细检查markmap的各种可能结构
-      const globalKeys = Object.keys(win).filter(key =>
-        key.toLowerCase().includes('markmap')
-      )
-
-      console.log('Available markmap globals:', globalKeys)
-
-      // 检查window.markmap的详细结构
-      if (win.markmap) {
-        console.log('window.markmap structure:', win.markmap)
-        console.log('window.markmap keys:', Object.keys(win.markmap))
-        console.log('window.markmap type:', typeof win.markmap)
-      }
-
-      // 检查不同的可能结构
-      const markmapDirect = !!win.markmap
-      const markmapLib = !!(win.markmap || {}).Markmap
-      const markmapView = !!(win.markmapView || {}).Markmap
-      const markmapAuto = !!(win.Markmap) // 直接全局变量
-
-      console.log('Markmap structure check:', {
-        markmapDirect,
-        markmapLib,
-        markmapView,
-        markmapAuto,
-        availableKeys: globalKeys
-      })
-
-      // 尝试找到可用的Markmap构造函数 - 支持更多可能性
+      // 尝试找到可用的Markmap构造函数
       let MarkmapConstructor = null
       let TransformFunction = null
 
       // 检查不同的可能位置
       if (win.markmap) {
-        // 可能是函数本身
         if (typeof win.markmap === 'function') {
           MarkmapConstructor = win.markmap
-          console.log('Found markmap as function')
-        }
-        // 可能是对象，包含Markmap
-        else if (win.markmap.Markmap) {
+        } else if (win.markmap.Markmap) {
           MarkmapConstructor = win.markmap.Markmap
           TransformFunction = win.markmap.transform
-          console.log('Found markmap.Markmap')
-        }
-        // 可能是对象，包含其他属性
-        else {
-          console.log('Checking markmap object properties:')
+        } else {
           Object.keys(win.markmap).forEach(key => {
-            console.log(`  ${key}:`, typeof win.markmap[key])
             if (key.toLowerCase().includes('mark') || typeof win.markmap[key] === 'function') {
               if (!MarkmapConstructor) {
                 MarkmapConstructor = win.markmap[key]
-                console.log(`Found potential Markmap constructor in: ${key}`)
               }
             }
           })
         }
       }
 
-      // autoloader可能将Markmap放在不同位置
+      // 检查自动加载的markmap
       if (!MarkmapConstructor) {
-        // 检查是否有自动加载的markmap
         const possibleNames = ['Markmap', 'markmap', 'mm']
         possibleNames.forEach(name => {
           if (win[name] && typeof win[name] === 'function') {
             MarkmapConstructor = win[name]
-            console.log(`Found Markmap constructor as ${name}`)
           }
         })
       }
 
-      // 检查是否有d3和transform
+      // 检查d3和transform
       if (!TransformFunction && win.d3 && win.d3.markmap) {
         TransformFunction = win.d3.markmap.transform
-        console.log('Found transform in d3.markmap')
       }
 
-      // 检查其他可能的位置
+      // 检查其他位置
       if (!MarkmapConstructor && win.markmapView && win.markmapView.Markmap) {
         MarkmapConstructor = win.markmapView.Markmap
-        console.log('Found markmapView.Markmap')
       } else if (!MarkmapConstructor && win.Markmap) {
         MarkmapConstructor = win.Markmap
-        console.log('Found global Markmap')
       }
 
       // 临时存储找到的构造函数
@@ -273,9 +230,6 @@ export default function MarkmapRenderer({ content, id }: MarkmapProps) {
           Markmap: MarkmapConstructor,
           transform: TransformFunction || win.markmap?.transform
         }
-        console.log('Markmap constructor found and stored')
-      } else {
-        console.error('No Markmap constructor found in any location')
       }
 
       return !!MarkmapConstructor
@@ -293,7 +247,6 @@ export default function MarkmapRenderer({ content, id }: MarkmapProps) {
       } else if (attempts < maxAttempts) {
         setTimeout(waitForDependencies, 500)
       } else {
-        console.warn('Markmap dependencies failed to load, falling back')
         setStatus('fallback')
       }
     }
@@ -306,13 +259,10 @@ export default function MarkmapRenderer({ content, id }: MarkmapProps) {
         const tempMarkmap = (window as any)._tempMarkmap
         if (tempMarkmap && tempMarkmap.Markmap) {
           setStatus('ready')
-          console.log('Markmap ready for rendering')
         } else {
-          console.error('Markmap constructor not found')
           setStatus('fallback')
         }
       } catch (err) {
-        console.error('Markmap execution error:', err)
         setStatus('fallback')
       }
     }
@@ -327,7 +277,6 @@ export default function MarkmapRenderer({ content, id }: MarkmapProps) {
         const tempMarkmap = (window as any)._tempMarkmap
 
         if (!tempMarkmap || !tempMarkmap.Markmap) {
-          console.error('Markmap not available for rendering')
           setStatus('fallback')
           return
         }
@@ -336,10 +285,7 @@ export default function MarkmapRenderer({ content, id }: MarkmapProps) {
 
         // 如果没有transform函数，使用简化的markdown解析
         const transform = originalTransform || simpleMarkdownTransform
-        if (!originalTransform) {
-          console.warn('Transform function not available, using simple markdown parser')
-        }
-
+  
         // 创建markmap实例
         const mm = Markmap.create(svgRef.current, {
           duration: 300,
@@ -377,16 +323,9 @@ export default function MarkmapRenderer({ content, id }: MarkmapProps) {
         // 解析markdown内容并渲染
         const root = transform(content)
 
-        // 调试：显示解析后的数据结构
-        console.log('Parsed markmap data:', JSON.stringify(root, null, 2))
-        console.log('Original markdown content:', content)
-
         mm.setData(root)
         mm.fit()
-
-        console.log('Markmap rendered successfully')
       } catch (err) {
-        console.error('Markmap rendering error:', err)
         setStatus('fallback')
       }
     }

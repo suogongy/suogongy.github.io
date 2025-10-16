@@ -71,7 +71,7 @@ export default function Navigation({ siteConfig }: NavigationProps) {
           </button>
         )}
         
-        <ul className={`nav-menu ${isMobile ? (isMobileMenuOpen ? 'mobile-open' : 'mobile-closed') : ''}`}>
+          <ul className={`nav-menu ${isMobile ? (isMobileMenuOpen ? 'mobile-open' : 'mobile-closed') : ''}`}>
           {navItems.map(item => (
             <li key={item.id}>
               <Link

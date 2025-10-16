@@ -23,7 +23,7 @@ export default async function RootLayout({
         />
         <link
           rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css"
         />
         <script
           src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"
