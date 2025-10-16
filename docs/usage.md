@@ -193,14 +193,12 @@ npm run deploy:github   # 部署到 GitHub Pages
   {
     "name": "react-hooks-guide.md",
     "title": "React Hooks 完全指南",
-    "date": "2024-01-15",
     "excerpt": "深入解析 React Hooks 的使用方法和最佳实践",
     "tags": ["React", "JavaScript", "前端"]
   },
   {
     "name": "typescript-advanced-types.md", 
     "title": "TypeScript 高级类型系统",
-    "date": "2024-01-10",
     "excerpt": "深入理解 TypeScript 的高级类型和泛型编程",
     "tags": ["TypeScript", "类型系统", "前端"]
   }
@@ -214,7 +212,6 @@ npm run deploy:github   # 部署到 GitHub Pages
 ```markdown
 ---
 title: "React Hooks 完全指南"
-date: "2024-01-15"
 excerpt: "深入解析 React Hooks 的使用方法和最佳实践"
 tags: ["React", "JavaScript", "前端"]
 ---
@@ -269,7 +266,6 @@ function Counter() {
   {
     "name": "my-programming-journey.md",
     "title": "我的编程之路",
-    "date": "2024-01-20", 
     "excerpt": "回顾从零基础到成为全栈开发者的成长历程",
     "tags": ["成长", "回顾", "思考"]
   }
@@ -282,7 +278,6 @@ function Counter() {
 ```markdown
 ---
 title: "我的编程之路"
-date: "2024-01-20"
 excerpt: "回顾从零基础到成为全栈开发者的成长历程"
 tags: ["成长", "回顾", "思考"]
 ---
