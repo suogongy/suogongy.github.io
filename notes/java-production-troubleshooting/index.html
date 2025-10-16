@@ -50,47 +50,145 @@
 </code></pre>
 <h2>CPU问题排查</h2>
 <h3>1. CPU使用率过高</h3>
-<p><strong>排查步骤</strong></p>
-<pre><code class="language-bash"># 1. 查看CPU使用率
+<p><strong>详细排查步骤</strong></p>
+<h3>第一步：确认高CPU进程</h3>
+<pre><code class="language-bash"># 查看系统整体CPU使用情况
+top
+
+# 查看具体Java进程的CPU使用率，将&lt;pid&gt;替换为实际的Java进程ID
 top -p &lt;pid&gt;
 
-# 2. 查看线程CPU使用情况
+# 观察要点：
+# - %CPU列：查看CPU使用率百分比
+# - %MEM列：查看内存使用率
+# - TIME+列：查看累计CPU时间
+# - S列：查看进程状态（R=运行，S=睡眠，D=不可中断睡眠）
+</code></pre>
+<h3>第二步：定位高CPU线程</h3>
+<pre><code class="language-bash"># 查看进程中各个线程的CPU使用情况
 top -H -p &lt;pid&gt;
 
-# 3. 导出线程栈
-jstack &lt;pid&gt; &gt; thread_dump.txt
+# 操作要点：
+# 1. 按Shift+P按CPU使用率排序
+# 2. 记录CPU使用率最高的线程ID（PID列）
+# 3. 通常关注CPU使用率超过80%的线程
+</code></pre>
+<h3>第三步：生成线程栈文件</h3>
+<pre><code class="language-bash"># 生成当前时刻的线程快照
+jstack &lt;pid&gt; &gt; thread_dump_$(date +%Y%m%d_%H%M%S).txt
 
-# 4. 将线程ID转换为16进制
+# 连续生成多次线程快照（间隔5秒，共3次），用于对比分析
+for i in {1..3}
+do
+   jstack &lt;pid&gt; &gt; thread_dump_${i}_$(date +%Y%m%d_%H%M%S).txt
+   sleep 5
+done
+</code></pre>
+<h3>第四步：线程ID转换</h3>
+<pre><code class="language-bash"># 将十进制线程ID转换为十六进制
 printf &quot;%x\n&quot; &lt;thread_id&gt;
 
-# 5. 在线程栈中查找对应线程
-grep -A 20 &lt;hex_thread_id&gt; thread_dump.txt
+# 示例：
+# 如果高CPU线程ID是12345
+printf &quot;%x\n&quot; 12345
+# 输出：3039
 </code></pre>
-<p><strong>自动化排查脚本</strong></p>
-<pre><code class="language-bash">#!/bin/bash
-# cpu_troubleshoot.sh
+<h3>第五步：在线程栈中定位问题线程</h3>
+<pre><code class="language-bash"># 查找特定线程的栈信息
+grep -A 30 &quot;nid=0x&lt;hex_thread_id&gt;&quot; thread_dump.txt
 
-PID=$1
-if [ -z &quot;$PID&quot; ]; then
-    echo &quot;Usage: $0 &lt;pid&gt;&quot;
-    exit 1
-fi
+# 示例：查找线程ID 3039
+grep -A 30 &quot;nid=0x3039&quot; thread_dump.txt
 
-echo &quot;=== CPU使用情况 ===&quot;
-top -p $PID -n 1 | head -20
+# 查看所有线程状态统计
+grep &quot;java.lang.Thread.State:&quot; thread_dump.txt | sort | uniq -c
 
-echo &quot;=== 高CPU线程 ===&quot;
-top -H -p $PID -n 1 | head -20
-
-echo &quot;=== 生成线程栈 ===&quot;
-jstack $PID &gt; thread_dump_$(date +%Y%m%d_%H%M%S).txt
-
-echo &quot;=== 获取GC信息 ===&quot;
-jstat -gc $PID 1s 10
-
-echo &quot;=== 查看堆内存使用 ===&quot;
-jmap -histo $PID | head -20
+# 查找RUNNABLE状态的线程
+grep -A 10 &quot;RUNNABLE&quot; thread_dump.txt
 </code></pre>
+<h3>第六步：分析线程栈找到问题代码</h3>
+<p>根据线程栈信息，重点分析以下几个方面：</p>
+<p><strong>1. 死循环识别</strong></p>
+<pre><code>&quot;Thread-1&quot; #12 prio=5 os_prio=0 tid=0x00007f8c2c018000 nid=0x2a1b runnable [0x00007f8c140fe000]
+   java.lang.Thread.State: RUNNABLE
+        at com.example.DeadLoop.process(DeadLoop.java:23)
+        - locked &lt;0x00000000d5f6b4e0&gt; (a java.lang.Object)
+        at com.example.DeadLoop.run(DeadLoop.java:15)
+</code></pre>
+<p><strong>分析要点：</strong></p>
+<ul>
+<li>查看循环代码位置（文件名:行号）</li>
+<li>确认循环是否有合适的退出条件</li>
+<li>检查是否有异常处理导致的无限循环</li>
+</ul>
+<p><strong>2. 频繁GC导致的高CPU</strong></p>
+<pre><code>&quot;GC Thread#0&quot; os_prio=0 tid=0x00007f8c2c050800 nid=0x2a1c runnable
+&quot;GC Thread#1&quot; os_prio=0 tid=0x00007f8c2c052800 nid=0x2a1d runnable
+</code></pre>
+<p><strong>分析要点：</strong></p>
+<ul>
+<li>检查是否有多个GC线程同时运行</li>
+<li>使用jstat命令监控GC情况</li>
+<li>分析是否内存分配过于频繁</li>
+</ul>
+<p><strong>3. 锁竞争导致的等待</strong></p>
+<pre><code>&quot;Thread-3&quot; #14 prio=5 os_prio=0 tid=0x00007f8c2c028000 nid=0x2a1e waiting for monitor entry [0x00007f8c141ff000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+        at com.example.LockExample.method1(LockExample.java:32)
+        - waiting to lock &lt;0x00000000d5f6b5a0&gt; (a java.lang.Object)
+        - locked &lt;0x00000000d5f6b5b0&gt; (a java.lang.Object)
+</code></pre>
+<p><strong>分析要点：</strong></p>
+<ul>
+<li>查看BLOCKED状态的线程</li>
+<li>确认等待的锁对象</li>
+<li>检查是否存在死锁情况</li>
+</ul>
+<h3>第七步：结合其他工具进行深度分析</h3>
+<pre><code class="language-bash"># 查看GC情况（每秒输出一次，共10次）
+jstat -gc &lt;pid&gt; 1s 10
+
+# 查看堆内存对象分布
+jmap -histo &lt;pid&gt; | head -20
+
+# 查看JVM参数
+jinfo -flags &lt;pid&gt;
+
+# 查看进程的文件描述符使用情况
+lsof -p &lt;pid&gt; | wc -l
+</code></pre>
+<h3>第八步：问题定位和解决方案</h3>
+<p><strong>常见问题和解决方法：</strong></p>
+<ol>
+<li><p><strong>死循环问题</strong></p>
+<ul>
+<li>定位循环代码位置</li>
+<li>添加合适的退出条件</li>
+<li>增加日志输出用于监控</li>
+</ul>
+</li>
+<li><p><strong>算法效率问题</strong></p>
+<ul>
+<li>查看是否有低效算法（如嵌套循环）</li>
+<li>考虑使用更高效的数据结构</li>
+<li>增加缓存机制</li>
+</ul>
+</li>
+<li><p><strong>锁竞争问题</strong></p>
+<ul>
+<li>减少锁的粒度</li>
+<li>使用读写锁替代同步锁</li>
+<li>考虑使用无锁数据结构</li>
+</ul>
+</li>
+<li><p><strong>频繁GC问题</strong></p>
+<ul>
+<li>检查内存分配模式</li>
+<li>优化对象创建</li>
+<li>调整JVM内存参数</li>
+</ul>
+</li>
+</ol>
 <h3>2. Java代码中的CPU问题</h3>
 <p><strong>死循环检测</strong></p>
 <pre><code class="language-java">// 死循环示例
@@ -153,40 +251,187 @@ jhat heap.hprof
 # 4. 使用MAT分析
 # 启动MAT工具，导入heap.hprof文件
 </code></pre>
-<p><strong>OOM分析脚本</strong></p>
-<pre><code class="language-bash">#!/bin/bash
-# oom_analysis.sh
+<p><strong>OOM详细排查步骤</strong></p>
+<h3>第一步：确认OOM现象</h3>
+<pre><code class="language-bash"># 查看系统日志中的OOM信息
+sudo dmesg | grep -i &quot;killed process&quot;
 
-PID=$1
-DUMP_FILE=&quot;heap_$(date +%Y%m%d_%H%M%S).hprof&quot;
+# 查看Java应用日志中的OutOfMemoryError
+tail -1000 /path/to/application.log | grep -i &quot;OutOfMemoryError&quot;
 
-echo &quot;=== 生成堆转储文件 ===&quot;
-jmap -dump:format=b,file=$DUMP_FILE $PID
+# 查看系统内存使用情况
+free -h
+cat /proc/meminfo | grep -E &quot;(MemTotal|MemFree|MemAvailable)&quot;
+</code></pre>
+<h3>第二步：分析JVM内存使用</h3>
+<pre><code class="language-bash"># 实时监控JVM内存使用情况（每秒输出一次，共10次）
+jstat -gc &lt;pid&gt; 1s 10
 
-echo &quot;=== 堆转储文件大小 ===&quot;
-ls -lh $DUMP_FILE
+# 查看JVM堆内存详细信息
+jstat -gcutil &lt;pid&gt; 1000 5
 
-echo &quot;=== 使用MAT分析 ===&quot;
-echo &quot;请使用MAT工具打开 $DUMP_FILE 进行分析&quot;
+# 查看新生代和老年代的使用情况
+jstat -gcnew &lt;pid&gt; 1000 3
+jstat -gcold &lt;pid&gt; 1000 3
+</code></pre>
+<p><strong>输出结果分析：</strong></p>
+<ul>
+<li><strong>YGC</strong>: 年轻代GC次数</li>
+<li><strong>FGC</strong>: 老年代GC次数</li>
+<li><strong>FGCT</strong>: 老年代GC耗时</li>
+<li><strong>GCT</strong>: 总GC耗时</li>
+<li><strong>E</strong>: 新生代使用率</li>
+<li><strong>O</strong>: 老年代使用率</li>
+</ul>
+<h3>第三步：生成堆转储文件</h3>
+<pre><code class="language-bash"># 生成当前时刻的堆转储文件
+jmap -dump:format=b,file=heap_$(date +%Y%m%d_%H%M%S).hprof &lt;pid&gt;
 
-# 自动分析脚本
-cat &gt; oom_analysis.py &lt;&lt; &#39;EOF&#39;
-import sys
-import re
+# 如果堆内存过大（超过8GB），可以只转储活跃对象
+jmap -dump:live,format=b,file=heap_live_$(date +%Y%m%d_%H%M%S).hprof &lt;pid&gt;
 
-def analyze_heap_dump(file_path):
-    # 这里可以添加自动分析逻辑
-    print(f&quot;分析堆转储文件: {file_path}&quot;)
-    
-if __name__ == &quot;__main__&quot;:
-    if len(sys.argv) != 2:
-        print(&quot;Usage: python oom_analysis.py &lt;heap_dump_file&gt;&quot;)
-        sys.exit(1)
-    
-    analyze_heap_dump(sys.argv[1])
-EOF
+# 检查生成的堆转储文件大小
+ls -lh heap_*.hprof
+</code></pre>
+<h3>第四步：分析堆转储文件</h3>
+<p><strong>使用jhat进行分析（适用于小型堆转储）</strong></p>
+<pre><code class="language-bash"># 启动jhat服务器（默认端口7000）
+jhat heap_20231201_143022.hprof
 
-python oom_analysis.py $DUMP_FILE
+# 浏览器访问分析结果
+# http://localhost:7000
+
+# 查看堆使用概览
+curl http://localhost:7000/histo/
+
+# 查看对象实例统计
+curl http://localhost:7000/showHeapHistogram/
+
+# 停止jhat服务
+pkill jhat
+</code></pre>
+<p><strong>使用MAT（Memory Analyzer Tool）进行深度分析</strong></p>
+<pre><code class="language-bash"># 下载并安装MAT（如果尚未安装）
+# wget https://www.eclipse.org/downloads/download.php?file=/mat/1.14.0/rcp/MemoryAnalyzer-1.14.0.20230315-macosx.cocoa.x86_64.dmg
+
+# 启动MAT工具
+# /path/to/mat/MemoryAnalyzer
+
+# 在MAT中打开堆转储文件并进行分析
+</code></pre>
+<p><strong>MAT分析重点：</strong></p>
+<ol>
+<li><strong>Leak Suspects Report</strong> - 自动检测可能的内存泄漏</li>
+<li><strong>Dominator Tree</strong> - 查看占用内存最大的对象</li>
+<li><strong>Histogram</strong> - 对象实例数量统计</li>
+<li><strong>Thread Dump</strong> - 查看线程相关的对象引用</li>
+</ol>
+<h3>第五步：分析对象分布情况</h3>
+<pre><code class="language-bash"># 查看堆中对象数量和内存占用排序
+jmap -histo &lt;pid&gt; | head -20
+
+# 将结果保存到文件
+jmap -histo &lt;pid&gt; &gt; heap_objects_$(date +%Y%m%d_%H%M%S).txt
+
+# 查看特定类的对象实例
+jmap -histo &lt;pid&gt; | grep &quot;com.example.YourClass&quot;
+
+# 查看字符串对象的内存占用
+jmap -histo &lt;pid&gt; | grep &quot;java.lang.String&quot;
+</code></pre>
+<h3>第六步：检查GC配置和行为</h3>
+<pre><code class="language-bash"># 查看当前JVM参数
+jinfo -flags &lt;pid&gt;
+
+# 查看GC详细信息
+jstat -gcutil &lt;pid&gt; 1s 10 | tee gc_usage_$(date +%Y%m%d_%H%M%S).log
+
+# 查看GC日志（如果开启了GC日志）
+tail -f /path/to/gc.log
+</code></pre>
+<h3>第七步：分析常见OOM类型及解决方案</h3>
+<p><strong>1. Java heap space OOM</strong></p>
+<pre><code>java.lang.OutOfMemoryError: Java heap space
+</code></pre>
+<p><strong>排查步骤：</strong></p>
+<ul>
+<li>检查堆内存配置：<code>-Xms</code> 和 <code>-Xmx</code></li>
+<li>分析堆转储文件，找到占用内存最多的对象</li>
+<li>检查是否存在内存泄漏（静态集合、缓存未清理等）</li>
+</ul>
+<p><strong>解决方案：</strong></p>
+<pre><code class="language-bash"># 增加堆内存
+-Xms2g -Xmx4g
+
+# 或者优化代码，减少内存占用
+# 1. 及时释放不需要的对象引用
+# 2. 使用弱引用或软引用
+# 3. 避免一次性加载大量数据
+</code></pre>
+<p><strong>2. Metaspace OOM</strong></p>
+<pre><code>java.lang.OutOfMemoryError: Metaspace
+</code></pre>
+<p><strong>排查步骤：</strong></p>
+<ul>
+<li>检查元空间使用情况</li>
+<li>查看类加载器的信息</li>
+</ul>
+<p><strong>解决方案：</strong></p>
+<pre><code class="language-bash"># 增加元空间大小
+-XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m
+
+# 或者优化类加载机制
+# 1. 避免热部署导致的类重复加载
+# 2. 使用合理的类加载器策略
+</code></pre>
+<p><strong>3. GC overhead limit exceeded</strong></p>
+<pre><code>java.lang.OutOfMemoryError: GC overhead limit exceeded
+</code></pre>
+<p><strong>排查步骤：</strong></p>
+<ul>
+<li>检查GC频率和耗时</li>
+<li>分析对象创建和回收模式</li>
+</ul>
+<p><strong>解决方案：</strong></p>
+<pre><code class="language-bash"># 调整GC参数
+-XX:+UseG1GC -XX:MaxGCPauseMillis=200
+
+# 或者优化对象生命周期
+# 1. 减少临时对象的创建
+# 2. 优化数据结构选择
+</code></pre>
+<p><strong>4. Unable to create new native thread</strong></p>
+<pre><code>java.lang.OutOfMemoryError: unable to create new native thread
+</code></pre>
+<p><strong>排查步骤：</strong></p>
+<ul>
+<li>检查线程数限制</li>
+<li>查看线程池配置</li>
+</ul>
+<p><strong>解决方案：</strong></p>
+<pre><code class="language-bash"># 增加线程数限制
+ulimit -u 4096
+
+# 或优化线程池配置
+# 1. 合理设置最大线程数
+# 2. 使用线程池复用线程
+</code></pre>
+<h3>第八步：预防措施和监控</h3>
+<pre><code class="language-bash"># 设置JVM参数开启详细的GC日志
+-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:/path/to/gc.log
+
+# 设置OOM时自动生成堆转储
+-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/path/to/dumps/
+
+# 监控脚本示例
+while true; do
+    memory_usage=$(jstat -gcutil &lt;pid&gt; | tail -1 | awk &#39;{print $4}&#39;)
+    if [ $memory_usage -gt 90 ]; then
+        echo &quot;警告：内存使用率过高: $memory_usage%&quot;
+        jmap -dump:format=b,file=heap_warning_$(date +%Y%m%d_%H%M%S).hprof &lt;pid&gt;
+    fi
+    sleep 60
+done
 </code></pre>
 <h3>2. 内存泄漏检测</h3>
 <p><strong>内存泄漏常见场景</strong></p>
@@ -248,20 +493,135 @@ public class MemoryLeakDetector {
 </code></pre>
 <h2>线程问题排查</h2>
 <h3>1. 死锁检测</h3>
-<p><strong>死锁检测脚本</strong></p>
-<pre><code class="language-bash">#!/bin/bash
-# deadlock_detector.sh
+<p><strong>死锁详细排查步骤</strong></p>
+<h3>第一步：生成线程快照</h3>
+<pre><code class="language-bash"># 生成当前时刻的线程栈快照
+jstack &lt;pid&gt; &gt; thread_dump_$(date +%Y%m%d_%H%M%S).txt
 
-PID=$1
+# 连续生成多次线程快照（间隔10秒，共3次），用于对比分析
+for i in {1..3}
+do
+   jstack &lt;pid&gt; &gt; thread_dump_deadlock_${i}_$(date +%Y%m%d_%H%M%S).txt
+   sleep 10
+done
+</code></pre>
+<h3>第二步：检测死锁信息</h3>
+<pre><code class="language-bash"># 查找死锁信息
+grep -A 50 &quot;Found one Java-level deadlock&quot; thread_dump.txt
 
-echo &quot;=== 检测死锁 ===&quot;
-jstack $PID | grep -A 20 &quot;Found one Java-level deadlock&quot;
+# 如果存在死锁，会显示类似以下信息：
+# Found one Java-level deadlock:
+# ===================
+# &quot;Thread-1&quot;:
+#   waiting to lock monitor 0x00007f8c2c0063e8 (object 0x00000000d5f6b5a0, a java.lang.Object),
+#   which is held by &quot;Thread-2&quot;
+# &quot;Thread-2&quot;:
+#   waiting to lock monitor 0x00007f8c2c0055e8 (object 0x00000000d5f6b5b0, a java.lang.Object),
+#   which is held by &quot;Thread-1&quot;
+</code></pre>
+<h3>第三步：分析线程状态分布</h3>
+<pre><code class="language-bash"># 统计各种线程状态的数量
+grep &quot;java.lang.Thread.State:&quot; thread_dump.txt | sort | uniq -c | sort -nr
 
-echo &quot;=== 线程状态统计 ===&quot;
-jstack $PID | grep -E &quot;java.lang.Thread.State:&quot; | sort | uniq -c
+# 查看所有阻塞状态的线程
+grep -B 5 -A 10 &quot;BLOCKED&quot; thread_dump.txt
 
-echo &quot;=== 阻塞线程 ===&quot;
-jstack $PID | grep -A 5 &quot;BLOCKED&quot;
+# 查看所有等待状态的线程
+grep -B 5 -A 10 &quot;WAITING&quot; thread_dump.txt
+
+# 查看所有 timed_waiting 状态的线程
+grep -B 5 -A 10 &quot;TIMED_WAITING&quot; thread_dump.txt
+</code></pre>
+<h3>第四步：定位阻塞的线程</h3>
+<pre><code class="language-bash"># 查找所有被阻塞的线程及其等待的锁
+grep -A 15 &quot;waiting to lock&quot; thread_dump.txt
+
+# 查找所有持有锁的线程
+grep -A 10 &quot;locked&quot; thread_dump.txt
+
+# 查看具体的锁对象信息
+grep -E &quot;(waiting to lock|locked)&quot; thread_dump.txt | grep -E &quot;0x[0-9a-f]+&quot;
+</code></pre>
+<h3>第五步：分析死锁的具体情况</h3>
+<p><strong>死锁识别标准：</strong></p>
+<ol>
+<li>两个或多个线程互相等待对方持有的锁</li>
+<li>线程处于BLOCKED状态，且等待的锁被其他线程持有</li>
+<li>形成循环等待链</li>
+</ol>
+<p><strong>死锁信息解读：</strong></p>
+<pre><code>示例死锁输出：
+&quot;Thread-A&quot; #10 prio=5 os_prio=0 tid=0x00007f8c2c018000 nid=0x2a1b waiting for monitor entry [0x00007f8c140fe000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+        at com.example.DeadlockExample.method1(DeadlockExample.java:25)
+        - waiting to lock &lt;0x00000000d5f6b5a0&gt; (a java.lang.Object)
+        - locked &lt;0x00000000d5f6b5b0&gt; (a java.lang.Object)
+
+&quot;Thread-B&quot; #11 prio=5 os_prio=0 tid=0x00007f8c2c028000 nid=0x2a1c waiting for monitor entry [0x00007f8c141ff000]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+        at com.example.DeadlockExample.method2(DeadlockExample.java:35)
+        - waiting to lock &lt;0x00000000d5f6b5b0&gt; (a java.lang.Object)
+        - locked &lt;0x00000000d5f6b5a0&gt; (a java.lang.Object)
+</code></pre>
+<p><strong>分析要点：</strong></p>
+<ul>
+<li>Thread-A 等待锁 0x00000000d5f6b5a0，持有锁 0x00000000d5f6b5b0</li>
+<li>Thread-B 等待锁 0x00000000d5f6b5b0，持有锁 0x00000000d5f6b5a0</li>
+<li>形成循环等待，导致死锁</li>
+</ul>
+<h3>第六步：结合代码定位问题</h3>
+<pre><code class="language-bash"># 查看死锁发生的具体代码位置
+grep -B 10 -A 5 &quot;waiting to lock.*0x00000000d5f6b5a0&quot; thread_dump.txt
+
+# 查看涉及死锁的方法调用链
+grep -E &quot;at com\.&quot; thread_dump.txt | grep -E &quot;(DeadlockExample|method1|method2)&quot;
+</code></pre>
+<h3>第七步：其他锁问题分析</h3>
+<p><strong>锁竞争分析：</strong></p>
+<pre><code class="language-bash"># 查看被多个线程等待的锁对象
+grep &quot;waiting to lock&quot; thread_dump.txt | awk &#39;{print $6}&#39; | sort | uniq -c | sort -nr
+
+# 查看持有锁时间较长的线程
+grep -A 20 &quot;locked.*0x&quot; thread_dump.txt
+</code></pre>
+<p><strong>活锁检测：</strong></p>
+<pre><code class="language-bash"># 查看频繁改变状态的线程
+grep -E &quot;(RUNNABLE|TIMED_WAITING)&quot; thread_dump.txt | head -20
+</code></pre>
+<h3>第八步：死锁解决方案</h3>
+<p><strong>1. 代码层面解决：</strong></p>
+<ul>
+<li>按固定顺序获取锁</li>
+<li>减少锁的持有时间</li>
+<li>使用tryLock()方法</li>
+<li>使用超时机制</li>
+</ul>
+<p><strong>2. 检测和恢复：</strong></p>
+<pre><code class="language-bash"># 启用JVM死锁检测参数
+-XX:+PrintConcurrentLocks -XX:+PrintGCDetails
+
+# 定期检查死锁的监控脚本
+while true; do
+    deadlock_count=$(jstack &lt;pid&gt; | grep -c &quot;Found one Java-level deadlock&quot;)
+    if [ $deadlock_count -gt 0 ]; then
+        echo &quot;警告：检测到死锁！&quot;
+        jstack &lt;pid&gt; &gt; deadlock_detected_$(date +%Y%m%d_%H%M%S).txt
+    fi
+    sleep 30
+done
+</code></pre>
+<h3>第九步：预防措施</h3>
+<pre><code class="language-bash"># JVM参数配置
+-XX:+PrintConcurrentLocks          # 打印并发锁信息
+-XX:+PrintGCApplicationStoppedTime # 打印GC停止时间
+-XX:+PrintSafepointStatistics      # 打印安全点统计
+-XX:+PrintGCApplicationConcurrentTime # 打印应用并发时间
+
+# 代码审查重点：
+# 1. 检查锁的获取顺序是否一致
+# 2. 确认所有锁都有对应的释放操作
+# 3. 避免在持锁时调用外部方法
+# 4. 使用ReentrantLock替代synchronized关键字
 </code></pre>
 <p><strong>死锁示例和分析</strong></p>
 <pre><code class="language-java">// 死锁示例
@@ -424,27 +784,178 @@ public class ConnectionPoolMonitor {
 &lt;/configuration&gt;
 </code></pre>
 <h3>2. 日志分析脚本</h3>
-<p><strong>错误日志分析</strong></p>
-<pre><code class="language-bash">#!/bin/bash
-# log_analyzer.sh
+<p><strong>错误日志详细分析步骤</strong></p>
+<h3>第一步：错误日志基础分析</h3>
+<pre><code class="language-bash"># 统计各类错误的出现次数
+grep -E &quot;ERROR|WARN|Exception&quot; /path/to/application.log | awk &#39;{print $1, $2}&#39; | sort | uniq -c | sort -nr
 
-LOG_FILE=$1
-if [ -z &quot;$LOG_FILE&quot; ]; then
-    echo &quot;Usage: $0 &lt;log_file&gt;&quot;
-    exit 1
-fi
+# 查看最近的错误信息（最近50行）
+tail -500 /path/to/application.log | grep -E &quot;ERROR|Exception&quot; | tail -20
 
-echo &quot;=== 错误统计 ===&quot;
-grep -E &quot;ERROR|Exception&quot; $LOG_FILE | awk &#39;{print $1, $2}&#39; | sort | uniq -c | sort -nr
+# 按时间顺序查看错误分布
+grep -E &quot;ERROR|Exception&quot; /path/to/application.log | awk &#39;{print $1, $2}&#39; | uniq -c
+</code></pre>
+<h3>第二步：异常类型分析</h3>
+<pre><code class="language-bash"># 统计各类异常的出现频率
+grep -E &quot;Exception&quot; /path/to/application.log | sed &#39;s/.*\(.*Exception\).*/\1/&#39; | sort | uniq -c | sort -nr
 
-echo &quot;=== 最近错误 ===&quot;
-tail -100 $LOG_FILE | grep -E &quot;ERROR|Exception&quot; | tail -10
+# 查看最常见的5种异常
+grep -E &quot;Exception&quot; /path/to/application.log | sed &#39;s/.*\(.*Exception\).*/\1/&#39; | sort | uniq -c | sort -nr | head -5
 
-echo &quot;=== HTTP 5xx错误 ===&quot;
-grep -E &quot;HTTP/1\.[01]\&quot; [5][0-9][0-9]&quot; $LOG_FILE | awk &#39;{print $7}&#39; | sort | uniq -c | sort -nr
+# 分析特定异常的详细信息
+grep -A 10 -B 5 &quot;NullPointerException&quot; /path/to/application.log
+</code></pre>
+<h3>第三步：HTTP错误分析</h3>
+<pre><code class="language-bash"># 统计HTTP 5xx服务器错误
+grep -E &quot;HTTP/1\.[01]\&quot; [5][0-9][0-9]&quot; /path/to/access.log | awk &#39;{print $9}&#39; | sort | uniq -c | sort -nr
 
-echo &quot;=== 慢查询日志 ===&quot;
-grep -E &quot;took.*ms&quot; $LOG_FILE | awk &#39;$NF &gt; 1000 {print $0}&#39;
+# 统计HTTP 4xx客户端错误
+grep -E &quot;HTTP/1\.[01]\&quot; [4][0-9][0-9]&quot; /path/to/access.log | awk &#39;{print $9}&#39; | sort | uniq -c | sort -nr
+
+# 查看具体的错误页面
+grep -E &quot;HTTP/1\.[01]\&quot; 5[0-9][0-9]&quot; /path/to/access.log | awk &#39;{print $7}&#39; | sort | uniq -c | sort -nr | head -10
+
+# 分析错误率（总请求数与错误数的比例）
+total_requests=$(grep -c &quot;HTTP/1\.[01]&quot; /path/to/access.log)
+error_requests=$(grep -c &quot;HTTP/1\.[01]\&quot; [5][0-9][0-9]&quot; /path/to/access.log)
+error_rate=$(echo &quot;scale=2; $error_requests * 100 / $total_requests&quot; | bc)
+echo &quot;错误率: ${error_rate}%&quot;
+</code></pre>
+<h3>第四步：性能日志分析</h3>
+<pre><code class="language-bash"># 查找慢请求（响应时间超过1000ms）
+grep -E &quot;took.*ms&quot; /path/to/application.log | awk &#39;$NF &gt; 1000 {print $0}&#39; | sort -k4 -nr
+
+# 统计不同接口的响应时间
+grep -E &quot;took.*ms&quot; /path/to/application.log | awk &#39;{gsub(/took/, &quot;&quot;, $NF); gsub(/ms/, &quot;&quot;, $NF); print $7, $NF}&#39; | sort | uniq -c | sort -k2 -nr
+
+# 查找最慢的10个请求
+grep -E &quot;took.*ms&quot; /path/to/application.log | awk &#39;{print $0}&#39; | sort -k4 -nr | head -10
+
+# 分析数据库慢查询
+grep -E &quot;slow.*query|timeout&quot; /path/to/application.log | tail -20
+</code></pre>
+<h3>第五步：时间段分析</h3>
+<pre><code class="language-bash"># 按小时统计错误数量
+grep -E &quot;ERROR|Exception&quot; /path/to/application.log | awk &#39;{print substr($2,1,2)}&#39; | sort | uniq -c | sort -nr
+
+# 按日期统计错误趋势
+grep -E &quot;ERROR|Exception&quot; /path/to/application.log | awk &#39;{print $1}&#39; | sort | uniq -c
+
+# 查看特定时间段的错误（比如最近1小时）
+find . -name &quot;*.log&quot; -mmin -60 -exec grep -E &quot;ERROR|Exception&quot; {} \;
+
+# 实时监控错误日志
+tail -f /path/to/application.log | grep -E &quot;ERROR|Exception&quot;
+</code></pre>
+<h3>第六步：堆栈跟踪分析</h3>
+<pre><code class="language-bash"># 提取完整的异常堆栈信息
+grep -A 20 &quot;Exception&quot; /path/to/application.log | grep -v &quot;^--$&quot;
+
+# 统计最常见的错误堆栈起始点
+grep -A 5 &quot;Exception&quot; /path/to/application.log | grep &quot;at &quot; | awk &#39;{print $2}&#39; | sort | uniq -c | sort -nr | head -10
+
+# 分析特定包下的异常
+grep -A 15 &quot;Exception&quot; /path/to/application.log | grep &quot;at com\.yourcompany\.&quot; | sort | uniq -c | sort -nr
+</code></pre>
+<h3>第七步：日志文件管理</h3>
+<pre><code class="language-bash"># 查看日志文件大小
+ls -lh /path/to/logs/
+
+# 查看日志文件的修改时间
+ls -lt /path/to/logs/*.log
+
+# 压缩旧日志文件
+find /path/to/logs/ -name &quot;*.log&quot; -mtime +7 -exec gzip {} \;
+
+# 清理超过30天的日志文件
+find /path/to/logs/ -name &quot;*.log.gz&quot; -mtime +30 -delete
+
+# 查看磁盘使用情况
+df -h /path/to/logs/
+</code></pre>
+<h3>第八步：跨文件日志分析</h3>
+<pre><code class="language-bash"># 同时分析多个日志文件
+grep -E &quot;ERROR|Exception&quot; /path/to/logs/*.log
+
+# 按时间顺序合并多个日志文件
+cat /path/to/logs/app-*.log | sort | uniq &gt; /tmp/combined_logs.log
+
+# 查找特定错误在所有日志文件中的分布
+grep -r &quot;NullPointerException&quot; /path/to/logs/
+
+# 统计每个日志文件中的错误数量
+for file in /path/to/logs/*.log; do
+    error_count=$(grep -c &quot;ERROR&quot; &quot;$file&quot;)
+    echo &quot;$file: $error_count errors&quot;
+done
+</code></pre>
+<h3>第九步：日志分析进阶技巧</h3>
+<p><strong>使用awk进行复杂分析：</strong></p>
+<pre><code class="language-bash"># 统计每个小时的错误类型分布
+grep -E &quot;ERROR|Exception&quot; /path/to/application.log | awk &#39;{
+    hour = substr($2,1,2);
+    if(/ERROR/) type=&quot;ERROR&quot;;
+    else if(/Exception/) type=&quot;EXCEPTION&quot;;
+    count[hour][type]++;
+} END {
+    for(h in count) {
+        for(t in count[h]) {
+            printf &quot;%s时 %s: %d\n&quot;, h, t, count[h][t];
+        }
+    }
+}&#39;
+
+# 分析错误间隔时间
+grep -E &quot;ERROR&quot; /path/to/application.log | awk &#39;{
+    split($2, time, &quot;:&quot;);
+    current_seconds = time[1]*3600 + time[2]*60 + time[3];
+    if(prev_seconds &gt; 0) {
+        interval = current_seconds - prev_seconds;
+        print &quot;错误间隔: &quot; interval &quot;秒&quot;;
+    }
+    prev_seconds = current_seconds;
+}&#39;
+</code></pre>
+<p><strong>实时监控和告警：</strong></p>
+<pre><code class="language-bash"># 实时监控特定错误并告警
+tail -f /path/to/application.log | while read line; do
+    if echo &quot;$line&quot; | grep -q &quot;OutOfMemoryError&quot;; then
+        echo &quot;严重告警：检测到内存溢出错误！&quot;
+        # 发送告警通知
+    fi
+done
+
+# 错误频率监控
+error_count=0
+while true; do
+    new_errors=$(grep -c &quot;ERROR&quot; /path/to/application.log)
+    if [ $new_errors -gt $error_count ]; then
+        echo &quot;检测到新的错误，当前错误总数: $new_errors&quot;
+        error_count=$new_errors
+    fi
+    sleep 60
+done
+</code></pre>
+<h3>第十步：日志分析工具推荐</h3>
+<p><strong>常用工具组合：</strong></p>
+<pre><code class="language-bash"># 使用multitail同时查看多个日志文件
+multitail /path/to/application.log /path/to/access.log
+
+# 使用ccze为日志添加颜色
+tail -f /path/to/application.log | ccze
+
+# 使用lnav进行高级日志分析
+lnav /path/to/application.log
+</code></pre>
+<p><strong>性能优化的grep命令：</strong></p>
+<pre><code class="language-bash"># 使用fgrep进行固定字符串搜索（更快）
+fgrep &quot;ERROR&quot; /path/to/large_file.log
+
+# 使用ripgrep（如果安装）进行更快的搜索
+rg &quot;ERROR&quot; /path/to/logs/
+
+# 并行搜索多个文件
+find /path/to/logs/ -name &quot;*.log&quot; -exec grep -l &quot;ERROR&quot; {} \;
 </code></pre>
 <h2>性能监控工具</h2>
 <h3>1. JVM监控</h3>
@@ -573,51 +1084,247 @@ public class PerformanceMonitor {
    └── 更新应急预案
 </code></pre>
 <h3>2. 应急脚本</h3>
-<p><strong>服务快速重启脚本</strong></p>
-<pre><code class="language-bash">#!/bin/bash
-# emergency_restart.sh
+<p><strong>应急处理详细操作步骤</strong></p>
+<h3>第一步：故障快速评估</h3>
+<pre><code class="language-bash"># 1. 检查服务状态
+systemctl status your-service-name
+# 或使用旧版本的service命令
+service your-service-name status
 
-SERVICE_NAME=$1
-if [ -z &quot;$SERVICE_NAME&quot; ]; then
-    echo &quot;Usage: $0 &lt;service_name&gt;&quot;
-    exit 1
-fi
+# 2. 检查端口占用情况
+netstat -tlnp | grep :8080
+# 或使用ss命令（更现代）
+ss -tlnp | grep :8080
 
-echo &quot;=== 紧急重启服务: $SERVICE_NAME ===&quot;
+# 3. 检查进程状态
+ps aux | grep java
+ps -ef | grep your-application-name
 
-# 1. 备份当前状态
-echo &quot;备份服务状态...&quot;
-systemctl status $SERVICE_NAME &gt; service_status_$(date +%Y%m%d_%H%M%S).txt
-
-# 2. 停止服务
-echo &quot;停止服务...&quot;
-systemctl stop $SERVICE_NAME
-
-# 3. 等待服务完全停止
-sleep 5
-
-# 4. 检查端口是否释放
-PORT=$(netstat -tlnp | grep $SERVICE_NAME | awk &#39;{print $4}&#39; | cut -d: -f2)
-if [ -n &quot;$PORT&quot; ]; then
-    echo &quot;端口 $PORT 仍被占用，强制终止进程...&quot;
-    pkill -f $SERVICE_NAME
-fi
-
-# 5. 启动服务
-echo &quot;启动服务...&quot;
-systemctl start $SERVICE_NAME
-
-# 6. 检查服务状态
-echo &quot;检查服务状态...&quot;
-systemctl status $SERVICE_NAME
-
-# 7. 验证服务可用性
-echo &quot;验证服务可用性...&quot;
-sleep 10
-curl -f http://localhost:8080/health || echo &quot;服务健康检查失败&quot;
-
-echo &quot;=== 重启完成 ===&quot;
+# 4. 检查系统资源
+free -h                    # 内存使用情况
+df -h                      # 磁盘空间
+top -b -n1 | head -20      # CPU使用情况
 </code></pre>
+<h3>第二步：备份关键信息</h3>
+<pre><code class="language-bash"># 1. 备份服务状态信息
+systemctl status your-service-name &gt; service_backup_$(date +%Y%m%d_%H%M%S).txt
+
+# 2. 备份配置文件
+cp /path/to/your/application.properties config_backup_$(date +%Y%m%d_%H%M%S).properties
+cp /path/to/your/application.yml config_backup_$(date +%Y%m%d_%H%M%S).yml
+
+# 3. 备份最近的日志
+cp /path/to/logs/application.log /tmp/application_before_restart_$(date +%Y%m%d_%H%M%S).log
+
+# 4. 生成故障时刻的线程快照
+jstack &lt;pid&gt; &gt; thread_dump_emergency_$(date +%Y%m%d_%H%M%S).txt
+
+# 5. 生成故障时刻的堆转储（如果内存问题）
+jmap -dump:format=b,file=heap_emergency_$(date +%Y%m%d_%H%M%S).hprof &lt;pid&gt;
+</code></pre>
+<h3>第三步：停止应用服务</h3>
+<pre><code class="language-bash"># 方法1：优雅停止（推荐）
+systemctl stop your-service-name
+
+# 方法2：使用kill命令（如果systemctl无效）
+kill -15 &lt;pid&gt;  # 发送TERM信号，优雅停止
+
+# 方法3：强制停止（最后手段）
+kill -9 &lt;pid&gt;   # 发送KILL信号，强制停止
+
+# 等待服务完全停止
+sleep 10
+
+# 验证进程已停止
+ps aux | grep java | grep your-application-name
+</code></pre>
+<h3>第四步：检查端口和资源释放</h3>
+<pre><code class="language-bash"># 检查端口是否已释放
+netstat -tlnp | grep :8080
+
+# 如果端口仍被占用，查找占用进程
+lsof -i :8080
+
+# 强制释放端口（如有必要）
+fuser -k 8080/tcp
+
+# 检查文件描述符是否释放
+lsof -p &lt;pid&gt; | wc -l
+
+# 检查临时文件清理
+ls -la /tmp/ | grep your-app
+</code></pre>
+<h3>第五步：启动应用服务</h3>
+<pre><code class="language-bash"># 方法1：使用systemctl（推荐）
+systemctl start your-service-name
+
+# 方法2：使用service命令
+service your-service-name start
+
+# 方法3：直接启动（如果有启动脚本）
+/path/to/your/startup.sh
+
+# 方法4：使用java命令直接启动
+java -jar -Xms2g -Xmx4g your-application.jar
+
+# 等待服务启动完成
+sleep 30
+</code></pre>
+<h3>第六步：验证服务状态</h3>
+<pre><code class="language-bash"># 1. 检查服务状态
+systemctl status your-service-name
+
+# 2. 检查进程是否运行
+ps aux | grep java | grep your-application-name
+
+# 3. 检查端口是否监听
+netstat -tlnp | grep :8080
+
+# 4. 检查应用日志
+tail -50 /path/to/logs/application.log
+
+# 5. 执行健康检查
+curl -f http://localhost:8080/actuator/health
+# 或使用其他健康检查端点
+curl -f http://localhost:8080/health
+curl -f http://localhost:8080/api/health
+</code></pre>
+<h3>第七步：功能验证</h3>
+<pre><code class="language-bash"># 1. 检查关键接口
+curl -X GET http://localhost:8080/api/critical-endpoint
+
+# 2. 检查数据库连接
+curl -X GET http://localhost:8080/api/db-status
+
+# 3. 检查外部依赖
+curl -X GET http://localhost:8080/api/external-deps-status
+
+# 4. 检查缓存状态
+curl -X GET http://localhost:8080/api/cache-status
+
+# 5. 验证业务核心功能
+curl -X POST http://localhost:8080/api/business-function -d &quot;test data&quot;
+</code></pre>
+<h3>第八步：监控服务稳定性</h3>
+<pre><code class="language-bash"># 1. 持续监控服务状态
+watch -n 5 &#39;systemctl status your-service-name&#39;
+
+# 2. 监控错误日志
+tail -f /path/to/logs/application.log | grep -E &quot;ERROR|WARN&quot;
+
+# 3. 监控资源使用
+top -p &lt;pid&gt;
+
+# 4. 监控GC情况
+jstat -gc &lt;pid&gt; 5s
+
+# 5. 监控HTTP响应
+while true; do
+    response=$(curl -s -o /dev/null -w &quot;%{http_code}&quot; http://localhost:8080/health)
+    echo &quot;$(date): HTTP响应码: $response&quot;
+    if [ $response -ne 200 ]; then
+        echo &quot;警告：服务响应异常&quot;
+    fi
+    sleep 10
+done
+</code></pre>
+<h3>第九步：不同场景的应急处理</h3>
+<p><strong>内存溢出场景：</strong></p>
+<pre><code class="language-bash"># 1. 检查内存使用
+free -h
+jstat -gc &lt;pid&gt;
+
+# 2. 增加堆内存重启
+java -Xms4g -Xmx8g -XX:+HeapDumpOnOutOfMemoryError your-application.jar
+
+# 3. 设置OOM时自动dump
+-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/path/to/dumps/
+</code></pre>
+<p><strong>CPU过高场景：</strong></p>
+<pre><code class="language-bash"># 1. 生成线程快照
+jstack &lt;pid&gt; &gt; high_cpu_threads.txt
+
+# 2. 分析高CPU线程
+top -H -p &lt;pid&gt;
+
+# 3. 查找问题线程
+thread_id=$(top -H -p &lt;pid&gt; -b -n1 | grep java | head -1 | awk &#39;{print $1}&#39;)
+hex_id=$(printf &quot;%x\n&quot; $thread_id)
+grep -A 20 &quot;nid=0x$hex_id&quot; high_cpu_threads.txt
+</code></pre>
+<p><strong>数据库连接池耗尽：</strong></p>
+<pre><code class="language-bash"># 1. 检查数据库连接
+show processlist;  # MySQL
+
+# 2. 重启应用前检查连接
+netstat -an | grep :3306 | wc -l
+
+# 3. 调整连接池配置
+spring.datasource.hikari.maximum-pool-size=50
+</code></pre>
+<p><strong>磁盘空间不足：</strong></p>
+<pre><code class="language-bash"># 1. 清理日志文件
+find /path/to/logs -name &quot;*.log&quot; -mtime +7 -delete
+
+# 2. 清理临时文件
+find /tmp -name &quot;*tmp*&quot; -mtime +1 -delete
+
+# 3. 压缩大文件
+gzip /path/to/large/log/file.log
+</code></pre>
+<h3>第十步：预防措施和监控设置</h3>
+<p><strong>设置监控脚本：</strong></p>
+<pre><code class="language-bash"># 创建服务监控脚本
+cat &gt; /usr/local/bin/monitor_service.sh &lt;&lt; &#39;EOF&#39;
+#!/bin/bash
+SERVICE_NAME=&quot;your-service-name&quot;
+LOG_FILE=&quot;/var/log/service_monitor.log&quot;
+
+check_service() {
+    if ! systemctl is-active --quiet $SERVICE_NAME; then
+        echo &quot;$(date): 服务 $SERVICE_NAME 未运行，尝试重启&quot; &gt;&gt; $LOG_FILE
+        systemctl restart $SERVICE_NAME
+    fi
+
+    # 检查健康状态
+    response=$(curl -s -o /dev/null -w &quot;%{http_code}&quot; http://localhost:8080/health 2&gt;/dev/null)
+    if [ &quot;$response&quot; != &quot;200&quot; ]; then
+        echo &quot;$(date): 服务健康检查失败，响应码: $response&quot; &gt;&gt; $LOG_FILE
+    fi
+}
+
+check_service
+EOF
+
+chmod +x /usr/local/bin/monitor_service.sh
+
+# 添加到crontab，每5分钟检查一次
+echo &quot;*/5 * * * * /usr/local/bin/monitor_service.sh&quot; | crontab -
+</code></pre>
+<p><strong>设置告警阈值：</strong></p>
+<pre><code class="language-bash"># 内存使用率监控
+memory_usage=$(free | awk &#39;NR==2{printf &quot;%.0f&quot;, $3*100/$2}&#39;)
+if [ $memory_usage -gt 85 ]; then
+    echo &quot;警告：内存使用率过高: ${memory_usage}%&quot; | mail -s &quot;服务器告警&quot; admin@example.com
+fi
+
+# 磁盘空间监控
+disk_usage=$(df / | awk &#39;NR==2 {print $5}&#39; | sed &#39;s/%//&#39;)
+if [ $disk_usage -gt 90 ]; then
+    echo &quot;警告：磁盘使用率过高: ${disk_usage}%&quot; | mail -s &quot;服务器告警&quot; admin@example.com
+fi
+</code></pre>
+<p><strong>建立标准操作流程（SOP）：</strong></p>
+<ol>
+<li>故障发现 → 立即评估影响范围</li>
+<li>快速备份 → 保存故障现场数据</li>
+<li>优雅停止 → 避免数据丢失</li>
+<li>彻底检查 → 确保资源释放</li>
+<li>重新启动 → 按标准流程启动</li>
+<li>全面验证 → 确保功能正常</li>
+<li>持续监控 → 防止问题复现</li>
+<li>总结复盘 → 完善应急预案</li>
+</ol>
 <h2>总结</h2>
 <p>Java线上问题排查是一个系统性工程，需要掌握以下关键技能：</p>
 <ol>
@@ -628,4 +1335,4 @@ echo &quot;=== 重启完成 ===&quot;
 <li><strong>预防措施</strong>：建立完善的监控和预防机制</li>
 </ol>
 <p>通过系统化的排查方法和工具使用，可以快速定位和解决线上问题，保障系统的稳定运行。</p>
-</div></div></div></article></div></main></div><script src="/_next/static/chunks/webpack-c81f7fd28659d64f.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:HL[\"/_next/static/css/7b42d4e858e38c6b.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"2:I[2846,[],\"\"]\n5:I[4707,[],\"\"]\n8:I[6423,[],\"\"]\nb:I[1060,[],\"\"]\n6:[\"category\",\"notes\",\"d\"]\n7:[\"slug\",\"java-production-troubleshooting\",\"d\"]\nc:[]\n0:[\"$\",\"$L2\",null,{\"buildId\":\"build\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"notes\",\"java-production-troubleshooting\",\"\"],\"initialTree\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"java-production-troubleshooting\",\"d\"],{\"children\":[\"__PAGE__?{\\\"category\\\":\\\"notes\\\",\\\"slug\\\":\\\"java-production-troubleshooting\\\"}\",{}]}]}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"java-production-troubleshooting\",\"d\"],{\"children\":[\"__PAGE__\",{},[[\"$L3\",\"$L4\",null],null],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\",\"$7\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/7b42d4e858e38c6b.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}]],\"$L9\"],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$La\"],\"globalErrorComponent\":\"$b\",\"missingSlots\":\"$Wc\"}]\n"])</script><script>self.__next_f.push([1,"d:I[2972,[\"972\",\"static/chunks/972-81dbad6abe39d3fa.js\",\"832\",\"static/chunks/832-2b131d9fe9982edb.js\",\"621\",\"static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-eb51aa11033a73a2.js\"],\"\"]\ne:I[5546,[\"972\",\"static/chunks/972-81dbad6abe39d3fa.js\",\"832\",\"static/chunks/832-2b131d9fe9982edb.js\",\"621\",\"static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-eb51aa11033a73a2.js\"],\"default\"]\n10:I[7140,[\"972\",\"static/chunks/972-81dbad6abe39d3fa.js\",\"185\",\"static/chunks/app/layout-f3fa7e3100be56de.js\"],\"default\"]\nf:T46b3,"])</script><script>self.__next_f.push([1,"\n# Java项目线上问题排查\n\n\u003e 线上问题排查是Java开发者的必备技能，掌握正确的排查方法和工具是关键\n\n## 问题分类与排查思路\n\n### 1. 常见问题类型\n\n```\nJava线上问题分类：\n├── CPU问题\n│   ├── CPU使用率过高\n│   ├── CPU负载过高\n│   └── 上下文切换频繁\n├── 内存问题\n│   ├── 内存溢出（OOM）\n│   ├── 内存泄漏\n│   └── GC频繁\n├── 线程问题\n│   ├── 死锁\n│   ├── 线程阻塞\n│   └── 线程数过多\n├── 网络问题\n│   ├── 连接超时\n│   ├── 连接池耗尽\n│   └── 网络延迟\n└── 应用问题\n    ├── 响应缓慢\n    ├── 错误率升高\n    └── 间歇性故障\n```\n\n### 2. 排查方法论\n\n**问题排查流程**\n```\n1. 问题现象确认\n   ├── 确定问题影响范围\n   ├── 收集关键指标\n   └── 复现问题现象\n\n2. 初步诊断\n   ├── 查看系统资源\n   ├── 分析应用日志\n   └── 检查监控指标\n\n3. 深入分析\n   ├── 使用专业工具\n   ├── 分析堆栈信息\n   └── 定位根本原因\n\n4. 解决方案\n   ├── 制定修复方案\n   ├── 实施变更\n   └── 验证效果\n```\n\n## CPU问题排查\n\n### 1. CPU使用率过高\n\n**排查步骤**\n```bash\n# 1. 查看CPU使用率\ntop -p \u003cpid\u003e\n\n# 2. 查看线程CPU使用情况\ntop -H -p \u003cpid\u003e\n\n# 3. 导出线程栈\njstack \u003cpid\u003e \u003e thread_dump.txt\n\n# 4. 将线程ID转换为16进制\nprintf \"%x\\n\" \u003cthread_id\u003e\n\n# 5. 在线程栈中查找对应线程\ngrep -A 20 \u003chex_thread_id\u003e thread_dump.txt\n```\n\n**自动化排查脚本**\n```bash\n#!/bin/bash\n# cpu_troubleshoot.sh\n\nPID=$1\nif [ -z \"$PID\" ]; then\n    echo \"Usage: $0 \u003cpid\u003e\"\n    exit 1\nfi\n\necho \"=== CPU使用情况 ===\"\ntop -p $PID -n 1 | head -20\n\necho \"=== 高CPU线程 ===\"\ntop -H -p $PID -n 1 | head -20\n\necho \"=== 生成线程栈 ===\"\njstack $PID \u003e thread_dump_$(date +%Y%m%d_%H%M%S).txt\n\necho \"=== 获取GC信息 ===\"\njstat -gc $PID 1s 10\n\necho \"=== 查看堆内存使用 ===\"\njmap -histo $PID | head -20\n```\n\n### 2. Java代码中的CPU问题\n\n**死循环检测**\n```java\n// 死循环示例\npublic class DeadLoop {\n    public void process() {\n        while (true) {\n            // 没有退出条件的循环\n            try {\n                Thread.sleep(1);\n            } catch (InterruptedException e) {\n                Thread.currentThread().interrupt();\n            }\n        }\n    }\n}\n\n// 频繁Full GC\npublic class FrequentGC {\n    public void process() {\n        List\u003cbyte[]\u003e list = new ArrayList\u003c\u003e();\n        while (true) {\n            list.add(new byte[1024 * 1024]); // 1MB\n        }\n    }\n}\n```\n\n**CPU密集型操作优化**\n```java\n// 优化前\npublic List\u003cInteger\u003e calculatePrimes(int limit) {\n    List\u003cInteger\u003e primes = new ArrayList\u003c\u003e();\n    for (int i = 2; i \u003c= limit; i++) {\n        if (isPrime(i)) {\n            primes.add(i);\n        }\n    }\n    return primes;\n}\n\n// 优化后：使用并行流\npublic List\u003cInteger\u003e calculatePrimes(int limit) {\n    return IntStream.rangeClosed(2, limit)\n        .parallel()\n        .filter(this::isPrime)\n        .boxed()\n        .collect(Collectors.toList());\n}\n```\n\n## 内存问题排查\n\n### 1. 内存溢出（OOM）\n\n**堆内存溢出**\n```bash\n# 1. 查看内存使用\njstat -gc \u003cpid\u003e 1s 5\n\n# 2. 生成堆转储文件\njmap -dump:format=b,file=heap.hprof \u003cpid\u003e\n\n# 3. 分析堆转储文件\njhat heap.hprof\n\n# 4. 使用MAT分析\n# 启动MAT工具，导入heap.hprof文件\n```\n\n**OOM分析脚本**\n```bash\n#!/bin/bash\n# oom_analysis.sh\n\nPID=$1\nDUMP_FILE=\"heap_$(date +%Y%m%d_%H%M%S).hprof\"\n\necho \"=== 生成堆转储文件 ===\"\njmap -dump:format=b,file=$DUMP_FILE $PID\n\necho \"=== 堆转储文件大小 ===\"\nls -lh $DUMP_FILE\n\necho \"=== 使用MAT分析 ===\"\necho \"请使用MAT工具打开 $DUMP_FILE 进行分析\"\n\n# 自动分析脚本\ncat \u003e oom_analysis.py \u003c\u003c 'EOF'\nimport sys\nimport re\n\ndef analyze_heap_dump(file_path):\n    # 这里可以添加自动分析逻辑\n    print(f\"分析堆转储文件: {file_path}\")\n    \nif __name__ == \"__main__\":\n    if len(sys.argv) != 2:\n        print(\"Usage: python oom_analysis.py \u003cheap_dump_file\u003e\")\n        sys.exit(1)\n    \n    analyze_heap_dump(sys.argv[1])\nEOF\n\npython oom_analysis.py $DUMP_FILE\n```\n\n### 2. 内存泄漏检测\n\n**内存泄漏常见场景**\n```java\n// 静态集合持有对象引用\npublic class MemoryLeak {\n    private static final List\u003cObject\u003e cache = new ArrayList\u003c\u003e();\n    \n    public void addToCache(Object obj) {\n        cache.add(obj); // 永远不会被清理\n    }\n}\n\n// 未关闭的资源\npublic class ResourceLeak {\n    public void processData() {\n        try {\n            Connection conn = getConnection();\n            Statement stmt = conn.createStatement();\n            ResultSet rs = stmt.executeQuery(\"SELECT * FROM large_table\");\n            // 没有关闭连接、Statement和ResultSet\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n// 监听器未移除\npublic class ListenerLeak {\n    private List\u003cEventListener\u003e listeners = new ArrayList\u003c\u003e();\n    \n    public void addListener(EventListener listener) {\n        listeners.add(listener);\n    }\n    \n    // 缺少removeListener方法\n}\n```\n\n**内存泄漏检测工具**\n```java\n// 使用WeakReference检测内存泄漏\npublic class MemoryLeakDetector {\n    private static final Map\u003cString, WeakReference\u003cObject\u003e\u003e weakRefs = \n        new ConcurrentHashMap\u003c\u003e();\n    \n    public static void track(String key, Object obj) {\n        weakRefs.put(key, new WeakReference\u003c\u003e(obj));\n    }\n    \n    public static void checkLeaks() {\n        for (Map.Entry\u003cString, WeakReference\u003cObject\u003e\u003e entry : weakRefs.entrySet()) {\n            WeakReference\u003cObject\u003e ref = entry.getValue();\n            if (ref.get() == null) {\n                System.out.println(\"对象已被回收: \" + entry.getKey());\n            } else {\n                System.out.println(\"可能的内存泄漏: \" + entry.getKey());\n            }\n        }\n    }\n}\n```\n\n## 线程问题排查\n\n### 1. 死锁检测\n\n**死锁检测脚本**\n```bash\n#!/bin/bash\n# deadlock_detector.sh\n\nPID=$1\n\necho \"=== 检测死锁 ===\"\njstack $PID | grep -A 20 \"Found one Java-level deadlock\"\n\necho \"=== 线程状态统计 ===\"\njstack $PID | grep -E \"java.lang.Thread.State:\" | sort | uniq -c\n\necho \"=== 阻塞线程 ===\"\njstack $PID | grep -A 5 \"BLOCKED\"\n```\n\n**死锁示例和分析**\n```java\n// 死锁示例\npublic class DeadlockExample {\n    private static final Object lock1 = new Object();\n    private static final Object lock2 = new Object();\n    \n    public static void main(String[] args) {\n        Thread thread1 = new Thread(() -\u003e {\n            synchronized (lock1) {\n                try {\n                    Thread.sleep(100);\n                } catch (InterruptedException e) {\n                    e.printStackTrace();\n                }\n                synchronized (lock2) {\n                    System.out.println(\"Thread 1 acquired both locks\");\n                }\n            }\n        });\n        \n        Thread thread2 = new Thread(() -\u003e {\n            synchronized (lock2) {\n                try {\n                    Thread.sleep(100);\n                } catch (InterruptedException e) {\n                    e.printStackTrace();\n                }\n                synchronized (lock1) {\n                    System.out.println(\"Thread 2 acquired both locks\");\n                }\n            }\n        });\n        \n        thread1.start();\n        thread2.start();\n    }\n}\n```\n\n### 2. 线程池问题\n\n**线程池监控**\n```java\n@Component\npublic class ThreadPoolMonitor {\n    \n    @Autowired\n    private ThreadPoolExecutor executor;\n    \n    @Scheduled(fixedRate = 5000)\n    public void monitorThreadPool() {\n        System.out.println(\"=== 线程池状态 ===\");\n        System.out.println(\"核心线程数: \" + executor.getCorePoolSize());\n        System.out.println(\"最大线程数: \" + executor.getMaximumPoolSize());\n        System.out.println(\"当前线程数: \" + executor.getActiveCount());\n        System.out.println(\"队列大小: \" + executor.getQueue().size());\n        System.out.println(\"完成任务数: \" + executor.getCompletedTaskCount());\n        \n        // 告警逻辑\n        if (executor.getActiveCount() \u003e executor.getMaximumPoolSize() * 0.8) {\n            System.out.println(\"警告: 线程池使用率过高\");\n        }\n    }\n}\n```\n\n## 网络问题排查\n\n### 1. 连接超时问题\n\n**网络连接监控**\n```java\n@Component\npublic class NetworkMonitor {\n    \n    private final RestTemplate restTemplate;\n    \n    public NetworkMonitor() {\n        this.restTemplate = new RestTemplate();\n        \n        // 配置连接超时\n        HttpComponentsClientHttpRequestFactory factory = \n            new HttpComponentsClientHttpRequestFactory();\n        factory.setConnectTimeout(5000);\n        factory.setReadTimeout(10000);\n        this.restTemplate.setRequestFactory(factory);\n    }\n    \n    @Scheduled(fixedRate = 30000)\n    public void checkConnectivity() {\n        try {\n            ResponseEntity\u003cString\u003e response = restTemplate.getForEntity(\n                \"http://example.com/health\", String.class);\n            if (response.getStatusCode().is2xxSuccessful()) {\n                System.out.println(\"网络连接正常\");\n            }\n        } catch (Exception e) {\n            System.err.println(\"网络连接异常: \" + e.getMessage());\n        }\n    }\n}\n```\n\n### 2. 连接池问题\n\n**数据库连接池监控**\n```java\n@Component\npublic class ConnectionPoolMonitor {\n    \n    @Autowired\n    private DataSource dataSource;\n    \n    @Scheduled(fixedRate = 10000)\n    public void monitorConnectionPool() {\n        if (dataSource instanceof HikariDataSource) {\n            HikariDataSource hikariDataSource = (HikariDataSource) dataSource;\n            HikariPoolMXBean poolProxy = hikariDataSource.getHikariPoolMXBean();\n            \n            System.out.println(\"=== 连接池状态 ===\");\n            System.out.println(\"活跃连接数: \" + poolProxy.getActiveConnections());\n            System.out.println(\"空闲连接数: \" + poolProxy.getIdleConnections());\n            System.out.println(\"总连接数: \" + poolProxy.getTotalConnections());\n            System.out.println(\"等待线程数: \" + poolProxy.getThreadsAwaitingConnection());\n            \n            // 告警逻辑\n            if (poolProxy.getActiveConnections() \u003e poolProxy.getTotalConnections() * 0.8) {\n                System.err.println(\"警告: 连接池使用率过高\");\n            }\n        }\n    }\n}\n```\n\n## 日志分析\n\n### 1. 日志配置优化\n\n**Logback配置**\n```xml\n\u003c!-- logback.xml --\u003e\n\u003cconfiguration\u003e\n    \u003cappender name=\"CONSOLE\" class=\"ch.qos.logback.core.ConsoleAppender\"\u003e\n        \u003cencoder\u003e\n            \u003cpattern\u003e%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n\u003c/pattern\u003e\n        \u003c/encoder\u003e\n    \u003c/appender\u003e\n    \n    \u003cappender name=\"FILE\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\"\u003e\n        \u003cfile\u003elogs/application.log\u003c/file\u003e\n        \u003crollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\"\u003e\n            \u003cfileNamePattern\u003elogs/application.%d{yyyy-MM-dd}.%i.log\u003c/fileNamePattern\u003e\n            \u003cmaxFileSize\u003e100MB\u003c/maxFileSize\u003e\n            \u003cmaxHistory\u003e30\u003c/maxHistory\u003e\n            \u003ctotalSizeCap\u003e3GB\u003c/totalSizeCap\u003e\n        \u003c/rollingPolicy\u003e\n        \u003cencoder\u003e\n            \u003cpattern\u003e%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n\u003c/pattern\u003e\n        \u003c/encoder\u003e\n    \u003c/appender\u003e\n    \n    \u003c!-- 异步日志 --\u003e\n    \u003cappender name=\"ASYNC_FILE\" class=\"ch.qos.logback.classic.AsyncAppender\"\u003e\n        \u003cdiscardingThreshold\u003e0\u003c/discardingThreshold\u003e\n        \u003cqueueSize\u003e1024\u003c/queueSize\u003e\n        \u003cappender-ref ref=\"FILE\"/\u003e\n    \u003c/appender\u003e\n    \n    \u003croot level=\"INFO\"\u003e\n        \u003cappender-ref ref=\"CONSOLE\"/\u003e\n        \u003cappender-ref ref=\"ASYNC_FILE\"/\u003e\n    \u003c/root\u003e\n\u003c/configuration\u003e\n```\n\n### 2. 日志分析脚本\n\n**错误日志分析**\n```bash\n#!/bin/bash\n# log_analyzer.sh\n\nLOG_FILE=$1\nif [ -z \"$LOG_FILE\" ]; then\n    echo \"Usage: $0 \u003clog_file\u003e\"\n    exit 1\nfi\n\necho \"=== 错误统计 ===\"\ngrep -E \"ERROR|Exception\" $LOG_FILE | awk '{print $1, $2}' | sort | uniq -c | sort -nr\n\necho \"=== 最近错误 ===\"\ntail -100 $LOG_FILE | grep -E \"ERROR|Exception\" | tail -10\n\necho \"=== HTTP 5xx错误 ===\"\ngrep -E \"HTTP/1\\.[01]\\\" [5][0-9][0-9]\" $LOG_FILE | awk '{print $7}' | sort | uniq -c | sort -nr\n\necho \"=== 慢查询日志 ===\"\ngrep -E \"took.*ms\" $LOG_FILE | awk '$NF \u003e 1000 {print $0}'\n```\n\n## 性能监控工具\n\n### 1. JVM监控\n\n**JMX监控**\n```java\n@Component\npublic class JVMMonitor {\n    \n    private final MemoryMXBean memoryMXBean;\n    private final ThreadMXBean threadMXBean;\n    private final RuntimeMXBean runtimeMXBean;\n    \n    public JVMMonitor() {\n        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();\n        this.memoryMXBean = ManagementFactory.newPlatformMXBeanProxy(\n            mBeanServer, ManagementFactory.MEMORY_MXBEAN_NAME, MemoryMXBean.class);\n        this.threadMXBean = ManagementFactory.newPlatformMXBeanProxy(\n            mBeanServer, ManagementFactory.THREAD_MXBEAN_NAME, ThreadMXBean.class);\n        this.runtimeMXBean = ManagementFactory.newPlatformMXBeanProxy(\n            mBeanServer, ManagementFactory.RUNTIME_MXBEAN_NAME, RuntimeMXBean.class);\n    }\n    \n    @Scheduled(fixedRate = 10000)\n    public void monitorJVM() {\n        // 内存监控\n        MemoryUsage heapUsage = memoryMXBean.getHeapMemoryUsage();\n        double heapUsagePercent = (double) heapUsage.getUsed() / heapUsage.getMax() * 100;\n        \n        // 线程监控\n        int threadCount = threadMXBean.getThreadCount();\n        \n        // GC监控\n        List\u003cGarbageCollectorMXBean\u003e gcBeans = ManagementFactory.getGarbageCollectorMXBeans();\n        \n        System.out.println(\"=== JVM监控 ===\");\n        System.out.println(\"堆内存使用率: \" + String.format(\"%.2f%%\", heapUsagePercent));\n        System.out.println(\"线程数: \" + threadCount);\n        \n        // 告警逻辑\n        if (heapUsagePercent \u003e 80) {\n            System.err.println(\"警告: 堆内存使用率过高\");\n        }\n    }\n}\n```\n\n### 2. 应用性能监控（APM）\n\n**自定义性能监控**\n```java\n@Component\npublic class PerformanceMonitor {\n    \n    private final MeterRegistry meterRegistry;\n    \n    public PerformanceMonitor(MeterRegistry meterRegistry) {\n        this.meterRegistry = meterRegistry;\n    }\n    \n    public void recordApiCall(String apiName, long duration, String status) {\n        Timer.Sample sample = Timer.start(meterRegistry);\n        sample.stop(Timer.builder(\"api.call.time\")\n            .tag(\"api\", apiName)\n            .tag(\"status\", status)\n            .register(meterRegistry));\n        \n        Counter.builder(\"api.call.count\")\n            .tag(\"api\", apiName)\n            .tag(\"status\", status)\n            .register(meterRegistry)\n            .increment();\n    }\n    \n    @Aspect\n    @Component\n    public class ApiMonitorAspect {\n        \n        @Around(\"@annotation(Monitored)\")\n        public Object monitorApi(ProceedingJoinPoint joinPoint) throws Throwable {\n            long startTime = System.currentTimeMillis();\n            String apiName = joinPoint.getSignature().getName();\n            \n            try {\n                Object result = joinPoint.proceed();\n                long duration = System.currentTimeMillis() - startTime;\n                \n                performanceMonitor.recordApiCall(apiName, duration, \"SUCCESS\");\n                return result;\n            } catch (Exception e) {\n                long duration = System.currentTimeMillis() - startTime;\n                \n                performanceMonitor.recordApiCall(apiName, duration, \"ERROR\");\n                throw e;\n            }\n        }\n    }\n}\n```\n\n## 应急处理流程\n\n### 1. 故障响应流程\n\n```\n故障响应流程：\n1. 故障发现\n   ├── 监控系统告警\n   ├── 用户反馈\n   └── 主动巡检\n\n2. 故障确认\n   ├── 确认影响范围\n   ├── 评估严重程度\n   └── 启动应急响应\n\n3. 快速止损\n   ├── 服务降级\n   ├── 流量限制\n   └── 紧急回滚\n\n4. 问题定位\n   ├── 收集日志\n   ├── 分析监控数据\n   └── 复现问题\n\n5. 修复验证\n   ├── 实施修复\n   ├── 验证效果\n   └── 恢复服务\n\n6. 复盘总结\n   ├── 分析根因\n   ├── 制定改进措施\n   └── 更新应急预案\n```\n\n### 2. 应急脚本\n\n**服务快速重启脚本**\n```bash\n#!/bin/bash\n# emergency_restart.sh\n\nSERVICE_NAME=$1\nif [ -z \"$SERVICE_NAME\" ]; then\n    echo \"Usage: $0 \u003cservice_name\u003e\"\n    exit 1\nfi\n\necho \"=== 紧急重启服务: $SERVICE_NAME ===\"\n\n# 1. 备份当前状态\necho \"备份服务状态...\"\nsystemctl status $SERVICE_NAME \u003e service_status_$(date +%Y%m%d_%H%M%S).txt\n\n# 2. 停止服务\necho \"停止服务...\"\nsystemctl stop $SERVICE_NAME\n\n# 3. 等待服务完全停止\nsleep 5\n\n# 4. 检查端口是否释放\nPORT=$(netstat -tlnp | grep $SERVICE_NAME | awk '{print $4}' | cut -d: -f2)\nif [ -n \"$PORT\" ]; then\n    echo \"端口 $PORT 仍被占用，强制终止进程...\"\n    pkill -f $SERVICE_NAME\nfi\n\n# 5. 启动服务\necho \"启动服务...\"\nsystemctl start $SERVICE_NAME\n\n# 6. 检查服务状态\necho \"检查服务状态...\"\nsystemctl status $SERVICE_NAME\n\n# 7. 验证服务可用性\necho \"验证服务可用性...\"\nsleep 10\ncurl -f http://localhost:8080/health || echo \"服务健康检查失败\"\n\necho \"=== 重启完成 ===\"\n```\n\n## 总结\n\nJava线上问题排查是一个系统性工程，需要掌握以下关键技能：\n\n1. **工具使用**：熟练使用jstat、jstack、jmap、MAT等工具\n2. **问题分类**：能够快速识别问题类型和影响范围\n3. **分析方法**：掌握科学的分析方法和思路\n4. **经验积累**：通过实际案例积累经验\n5. **预防措施**：建立完善的监控和预防机制\n\n通过系统化的排查方法和工具使用，可以快速定位和解决线上问题，保障系统的稳定运行。"])</script><script>self.__next_f.push([1,"4:[\"$\",\"div\",null,{\"children\":[[\"$\",\"$Ld\",null,{\"href\":\"/notes\",\"className\":\"back-button\",\"style\":{\"display\":\"inline-block\",\"background\":\"var(--primary-color)\",\"color\":\"white\",\"border\":\"none\",\"padding\":\"10px 20px\",\"borderRadius\":\"6px\",\"cursor\":\"pointer\",\"marginBottom\":\"20px\",\"textDecoration\":\"none\"},\"children\":[\"← 返回\",\"笔记\",\"列表\"]}],[\"$\",\"article\",null,{\"className\":\"section\",\"children\":[[\"$\",\"header\",null,{\"className\":\"article-header\",\"children\":[[\"$\",\"h1\",null,{\"className\":\"article-title\",\"children\":\"Java项目线上问题排查\"}],[\"$\",\"div\",null,{\"className\":\"article-meta\",\"children\":[\"$\",\"div\",null,{\"className\":\"article-tags\",\"children\":[[\"$\",\"span\",\"Java\",{\"className\":\"tag\",\"children\":\"Java\"}],[\"$\",\"span\",\"线上排查\",{\"className\":\"tag\",\"children\":\"线上排查\"}],[\"$\",\"span\",\"性能调优\",{\"className\":\"tag\",\"children\":\"性能调优\"}],[\"$\",\"span\",\"故障诊断\",{\"className\":\"tag\",\"children\":\"故障诊断\"}],[\"$\",\"span\",\"JVM\",{\"className\":\"tag\",\"children\":\"JVM\"}]]}]}]]}],[\"$\",\"div\",null,{\"className\":\"card markdown-content\",\"children\":[\"$\",\"$Le\",null,{\"content\":\"$f\"}]}]]}]]}]\n"])</script><script>self.__next_f.push([1,"9:[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css\"}],[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css\"}],[\"$\",\"script\",null,{\"src\":\"https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js\",\"async\":true}],[\"$\",\"script\",null,{\"src\":\"https://unpkg.com/markmap-autoloader@0.17.2\"}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"div\",null,{\"className\":\"app\",\"children\":[[\"$\",\"$L10\",null,{\"siteConfig\":{\"name\":\"海元\",\"bio\":\"JAVA | AI | WEB3\",\"social\":[{\"name\":\"github\",\"icon\":\"fab fa-github\",\"url\":\"https://github.com/suogongy\"},{\"name\":\"twitter\",\"icon\":\"fab fa-twitter\",\"url\":\"https://twitter.com/suogongy\"},{\"name\":\"email\",\"icon\":\"fas fa-envelope\",\"url\":\"mailto:haiyuan1832@163.com\"}]}}],[\"$\",\"main\",null,{\"className\":\"main-content\",\"children\":[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]]}]}]]}]\n"])</script><script>self.__next_f.push([1,"a:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"Java项目线上问题排查 - Personal GitHub Page\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"详细介绍Java项目在线上环境中常见的问题排查方法、诊断工具和解决方案，包括CPU、内存、线程、网络等方面的故障排查。\"}]]\n3:null\n"])</script></body></html>
+</div></div></div></article></div></main></div><script src="/_next/static/chunks/webpack-c81f7fd28659d64f.js" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0]);self.__next_f.push([2,null])</script><script>self.__next_f.push([1,"1:HL[\"/_next/static/css/7b42d4e858e38c6b.css\",\"style\"]\n"])</script><script>self.__next_f.push([1,"2:I[2846,[],\"\"]\n5:I[4707,[],\"\"]\n8:I[6423,[],\"\"]\nb:I[1060,[],\"\"]\n6:[\"category\",\"notes\",\"d\"]\n7:[\"slug\",\"java-production-troubleshooting\",\"d\"]\nc:[]\n0:[\"$\",\"$L2\",null,{\"buildId\":\"build\",\"assetPrefix\":\"\",\"urlParts\":[\"\",\"notes\",\"java-production-troubleshooting\",\"\"],\"initialTree\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"java-production-troubleshooting\",\"d\"],{\"children\":[\"__PAGE__?{\\\"category\\\":\\\"notes\\\",\\\"slug\\\":\\\"java-production-troubleshooting\\\"}\",{}]}]}]},\"$undefined\",\"$undefined\",true],\"initialSeedData\":[\"\",{\"children\":[[\"category\",\"notes\",\"d\"],{\"children\":[[\"slug\",\"java-production-troubleshooting\",\"d\"],{\"children\":[\"__PAGE__\",{},[[\"$L3\",\"$L4\",null],null],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\",\"$7\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[null,[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\",\"$6\",\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":\"$undefined\",\"notFoundStyles\":\"$undefined\"}]],null]},[[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/7b42d4e858e38c6b.css\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\"}]],\"$L9\"],null],null],\"couldBeIntercepted\":false,\"initialHead\":[null,\"$La\"],\"globalErrorComponent\":\"$b\",\"missingSlots\":\"$Wc\"}]\n"])</script><script>self.__next_f.push([1,"d:I[2972,[\"972\",\"static/chunks/972-81dbad6abe39d3fa.js\",\"832\",\"static/chunks/832-2b131d9fe9982edb.js\",\"621\",\"static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-eb51aa11033a73a2.js\"],\"\"]\ne:I[5546,[\"972\",\"static/chunks/972-81dbad6abe39d3fa.js\",\"832\",\"static/chunks/832-2b131d9fe9982edb.js\",\"621\",\"static/chunks/app/%5Bcategory%5D/%5Bslug%5D/page-eb51aa11033a73a2.js\"],\"default\"]\n10:I[7140,[\"972\",\"static/chunks/972-81dbad6abe39d3fa.js\",\"185\",\"static/chunks/app/layout-f3fa7e3100be56de.js\"],\"default\"]\nf:Ta0d9,"])</script><script>self.__next_f.push([1,"\n# Java项目线上问题排查\n\n\u003e 线上问题排查是Java开发者的必备技能，掌握正确的排查方法和工具是关键\n\n## 问题分类与排查思路\n\n### 1. 常见问题类型\n\n```\nJava线上问题分类：\n├── CPU问题\n│   ├── CPU使用率过高\n│   ├── CPU负载过高\n│   └── 上下文切换频繁\n├── 内存问题\n│   ├── 内存溢出（OOM）\n│   ├── 内存泄漏\n│   └── GC频繁\n├── 线程问题\n│   ├── 死锁\n│   ├── 线程阻塞\n│   └── 线程数过多\n├── 网络问题\n│   ├── 连接超时\n│   ├── 连接池耗尽\n│   └── 网络延迟\n└── 应用问题\n    ├── 响应缓慢\n    ├── 错误率升高\n    └── 间歇性故障\n```\n\n### 2. 排查方法论\n\n**问题排查流程**\n```\n1. 问题现象确认\n   ├── 确定问题影响范围\n   ├── 收集关键指标\n   └── 复现问题现象\n\n2. 初步诊断\n   ├── 查看系统资源\n   ├── 分析应用日志\n   └── 检查监控指标\n\n3. 深入分析\n   ├── 使用专业工具\n   ├── 分析堆栈信息\n   └── 定位根本原因\n\n4. 解决方案\n   ├── 制定修复方案\n   ├── 实施变更\n   └── 验证效果\n```\n\n## CPU问题排查\n\n### 1. CPU使用率过高\n\n**详细排查步骤**\n\n### 第一步：确认高CPU进程\n```bash\n# 查看系统整体CPU使用情况\ntop\n\n# 查看具体Java进程的CPU使用率，将\u003cpid\u003e替换为实际的Java进程ID\ntop -p \u003cpid\u003e\n\n# 观察要点：\n# - %CPU列：查看CPU使用率百分比\n# - %MEM列：查看内存使用率\n# - TIME+列：查看累计CPU时间\n# - S列：查看进程状态（R=运行，S=睡眠，D=不可中断睡眠）\n```\n\n### 第二步：定位高CPU线程\n```bash\n# 查看进程中各个线程的CPU使用情况\ntop -H -p \u003cpid\u003e\n\n# 操作要点：\n# 1. 按Shift+P按CPU使用率排序\n# 2. 记录CPU使用率最高的线程ID（PID列）\n# 3. 通常关注CPU使用率超过80%的线程\n```\n\n### 第三步：生成线程栈文件\n```bash\n# 生成当前时刻的线程快照\njstack \u003cpid\u003e \u003e thread_dump_$(date +%Y%m%d_%H%M%S).txt\n\n# 连续生成多次线程快照（间隔5秒，共3次），用于对比分析\nfor i in {1..3}\ndo\n   jstack \u003cpid\u003e \u003e thread_dump_${i}_$(date +%Y%m%d_%H%M%S).txt\n   sleep 5\ndone\n```\n\n### 第四步：线程ID转换\n```bash\n# 将十进制线程ID转换为十六进制\nprintf \"%x\\n\" \u003cthread_id\u003e\n\n# 示例：\n# 如果高CPU线程ID是12345\nprintf \"%x\\n\" 12345\n# 输出：3039\n```\n\n### 第五步：在线程栈中定位问题线程\n```bash\n# 查找特定线程的栈信息\ngrep -A 30 \"nid=0x\u003chex_thread_id\u003e\" thread_dump.txt\n\n# 示例：查找线程ID 3039\ngrep -A 30 \"nid=0x3039\" thread_dump.txt\n\n# 查看所有线程状态统计\ngrep \"java.lang.Thread.State:\" thread_dump.txt | sort | uniq -c\n\n# 查找RUNNABLE状态的线程\ngrep -A 10 \"RUNNABLE\" thread_dump.txt\n```\n\n### 第六步：分析线程栈找到问题代码\n根据线程栈信息，重点分析以下几个方面：\n\n**1. 死循环识别**\n```\n\"Thread-1\" #12 prio=5 os_prio=0 tid=0x00007f8c2c018000 nid=0x2a1b runnable [0x00007f8c140fe000]\n   java.lang.Thread.State: RUNNABLE\n        at com.example.DeadLoop.process(DeadLoop.java:23)\n        - locked \u003c0x00000000d5f6b4e0\u003e (a java.lang.Object)\n        at com.example.DeadLoop.run(DeadLoop.java:15)\n```\n**分析要点：**\n- 查看循环代码位置（文件名:行号）\n- 确认循环是否有合适的退出条件\n- 检查是否有异常处理导致的无限循环\n\n**2. 频繁GC导致的高CPU**\n```\n\"GC Thread#0\" os_prio=0 tid=0x00007f8c2c050800 nid=0x2a1c runnable\n\"GC Thread#1\" os_prio=0 tid=0x00007f8c2c052800 nid=0x2a1d runnable\n```\n**分析要点：**\n- 检查是否有多个GC线程同时运行\n- 使用jstat命令监控GC情况\n- 分析是否内存分配过于频繁\n\n**3. 锁竞争导致的等待**\n```\n\"Thread-3\" #14 prio=5 os_prio=0 tid=0x00007f8c2c028000 nid=0x2a1e waiting for monitor entry [0x00007f8c141ff000]\n   java.lang.Thread.State: BLOCKED (on object monitor)\n        at com.example.LockExample.method1(LockExample.java:32)\n        - waiting to lock \u003c0x00000000d5f6b5a0\u003e (a java.lang.Object)\n        - locked \u003c0x00000000d5f6b5b0\u003e (a java.lang.Object)\n```\n**分析要点：**\n- 查看BLOCKED状态的线程\n- 确认等待的锁对象\n- 检查是否存在死锁情况\n\n### 第七步：结合其他工具进行深度分析\n```bash\n# 查看GC情况（每秒输出一次，共10次）\njstat -gc \u003cpid\u003e 1s 10\n\n# 查看堆内存对象分布\njmap -histo \u003cpid\u003e | head -20\n\n# 查看JVM参数\njinfo -flags \u003cpid\u003e\n\n# 查看进程的文件描述符使用情况\nlsof -p \u003cpid\u003e | wc -l\n```\n\n### 第八步：问题定位和解决方案\n\n**常见问题和解决方法：**\n\n1. **死循环问题**\n   - 定位循环代码位置\n   - 添加合适的退出条件\n   - 增加日志输出用于监控\n\n2. **算法效率问题**\n   - 查看是否有低效算法（如嵌套循环）\n   - 考虑使用更高效的数据结构\n   - 增加缓存机制\n\n3. **锁竞争问题**\n   - 减少锁的粒度\n   - 使用读写锁替代同步锁\n   - 考虑使用无锁数据结构\n\n4. **频繁GC问题**\n   - 检查内存分配模式\n   - 优化对象创建\n   - 调整JVM内存参数\n\n### 2. Java代码中的CPU问题\n\n**死循环检测**\n```java\n// 死循环示例\npublic class DeadLoop {\n    public void process() {\n        while (true) {\n            // 没有退出条件的循环\n            try {\n                Thread.sleep(1);\n            } catch (InterruptedException e) {\n                Thread.currentThread().interrupt();\n            }\n        }\n    }\n}\n\n// 频繁Full GC\npublic class FrequentGC {\n    public void process() {\n        List\u003cbyte[]\u003e list = new ArrayList\u003c\u003e();\n        while (true) {\n            list.add(new byte[1024 * 1024]); // 1MB\n        }\n    }\n}\n```\n\n**CPU密集型操作优化**\n```java\n// 优化前\npublic List\u003cInteger\u003e calculatePrimes(int limit) {\n    List\u003cInteger\u003e primes = new ArrayList\u003c\u003e();\n    for (int i = 2; i \u003c= limit; i++) {\n        if (isPrime(i)) {\n            primes.add(i);\n        }\n    }\n    return primes;\n}\n\n// 优化后：使用并行流\npublic List\u003cInteger\u003e calculatePrimes(int limit) {\n    return IntStream.rangeClosed(2, limit)\n        .parallel()\n        .filter(this::isPrime)\n        .boxed()\n        .collect(Collectors.toList());\n}\n```\n\n## 内存问题排查\n\n### 1. 内存溢出（OOM）\n\n**堆内存溢出**\n```bash\n# 1. 查看内存使用\njstat -gc \u003cpid\u003e 1s 5\n\n# 2. 生成堆转储文件\njmap -dump:format=b,file=heap.hprof \u003cpid\u003e\n\n# 3. 分析堆转储文件\njhat heap.hprof\n\n# 4. 使用MAT分析\n# 启动MAT工具，导入heap.hprof文件\n```\n\n**OOM详细排查步骤**\n\n### 第一步：确认OOM现象\n```bash\n# 查看系统日志中的OOM信息\nsudo dmesg | grep -i \"killed process\"\n\n# 查看Java应用日志中的OutOfMemoryError\ntail -1000 /path/to/application.log | grep -i \"OutOfMemoryError\"\n\n# 查看系统内存使用情况\nfree -h\ncat /proc/meminfo | grep -E \"(MemTotal|MemFree|MemAvailable)\"\n```\n\n### 第二步：分析JVM内存使用\n```bash\n# 实时监控JVM内存使用情况（每秒输出一次，共10次）\njstat -gc \u003cpid\u003e 1s 10\n\n# 查看JVM堆内存详细信息\njstat -gcutil \u003cpid\u003e 1000 5\n\n# 查看新生代和老年代的使用情况\njstat -gcnew \u003cpid\u003e 1000 3\njstat -gcold \u003cpid\u003e 1000 3\n```\n\n**输出结果分析：**\n- **YGC**: 年轻代GC次数\n- **FGC**: 老年代GC次数\n- **FGCT**: 老年代GC耗时\n- **GCT**: 总GC耗时\n- **E**: 新生代使用率\n- **O**: 老年代使用率\n\n### 第三步：生成堆转储文件\n```bash\n# 生成当前时刻的堆转储文件\njmap -dump:format=b,file=heap_$(date +%Y%m%d_%H%M%S).hprof \u003cpid\u003e\n\n# 如果堆内存过大（超过8GB），可以只转储活跃对象\njmap -dump:live,format=b,file=heap_live_$(date +%Y%m%d_%H%M%S).hprof \u003cpid\u003e\n\n# 检查生成的堆转储文件大小\nls -lh heap_*.hprof\n```\n\n### 第四步：分析堆转储文件\n\n**使用jhat进行分析（适用于小型堆转储）**\n```bash\n# 启动jhat服务器（默认端口7000）\njhat heap_20231201_143022.hprof\n\n# 浏览器访问分析结果\n# http://localhost:7000\n\n# 查看堆使用概览\ncurl http://localhost:7000/histo/\n\n# 查看对象实例统计\ncurl http://localhost:7000/showHeapHistogram/\n\n# 停止jhat服务\npkill jhat\n```\n\n**使用MAT（Memory Analyzer Tool）进行深度分析**\n```bash\n# 下载并安装MAT（如果尚未安装）\n# wget https://www.eclipse.org/downloads/download.php?file=/mat/1.14.0/rcp/MemoryAnalyzer-1.14.0.20230315-macosx.cocoa.x86_64.dmg\n\n# 启动MAT工具\n# /path/to/mat/MemoryAnalyzer\n\n# 在MAT中打开堆转储文件并进行分析\n```\n\n**MAT分析重点：**\n1. **Leak Suspects Report** - 自动检测可能的内存泄漏\n2. **Dominator Tree** - 查看占用内存最大的对象\n3. **Histogram** - 对象实例数量统计\n4. **Thread Dump** - 查看线程相关的对象引用\n\n### 第五步：分析对象分布情况\n```bash\n# 查看堆中对象数量和内存占用排序\njmap -histo \u003cpid\u003e | head -20\n\n# 将结果保存到文件\njmap -histo \u003cpid\u003e \u003e heap_objects_$(date +%Y%m%d_%H%M%S).txt\n\n# 查看特定类的对象实例\njmap -histo \u003cpid\u003e | grep \"com.example.YourClass\"\n\n# 查看字符串对象的内存占用\njmap -histo \u003cpid\u003e | grep \"java.lang.String\"\n```\n\n### 第六步：检查GC配置和行为\n```bash\n# 查看当前JVM参数\njinfo -flags \u003cpid\u003e\n\n# 查看GC详细信息\njstat -gcutil \u003cpid\u003e 1s 10 | tee gc_usage_$(date +%Y%m%d_%H%M%S).log\n\n# 查看GC日志（如果开启了GC日志）\ntail -f /path/to/gc.log\n```\n\n### 第七步：分析常见OOM类型及解决方案\n\n**1. Java heap space OOM**\n```\njava.lang.OutOfMemoryError: Java heap space\n```\n**排查步骤：**\n- 检查堆内存配置：`-Xms` 和 `-Xmx`\n- 分析堆转储文件，找到占用内存最多的对象\n- 检查是否存在内存泄漏（静态集合、缓存未清理等）\n\n**解决方案：**\n```bash\n# 增加堆内存\n-Xms2g -Xmx4g\n\n# 或者优化代码，减少内存占用\n# 1. 及时释放不需要的对象引用\n# 2. 使用弱引用或软引用\n# 3. 避免一次性加载大量数据\n```\n\n**2. Metaspace OOM**\n```\njava.lang.OutOfMemoryError: Metaspace\n```\n**排查步骤：**\n- 检查元空间使用情况\n- 查看类加载器的信息\n\n**解决方案：**\n```bash\n# 增加元空间大小\n-XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=512m\n\n# 或者优化类加载机制\n# 1. 避免热部署导致的类重复加载\n# 2. 使用合理的类加载器策略\n```\n\n**3. GC overhead limit exceeded**\n```\njava.lang.OutOfMemoryError: GC overhead limit exceeded\n```\n**排查步骤：**\n- 检查GC频率和耗时\n- 分析对象创建和回收模式\n\n**解决方案：**\n```bash\n# 调整GC参数\n-XX:+UseG1GC -XX:MaxGCPauseMillis=200\n\n# 或者优化对象生命周期\n# 1. 减少临时对象的创建\n# 2. 优化数据结构选择\n```\n\n**4. Unable to create new native thread**\n```\njava.lang.OutOfMemoryError: unable to create new native thread\n```\n**排查步骤：**\n- 检查线程数限制\n- 查看线程池配置\n\n**解决方案：**\n```bash\n# 增加线程数限制\nulimit -u 4096\n\n# 或优化线程池配置\n# 1. 合理设置最大线程数\n# 2. 使用线程池复用线程\n```\n\n### 第八步：预防措施和监控\n```bash\n# 设置JVM参数开启详细的GC日志\n-XX:+PrintGCDetails -XX:+PrintGCTimeStamps -Xloggc:/path/to/gc.log\n\n# 设置OOM时自动生成堆转储\n-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/path/to/dumps/\n\n# 监控脚本示例\nwhile true; do\n    memory_usage=$(jstat -gcutil \u003cpid\u003e | tail -1 | awk '{print $4}')\n    if [ $memory_usage -gt 90 ]; then\n        echo \"警告：内存使用率过高: $memory_usage%\"\n        jmap -dump:format=b,file=heap_warning_$(date +%Y%m%d_%H%M%S).hprof \u003cpid\u003e\n    fi\n    sleep 60\ndone\n```\n\n### 2. 内存泄漏检测\n\n**内存泄漏常见场景**\n```java\n// 静态集合持有对象引用\npublic class MemoryLeak {\n    private static final List\u003cObject\u003e cache = new ArrayList\u003c\u003e();\n    \n    public void addToCache(Object obj) {\n        cache.add(obj); // 永远不会被清理\n    }\n}\n\n// 未关闭的资源\npublic class ResourceLeak {\n    public void processData() {\n        try {\n            Connection conn = getConnection();\n            Statement stmt = conn.createStatement();\n            ResultSet rs = stmt.executeQuery(\"SELECT * FROM large_table\");\n            // 没有关闭连接、Statement和ResultSet\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n// 监听器未移除\npublic class ListenerLeak {\n    private List\u003cEventListener\u003e listeners = new ArrayList\u003c\u003e();\n    \n    public void addListener(EventListener listener) {\n        listeners.add(listener);\n    }\n    \n    // 缺少removeListener方法\n}\n```\n\n**内存泄漏检测工具**\n```java\n// 使用WeakReference检测内存泄漏\npublic class MemoryLeakDetector {\n    private static final Map\u003cString, WeakReference\u003cObject\u003e\u003e weakRefs = \n        new ConcurrentHashMap\u003c\u003e();\n    \n    public static void track(String key, Object obj) {\n        weakRefs.put(key, new WeakReference\u003c\u003e(obj));\n    }\n    \n    public static void checkLeaks() {\n        for (Map.Entry\u003cString, WeakReference\u003cObject\u003e\u003e entry : weakRefs.entrySet()) {\n            WeakReference\u003cObject\u003e ref = entry.getValue();\n            if (ref.get() == null) {\n                System.out.println(\"对象已被回收: \" + entry.getKey());\n            } else {\n                System.out.println(\"可能的内存泄漏: \" + entry.getKey());\n            }\n        }\n    }\n}\n```\n\n## 线程问题排查\n\n### 1. 死锁检测\n\n**死锁详细排查步骤**\n\n### 第一步：生成线程快照\n```bash\n# 生成当前时刻的线程栈快照\njstack \u003cpid\u003e \u003e thread_dump_$(date +%Y%m%d_%H%M%S).txt\n\n# 连续生成多次线程快照（间隔10秒，共3次），用于对比分析\nfor i in {1..3}\ndo\n   jstack \u003cpid\u003e \u003e thread_dump_deadlock_${i}_$(date +%Y%m%d_%H%M%S).txt\n   sleep 10\ndone\n```\n\n### 第二步：检测死锁信息\n```bash\n# 查找死锁信息\ngrep -A 50 \"Found one Java-level deadlock\" thread_dump.txt\n\n# 如果存在死锁，会显示类似以下信息：\n# Found one Java-level deadlock:\n# ===================\n# \"Thread-1\":\n#   waiting to lock monitor 0x00007f8c2c0063e8 (object 0x00000000d5f6b5a0, a java.lang.Object),\n#   which is held by \"Thread-2\"\n# \"Thread-2\":\n#   waiting to lock monitor 0x00007f8c2c0055e8 (object 0x00000000d5f6b5b0, a java.lang.Object),\n#   which is held by \"Thread-1\"\n```\n\n### 第三步：分析线程状态分布\n```bash\n# 统计各种线程状态的数量\ngrep \"java.lang.Thread.State:\" thread_dump.txt | sort | uniq -c | sort -nr\n\n# 查看所有阻塞状态的线程\ngrep -B 5 -A 10 \"BLOCKED\" thread_dump.txt\n\n# 查看所有等待状态的线程\ngrep -B 5 -A 10 \"WAITING\" thread_dump.txt\n\n# 查看所有 timed_waiting 状态的线程\ngrep -B 5 -A 10 \"TIMED_WAITING\" thread_dump.txt\n```\n\n### 第四步：定位阻塞的线程\n```bash\n# 查找所有被阻塞的线程及其等待的锁\ngrep -A 15 \"waiting to lock\" thread_dump.txt\n\n# 查找所有持有锁的线程\ngrep -A 10 \"locked\" thread_dump.txt\n\n# 查看具体的锁对象信息\ngrep -E \"(waiting to lock|locked)\" thread_dump.txt | grep -E \"0x[0-9a-f]+\"\n```\n\n### 第五步：分析死锁的具体情况\n\n**死锁识别标准：**\n1. 两个或多个线程互相等待对方持有的锁\n2. 线程处于BLOCKED状态，且等待的锁被其他线程持有\n3. 形成循环等待链\n\n**死锁信息解读：**\n```\n示例死锁输出：\n\"Thread-A\" #10 prio=5 os_prio=0 tid=0x00007f8c2c018000 nid=0x2a1b waiting for monitor entry [0x00007f8c140fe000]\n   java.lang.Thread.State: BLOCKED (on object monitor)\n        at com.example.DeadlockExample.method1(DeadlockExample.java:25)\n        - waiting to lock \u003c0x00000000d5f6b5a0\u003e (a java.lang.Object)\n        - locked \u003c0x00000000d5f6b5b0\u003e (a java.lang.Object)\n\n\"Thread-B\" #11 prio=5 os_prio=0 tid=0x00007f8c2c028000 nid=0x2a1c waiting for monitor entry [0x00007f8c141ff000]\n   java.lang.Thread.State: BLOCKED (on object monitor)\n        at com.example.DeadlockExample.method2(DeadlockExample.java:35)\n        - waiting to lock \u003c0x00000000d5f6b5b0\u003e (a java.lang.Object)\n        - locked \u003c0x00000000d5f6b5a0\u003e (a java.lang.Object)\n```\n\n**分析要点：**\n- Thread-A 等待锁 0x00000000d5f6b5a0，持有锁 0x00000000d5f6b5b0\n- Thread-B 等待锁 0x00000000d5f6b5b0，持有锁 0x00000000d5f6b5a0\n- 形成循环等待，导致死锁\n\n### 第六步：结合代码定位问题\n```bash\n# 查看死锁发生的具体代码位置\ngrep -B 10 -A 5 \"waiting to lock.*0x00000000d5f6b5a0\" thread_dump.txt\n\n# 查看涉及死锁的方法调用链\ngrep -E \"at com\\.\" thread_dump.txt | grep -E \"(DeadlockExample|method1|method2)\"\n```\n\n### 第七步：其他锁问题分析\n\n**锁竞争分析：**\n```bash\n# 查看被多个线程等待的锁对象\ngrep \"waiting to lock\" thread_dump.txt | awk '{print $6}' | sort | uniq -c | sort -nr\n\n# 查看持有锁时间较长的线程\ngrep -A 20 \"locked.*0x\" thread_dump.txt\n```\n\n**活锁检测：**\n```bash\n# 查看频繁改变状态的线程\ngrep -E \"(RUNNABLE|TIMED_WAITING)\" thread_dump.txt | head -20\n```\n\n### 第八步：死锁解决方案\n\n**1. 代码层面解决：**\n- 按固定顺序获取锁\n- 减少锁的持有时间\n- 使用tryLock()方法\n- 使用超时机制\n\n**2. 检测和恢复：**\n```bash\n# 启用JVM死锁检测参数\n-XX:+PrintConcurrentLocks -XX:+PrintGCDetails\n\n# 定期检查死锁的监控脚本\nwhile true; do\n    deadlock_count=$(jstack \u003cpid\u003e | grep -c \"Found one Java-level deadlock\")\n    if [ $deadlock_count -gt 0 ]; then\n        echo \"警告：检测到死锁！\"\n        jstack \u003cpid\u003e \u003e deadlock_detected_$(date +%Y%m%d_%H%M%S).txt\n    fi\n    sleep 30\ndone\n```\n\n### 第九步：预防措施\n```bash\n# JVM参数配置\n-XX:+PrintConcurrentLocks          # 打印并发锁信息\n-XX:+PrintGCApplicationStoppedTime # 打印GC停止时间\n-XX:+PrintSafepointStatistics      # 打印安全点统计\n-XX:+PrintGCApplicationConcurrentTime # 打印应用并发时间\n\n# 代码审查重点：\n# 1. 检查锁的获取顺序是否一致\n# 2. 确认所有锁都有对应的释放操作\n# 3. 避免在持锁时调用外部方法\n# 4. 使用ReentrantLock替代synchronized关键字\n```\n\n**死锁示例和分析**\n```java\n// 死锁示例\npublic class DeadlockExample {\n    private static final Object lock1 = new Object();\n    private static final Object lock2 = new Object();\n    \n    public static void main(String[] args) {\n        Thread thread1 = new Thread(() -\u003e {\n            synchronized (lock1) {\n                try {\n                    Thread.sleep(100);\n                } catch (InterruptedException e) {\n                    e.printStackTrace();\n                }\n                synchronized (lock2) {\n                    System.out.println(\"Thread 1 acquired both locks\");\n                }\n            }\n        });\n        \n        Thread thread2 = new Thread(() -\u003e {\n            synchronized (lock2) {\n                try {\n                    Thread.sleep(100);\n                } catch (InterruptedException e) {\n                    e.printStackTrace();\n                }\n                synchronized (lock1) {\n                    System.out.println(\"Thread 2 acquired both locks\");\n                }\n            }\n        });\n        \n        thread1.start();\n        thread2.start();\n    }\n}\n```\n\n### 2. 线程池问题\n\n**线程池监控**\n```java\n@Component\npublic class ThreadPoolMonitor {\n    \n    @Autowired\n    private ThreadPoolExecutor executor;\n    \n    @Scheduled(fixedRate = 5000)\n    public void monitorThreadPool() {\n        System.out.println(\"=== 线程池状态 ===\");\n        System.out.println(\"核心线程数: \" + executor.getCorePoolSize());\n        System.out.println(\"最大线程数: \" + executor.getMaximumPoolSize());\n        System.out.println(\"当前线程数: \" + executor.getActiveCount());\n        System.out.println(\"队列大小: \" + executor.getQueue().size());\n        System.out.println(\"完成任务数: \" + executor.getCompletedTaskCount());\n        \n        // 告警逻辑\n        if (executor.getActiveCount() \u003e executor.getMaximumPoolSize() * 0.8) {\n            System.out.println(\"警告: 线程池使用率过高\");\n        }\n    }\n}\n```\n\n## 网络问题排查\n\n### 1. 连接超时问题\n\n**网络连接监控**\n```java\n@Component\npublic class NetworkMonitor {\n    \n    private final RestTemplate restTemplate;\n    \n    public NetworkMonitor() {\n        this.restTemplate = new RestTemplate();\n        \n        // 配置连接超时\n        HttpComponentsClientHttpRequestFactory factory = \n            new HttpComponentsClientHttpRequestFactory();\n        factory.setConnectTimeout(5000);\n        factory.setReadTimeout(10000);\n        this.restTemplate.setRequestFactory(factory);\n    }\n    \n    @Scheduled(fixedRate = 30000)\n    public void checkConnectivity() {\n        try {\n            ResponseEntity\u003cString\u003e response = restTemplate.getForEntity(\n                \"http://example.com/health\", String.class);\n            if (response.getStatusCode().is2xxSuccessful()) {\n                System.out.println(\"网络连接正常\");\n            }\n        } catch (Exception e) {\n            System.err.println(\"网络连接异常: \" + e.getMessage());\n        }\n    }\n}\n```\n\n### 2. 连接池问题\n\n**数据库连接池监控**\n```java\n@Component\npublic class ConnectionPoolMonitor {\n    \n    @Autowired\n    private DataSource dataSource;\n    \n    @Scheduled(fixedRate = 10000)\n    public void monitorConnectionPool() {\n        if (dataSource instanceof HikariDataSource) {\n            HikariDataSource hikariDataSource = (HikariDataSource) dataSource;\n            HikariPoolMXBean poolProxy = hikariDataSource.getHikariPoolMXBean();\n            \n            System.out.println(\"=== 连接池状态 ===\");\n            System.out.println(\"活跃连接数: \" + poolProxy.getActiveConnections());\n            System.out.println(\"空闲连接数: \" + poolProxy.getIdleConnections());\n            System.out.println(\"总连接数: \" + poolProxy.getTotalConnections());\n            System.out.println(\"等待线程数: \" + poolProxy.getThreadsAwaitingConnection());\n            \n            // 告警逻辑\n            if (poolProxy.getActiveConnections() \u003e poolProxy.getTotalConnections() * 0.8) {\n                System.err.println(\"警告: 连接池使用率过高\");\n            }\n        }\n    }\n}\n```\n\n## 日志分析\n\n### 1. 日志配置优化\n\n**Logback配置**\n```xml\n\u003c!-- logback.xml --\u003e\n\u003cconfiguration\u003e\n    \u003cappender name=\"CONSOLE\" class=\"ch.qos.logback.core.ConsoleAppender\"\u003e\n        \u003cencoder\u003e\n            \u003cpattern\u003e%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n\u003c/pattern\u003e\n        \u003c/encoder\u003e\n    \u003c/appender\u003e\n    \n    \u003cappender name=\"FILE\" class=\"ch.qos.logback.core.rolling.RollingFileAppender\"\u003e\n        \u003cfile\u003elogs/application.log\u003c/file\u003e\n        \u003crollingPolicy class=\"ch.qos.logback.core.rolling.TimeBasedRollingPolicy\"\u003e\n            \u003cfileNamePattern\u003elogs/application.%d{yyyy-MM-dd}.%i.log\u003c/fileNamePattern\u003e\n            \u003cmaxFileSize\u003e100MB\u003c/maxFileSize\u003e\n            \u003cmaxHistory\u003e30\u003c/maxHistory\u003e\n            \u003ctotalSizeCap\u003e3GB\u003c/totalSizeCap\u003e\n        \u003c/rollingPolicy\u003e\n        \u003cencoder\u003e\n            \u003cpattern\u003e%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n\u003c/pattern\u003e\n        \u003c/encoder\u003e\n    \u003c/appender\u003e\n    \n    \u003c!-- 异步日志 --\u003e\n    \u003cappender name=\"ASYNC_FILE\" class=\"ch.qos.logback.classic.AsyncAppender\"\u003e\n        \u003cdiscardingThreshold\u003e0\u003c/discardingThreshold\u003e\n        \u003cqueueSize\u003e1024\u003c/queueSize\u003e\n        \u003cappender-ref ref=\"FILE\"/\u003e\n    \u003c/appender\u003e\n    \n    \u003croot level=\"INFO\"\u003e\n        \u003cappender-ref ref=\"CONSOLE\"/\u003e\n        \u003cappender-ref ref=\"ASYNC_FILE\"/\u003e\n    \u003c/root\u003e\n\u003c/configuration\u003e\n```\n\n### 2. 日志分析脚本\n\n**错误日志详细分析步骤**\n\n### 第一步：错误日志基础分析\n```bash\n# 统计各类错误的出现次数\ngrep -E \"ERROR|WARN|Exception\" /path/to/application.log | awk '{print $1, $2}' | sort | uniq -c | sort -nr\n\n# 查看最近的错误信息（最近50行）\ntail -500 /path/to/application.log | grep -E \"ERROR|Exception\" | tail -20\n\n# 按时间顺序查看错误分布\ngrep -E \"ERROR|Exception\" /path/to/application.log | awk '{print $1, $2}' | uniq -c\n```\n\n### 第二步：异常类型分析\n```bash\n# 统计各类异常的出现频率\ngrep -E \"Exception\" /path/to/application.log | sed 's/.*\\(.*Exception\\).*/\\1/' | sort | uniq -c | sort -nr\n\n# 查看最常见的5种异常\ngrep -E \"Exception\" /path/to/application.log | sed 's/.*\\(.*Exception\\).*/\\1/' | sort | uniq -c | sort -nr | head -5\n\n# 分析特定异常的详细信息\ngrep -A 10 -B 5 \"NullPointerException\" /path/to/application.log\n```\n\n### 第三步：HTTP错误分析\n```bash\n# 统计HTTP 5xx服务器错误\ngrep -E \"HTTP/1\\.[01]\\\" [5][0-9][0-9]\" /path/to/access.log | awk '{print $9}' | sort | uniq -c | sort -nr\n\n# 统计HTTP 4xx客户端错误\ngrep -E \"HTTP/1\\.[01]\\\" [4][0-9][0-9]\" /path/to/access.log | awk '{print $9}' | sort | uniq -c | sort -nr\n\n# 查看具体的错误页面\ngrep -E \"HTTP/1\\.[01]\\\" 5[0-9][0-9]\" /path/to/access.log | awk '{print $7}' | sort | uniq -c | sort -nr | head -10\n\n# 分析错误率（总请求数与错误数的比例）\ntotal_requests=$(grep -c \"HTTP/1\\.[01]\" /path/to/access.log)\nerror_requests=$(grep -c \"HTTP/1\\.[01]\\\" [5][0-9][0-9]\" /path/to/access.log)\nerror_rate=$(echo \"scale=2; $error_requests * 100 / $total_requests\" | bc)\necho \"错误率: ${error_rate}%\"\n```\n\n### 第四步：性能日志分析\n```bash\n# 查找慢请求（响应时间超过1000ms）\ngrep -E \"took.*ms\" /path/to/application.log | awk '$NF \u003e 1000 {print $0}' | sort -k4 -nr\n\n# 统计不同接口的响应时间\ngrep -E \"took.*ms\" /path/to/application.log | awk '{gsub(/took/, \"\", $NF); gsub(/ms/, \"\", $NF); print $7, $NF}' | sort | uniq -c | sort -k2 -nr\n\n# 查找最慢的10个请求\ngrep -E \"took.*ms\" /path/to/application.log | awk '{print $0}' | sort -k4 -nr | head -10\n\n# 分析数据库慢查询\ngrep -E \"slow.*query|timeout\" /path/to/application.log | tail -20\n```\n\n### 第五步：时间段分析\n```bash\n# 按小时统计错误数量\ngrep -E \"ERROR|Exception\" /path/to/application.log | awk '{print substr($2,1,2)}' | sort | uniq -c | sort -nr\n\n# 按日期统计错误趋势\ngrep -E \"ERROR|Exception\" /path/to/application.log | awk '{print $1}' | sort | uniq -c\n\n# 查看特定时间段的错误（比如最近1小时）\nfind . -name \"*.log\" -mmin -60 -exec grep -E \"ERROR|Exception\" {} \\;\n\n# 实时监控错误日志\ntail -f /path/to/application.log | grep -E \"ERROR|Exception\"\n```\n\n### 第六步：堆栈跟踪分析\n```bash\n# 提取完整的异常堆栈信息\ngrep -A 20 \"Exception\" /path/to/application.log | grep -v \"^--$\"\n\n# 统计最常见的错误堆栈起始点\ngrep -A 5 \"Exception\" /path/to/application.log | grep \"at \" | awk '{print $2}' | sort | uniq -c | sort -nr | head -10\n\n# 分析特定包下的异常\ngrep -A 15 \"Exception\" /path/to/application.log | grep \"at com\\.yourcompany\\.\" | sort | uniq -c | sort -nr\n```\n\n### 第七步：日志文件管理\n```bash\n# 查看日志文件大小\nls -lh /path/to/logs/\n\n# 查看日志文件的修改时间\nls -lt /path/to/logs/*.log\n\n# 压缩旧日志文件\nfind /path/to/logs/ -name \"*.log\" -mtime +7 -exec gzip {} \\;\n\n# 清理超过30天的日志文件\nfind /path/to/logs/ -name \"*.log.gz\" -mtime +30 -delete\n\n# 查看磁盘使用情况\ndf -h /path/to/logs/\n```\n\n### 第八步：跨文件日志分析\n```bash\n# 同时分析多个日志文件\ngrep -E \"ERROR|Exception\" /path/to/logs/*.log\n\n# 按时间顺序合并多个日志文件\ncat /path/to/logs/app-*.log | sort | uniq \u003e /tmp/combined_logs.log\n\n# 查找特定错误在所有日志文件中的分布\ngrep -r \"NullPointerException\" /path/to/logs/\n\n# 统计每个日志文件中的错误数量\nfor file in /path/to/logs/*.log; do\n    error_count=$(grep -c \"ERROR\" \"$file\")\n    echo \"$file: $error_count errors\"\ndone\n```\n\n### 第九步：日志分析进阶技巧\n\n**使用awk进行复杂分析：**\n```bash\n# 统计每个小时的错误类型分布\ngrep -E \"ERROR|Exception\" /path/to/application.log | awk '{\n    hour = substr($2,1,2);\n    if(/ERROR/) type=\"ERROR\";\n    else if(/Exception/) type=\"EXCEPTION\";\n    count[hour][type]++;\n} END {\n    for(h in count) {\n        for(t in count[h]) {\n            printf \"%s时 %s: %d\\n\", h, t, count[h][t];\n        }\n    }\n}'\n\n# 分析错误间隔时间\ngrep -E \"ERROR\" /path/to/application.log | awk '{\n    split($2, time, \":\");\n    current_seconds = time[1]*3600 + time[2]*60 + time[3];\n    if(prev_seconds \u003e 0) {\n        interval = current_seconds - prev_seconds;\n        print \"错误间隔: \" interval \"秒\";\n    }\n    prev_seconds = current_seconds;\n}'\n```\n\n**实时监控和告警：**\n```bash\n# 实时监控特定错误并告警\ntail -f /path/to/application.log | while read line; do\n    if echo \"$line\" | grep -q \"OutOfMemoryError\"; then\n        echo \"严重告警：检测到内存溢出错误！\"\n        # 发送告警通知\n    fi\ndone\n\n# 错误频率监控\nerror_count=0\nwhile true; do\n    new_errors=$(grep -c \"ERROR\" /path/to/application.log)\n    if [ $new_errors -gt $error_count ]; then\n        echo \"检测到新的错误，当前错误总数: $new_errors\"\n        error_count=$new_errors\n    fi\n    sleep 60\ndone\n```\n\n### 第十步：日志分析工具推荐\n\n**常用工具组合：**\n```bash\n# 使用multitail同时查看多个日志文件\nmultitail /path/to/application.log /path/to/access.log\n\n# 使用ccze为日志添加颜色\ntail -f /path/to/application.log | ccze\n\n# 使用lnav进行高级日志分析\nlnav /path/to/application.log\n```\n\n**性能优化的grep命令：**\n```bash\n# 使用fgrep进行固定字符串搜索（更快）\nfgrep \"ERROR\" /path/to/large_file.log\n\n# 使用ripgrep（如果安装）进行更快的搜索\nrg \"ERROR\" /path/to/logs/\n\n# 并行搜索多个文件\nfind /path/to/logs/ -name \"*.log\" -exec grep -l \"ERROR\" {} \\;\n```\n\n## 性能监控工具\n\n### 1. JVM监控\n\n**JMX监控**\n```java\n@Component\npublic class JVMMonitor {\n    \n    private final MemoryMXBean memoryMXBean;\n    private final ThreadMXBean threadMXBean;\n    private final RuntimeMXBean runtimeMXBean;\n    \n    public JVMMonitor() {\n        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();\n        this.memoryMXBean = ManagementFactory.newPlatformMXBeanProxy(\n            mBeanServer, ManagementFactory.MEMORY_MXBEAN_NAME, MemoryMXBean.class);\n        this.threadMXBean = ManagementFactory.newPlatformMXBeanProxy(\n            mBeanServer, ManagementFactory.THREAD_MXBEAN_NAME, ThreadMXBean.class);\n        this.runtimeMXBean = ManagementFactory.newPlatformMXBeanProxy(\n            mBeanServer, ManagementFactory.RUNTIME_MXBEAN_NAME, RuntimeMXBean.class);\n    }\n    \n    @Scheduled(fixedRate = 10000)\n    public void monitorJVM() {\n        // 内存监控\n        MemoryUsage heapUsage = memoryMXBean.getHeapMemoryUsage();\n        double heapUsagePercent = (double) heapUsage.getUsed() / heapUsage.getMax() * 100;\n        \n        // 线程监控\n        int threadCount = threadMXBean.getThreadCount();\n        \n        // GC监控\n        List\u003cGarbageCollectorMXBean\u003e gcBeans = ManagementFactory.getGarbageCollectorMXBeans();\n        \n        System.out.println(\"=== JVM监控 ===\");\n        System.out.println(\"堆内存使用率: \" + String.format(\"%.2f%%\", heapUsagePercent));\n        System.out.println(\"线程数: \" + threadCount);\n        \n        // 告警逻辑\n        if (heapUsagePercent \u003e 80) {\n            System.err.println(\"警告: 堆内存使用率过高\");\n        }\n    }\n}\n```\n\n### 2. 应用性能监控（APM）\n\n**自定义性能监控**\n```java\n@Component\npublic class PerformanceMonitor {\n    \n    private final MeterRegistry meterRegistry;\n    \n    public PerformanceMonitor(MeterRegistry meterRegistry) {\n        this.meterRegistry = meterRegistry;\n    }\n    \n    public void recordApiCall(String apiName, long duration, String status) {\n        Timer.Sample sample = Timer.start(meterRegistry);\n        sample.stop(Timer.builder(\"api.call.time\")\n            .tag(\"api\", apiName)\n            .tag(\"status\", status)\n            .register(meterRegistry));\n        \n        Counter.builder(\"api.call.count\")\n            .tag(\"api\", apiName)\n            .tag(\"status\", status)\n            .register(meterRegistry)\n            .increment();\n    }\n    \n    @Aspect\n    @Component\n    public class ApiMonitorAspect {\n        \n        @Around(\"@annotation(Monitored)\")\n        public Object monitorApi(ProceedingJoinPoint joinPoint) throws Throwable {\n            long startTime = System.currentTimeMillis();\n            String apiName = joinPoint.getSignature().getName();\n            \n            try {\n                Object result = joinPoint.proceed();\n                long duration = System.currentTimeMillis() - startTime;\n                \n                performanceMonitor.recordApiCall(apiName, duration, \"SUCCESS\");\n                return result;\n            } catch (Exception e) {\n                long duration = System.currentTimeMillis() - startTime;\n                \n                performanceMonitor.recordApiCall(apiName, duration, \"ERROR\");\n                throw e;\n            }\n        }\n    }\n}\n```\n\n## 应急处理流程\n\n### 1. 故障响应流程\n\n```\n故障响应流程：\n1. 故障发现\n   ├── 监控系统告警\n   ├── 用户反馈\n   └── 主动巡检\n\n2. 故障确认\n   ├── 确认影响范围\n   ├── 评估严重程度\n   └── 启动应急响应\n\n3. 快速止损\n   ├── 服务降级\n   ├── 流量限制\n   └── 紧急回滚\n\n4. 问题定位\n   ├── 收集日志\n   ├── 分析监控数据\n   └── 复现问题\n\n5. 修复验证\n   ├── 实施修复\n   ├── 验证效果\n   └── 恢复服务\n\n6. 复盘总结\n   ├── 分析根因\n   ├── 制定改进措施\n   └── 更新应急预案\n```\n\n### 2. 应急脚本\n\n**应急处理详细操作步骤**\n\n### 第一步：故障快速评估\n```bash\n# 1. 检查服务状态\nsystemctl status your-service-name\n# 或使用旧版本的service命令\nservice your-service-name status\n\n# 2. 检查端口占用情况\nnetstat -tlnp | grep :8080\n# 或使用ss命令（更现代）\nss -tlnp | grep :8080\n\n# 3. 检查进程状态\nps aux | grep java\nps -ef | grep your-application-name\n\n# 4. 检查系统资源\nfree -h                    # 内存使用情况\ndf -h                      # 磁盘空间\ntop -b -n1 | head -20      # CPU使用情况\n```\n\n### 第二步：备份关键信息\n```bash\n# 1. 备份服务状态信息\nsystemctl status your-service-name \u003e service_backup_$(date +%Y%m%d_%H%M%S).txt\n\n# 2. 备份配置文件\ncp /path/to/your/application.properties config_backup_$(date +%Y%m%d_%H%M%S).properties\ncp /path/to/your/application.yml config_backup_$(date +%Y%m%d_%H%M%S).yml\n\n# 3. 备份最近的日志\ncp /path/to/logs/application.log /tmp/application_before_restart_$(date +%Y%m%d_%H%M%S).log\n\n# 4. 生成故障时刻的线程快照\njstack \u003cpid\u003e \u003e thread_dump_emergency_$(date +%Y%m%d_%H%M%S).txt\n\n# 5. 生成故障时刻的堆转储（如果内存问题）\njmap -dump:format=b,file=heap_emergency_$(date +%Y%m%d_%H%M%S).hprof \u003cpid\u003e\n```\n\n### 第三步：停止应用服务\n```bash\n# 方法1：优雅停止（推荐）\nsystemctl stop your-service-name\n\n# 方法2：使用kill命令（如果systemctl无效）\nkill -15 \u003cpid\u003e  # 发送TERM信号，优雅停止\n\n# 方法3：强制停止（最后手段）\nkill -9 \u003cpid\u003e   # 发送KILL信号，强制停止\n\n# 等待服务完全停止\nsleep 10\n\n# 验证进程已停止\nps aux | grep java | grep your-application-name\n```\n\n### 第四步：检查端口和资源释放\n```bash\n# 检查端口是否已释放\nnetstat -tlnp | grep :8080\n\n# 如果端口仍被占用，查找占用进程\nlsof -i :8080\n\n# 强制释放端口（如有必要）\nfuser -k 8080/tcp\n\n# 检查文件描述符是否释放\nlsof -p \u003cpid\u003e | wc -l\n\n# 检查临时文件清理\nls -la /tmp/ | grep your-app\n```\n\n### 第五步：启动应用服务\n```bash\n# 方法1：使用systemctl（推荐）\nsystemctl start your-service-name\n\n# 方法2：使用service命令\nservice your-service-name start\n\n# 方法3：直接启动（如果有启动脚本）\n/path/to/your/startup.sh\n\n# 方法4：使用java命令直接启动\njava -jar -Xms2g -Xmx4g your-application.jar\n\n# 等待服务启动完成\nsleep 30\n```\n\n### 第六步：验证服务状态\n```bash\n# 1. 检查服务状态\nsystemctl status your-service-name\n\n# 2. 检查进程是否运行\nps aux | grep java | grep your-application-name\n\n# 3. 检查端口是否监听\nnetstat -tlnp | grep :8080\n\n# 4. 检查应用日志\ntail -50 /path/to/logs/application.log\n\n# 5. 执行健康检查\ncurl -f http://localhost:8080/actuator/health\n# 或使用其他健康检查端点\ncurl -f http://localhost:8080/health\ncurl -f http://localhost:8080/api/health\n```\n\n### 第七步：功能验证\n```bash\n# 1. 检查关键接口\ncurl -X GET http://localhost:8080/api/critical-endpoint\n\n# 2. 检查数据库连接\ncurl -X GET http://localhost:8080/api/db-status\n\n# 3. 检查外部依赖\ncurl -X GET http://localhost:8080/api/external-deps-status\n\n# 4. 检查缓存状态\ncurl -X GET http://localhost:8080/api/cache-status\n\n# 5. 验证业务核心功能\ncurl -X POST http://localhost:8080/api/business-function -d \"test data\"\n```\n\n### 第八步：监控服务稳定性\n```bash\n# 1. 持续监控服务状态\nwatch -n 5 'systemctl status your-service-name'\n\n# 2. 监控错误日志\ntail -f /path/to/logs/application.log | grep -E \"ERROR|WARN\"\n\n# 3. 监控资源使用\ntop -p \u003cpid\u003e\n\n# 4. 监控GC情况\njstat -gc \u003cpid\u003e 5s\n\n# 5. 监控HTTP响应\nwhile true; do\n    response=$(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/health)\n    echo \"$(date): HTTP响应码: $response\"\n    if [ $response -ne 200 ]; then\n        echo \"警告：服务响应异常\"\n    fi\n    sleep 10\ndone\n```\n\n### 第九步：不同场景的应急处理\n\n**内存溢出场景：**\n```bash\n# 1. 检查内存使用\nfree -h\njstat -gc \u003cpid\u003e\n\n# 2. 增加堆内存重启\njava -Xms4g -Xmx8g -XX:+HeapDumpOnOutOfMemoryError your-application.jar\n\n# 3. 设置OOM时自动dump\n-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/path/to/dumps/\n```\n\n**CPU过高场景：**\n```bash\n# 1. 生成线程快照\njstack \u003cpid\u003e \u003e high_cpu_threads.txt\n\n# 2. 分析高CPU线程\ntop -H -p \u003cpid\u003e\n\n# 3. 查找问题线程\nthread_id=$(top -H -p \u003cpid\u003e -b -n1 | grep java | head -1 | awk '{print $1}')\nhex_id=$(printf \"%x\\n\" $thread_id)\ngrep -A 20 \"nid=0x$hex_id\" high_cpu_threads.txt\n```\n\n**数据库连接池耗尽：**\n```bash\n# 1. 检查数据库连接\nshow processlist;  # MySQL\n\n# 2. 重启应用前检查连接\nnetstat -an | grep :3306 | wc -l\n\n# 3. 调整连接池配置\nspring.datasource.hikari.maximum-pool-size=50\n```\n\n**磁盘空间不足：**\n```bash\n# 1. 清理日志文件\nfind /path/to/logs -name \"*.log\" -mtime +7 -delete\n\n# 2. 清理临时文件\nfind /tmp -name \"*tmp*\" -mtime +1 -delete\n\n# 3. 压缩大文件\ngzip /path/to/large/log/file.log\n```\n\n### 第十步：预防措施和监控设置\n\n**设置监控脚本：**\n```bash\n# 创建服务监控脚本\ncat \u003e /usr/local/bin/monitor_service.sh \u003c\u003c 'EOF'\n#!/bin/bash\nSERVICE_NAME=\"your-service-name\"\nLOG_FILE=\"/var/log/service_monitor.log\"\n\ncheck_service() {\n    if ! systemctl is-active --quiet $SERVICE_NAME; then\n        echo \"$(date): 服务 $SERVICE_NAME 未运行，尝试重启\" \u003e\u003e $LOG_FILE\n        systemctl restart $SERVICE_NAME\n    fi\n\n    # 检查健康状态\n    response=$(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8080/health 2\u003e/dev/null)\n    if [ \"$response\" != \"200\" ]; then\n        echo \"$(date): 服务健康检查失败，响应码: $response\" \u003e\u003e $LOG_FILE\n    fi\n}\n\ncheck_service\nEOF\n\nchmod +x /usr/local/bin/monitor_service.sh\n\n# 添加到crontab，每5分钟检查一次\necho \"*/5 * * * * /usr/local/bin/monitor_service.sh\" | crontab -\n```\n\n**设置告警阈值：**\n```bash\n# 内存使用率监控\nmemory_usage=$(free | awk 'NR==2{printf \"%.0f\", $3*100/$2}')\nif [ $memory_usage -gt 85 ]; then\n    echo \"警告：内存使用率过高: ${memory_usage}%\" | mail -s \"服务器告警\" admin@example.com\nfi\n\n# 磁盘空间监控\ndisk_usage=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')\nif [ $disk_usage -gt 90 ]; then\n    echo \"警告：磁盘使用率过高: ${disk_usage}%\" | mail -s \"服务器告警\" admin@example.com\nfi\n```\n\n**建立标准操作流程（SOP）：**\n1. 故障发现 → 立即评估影响范围\n2. 快速备份 → 保存故障现场数据\n3. 优雅停止 → 避免数据丢失\n4. 彻底检查 → 确保资源释放\n5. 重新启动 → 按标准流程启动\n6. 全面验证 → 确保功能正常\n7. 持续监控 → 防止问题复现\n8. 总结复盘 → 完善应急预案\n\n## 总结\n\nJava线上问题排查是一个系统性工程，需要掌握以下关键技能：\n\n1. **工具使用**：熟练使用jstat、jstack、jmap、MAT等工具\n2. **问题分类**：能够快速识别问题类型和影响范围\n3. **分析方法**：掌握科学的分析方法和思路\n4. **经验积累**：通过实际案例积累经验\n5. **预防措施**：建立完善的监控和预防机制\n\n通过系统化的排查方法和工具使用，可以快速定位和解决线上问题，保障系统的稳定运行。"])</script><script>self.__next_f.push([1,"4:[\"$\",\"div\",null,{\"children\":[[\"$\",\"$Ld\",null,{\"href\":\"/notes\",\"className\":\"back-button\",\"style\":{\"display\":\"inline-block\",\"background\":\"var(--primary-color)\",\"color\":\"white\",\"border\":\"none\",\"padding\":\"10px 20px\",\"borderRadius\":\"6px\",\"cursor\":\"pointer\",\"marginBottom\":\"20px\",\"textDecoration\":\"none\"},\"children\":[\"← 返回\",\"笔记\",\"列表\"]}],[\"$\",\"article\",null,{\"className\":\"section\",\"children\":[[\"$\",\"header\",null,{\"className\":\"article-header\",\"children\":[[\"$\",\"h1\",null,{\"className\":\"article-title\",\"children\":\"Java项目线上问题排查\"}],[\"$\",\"div\",null,{\"className\":\"article-meta\",\"children\":[\"$\",\"div\",null,{\"className\":\"article-tags\",\"children\":[[\"$\",\"span\",\"Java\",{\"className\":\"tag\",\"children\":\"Java\"}],[\"$\",\"span\",\"线上排查\",{\"className\":\"tag\",\"children\":\"线上排查\"}],[\"$\",\"span\",\"性能调优\",{\"className\":\"tag\",\"children\":\"性能调优\"}],[\"$\",\"span\",\"故障诊断\",{\"className\":\"tag\",\"children\":\"故障诊断\"}],[\"$\",\"span\",\"JVM\",{\"className\":\"tag\",\"children\":\"JVM\"}]]}]}]]}],[\"$\",\"div\",null,{\"className\":\"card markdown-content\",\"children\":[\"$\",\"$Le\",null,{\"content\":\"$f\"}]}]]}]]}]\n"])</script><script>self.__next_f.push([1,"9:[\"$\",\"html\",null,{\"lang\":\"zh-CN\",\"children\":[[\"$\",\"head\",null,{\"children\":[[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css\"}],[\"$\",\"link\",null,{\"rel\":\"stylesheet\",\"href\":\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css\"}],[\"$\",\"script\",null,{\"src\":\"https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js\",\"async\":true}],[\"$\",\"script\",null,{\"src\":\"https://unpkg.com/markmap-autoloader@0.17.2\"}]]}],[\"$\",\"body\",null,{\"children\":[\"$\",\"div\",null,{\"className\":\"app\",\"children\":[[\"$\",\"$L10\",null,{\"siteConfig\":{\"name\":\"海元\",\"bio\":\"JAVA | AI | WEB3\",\"social\":[{\"name\":\"github\",\"icon\":\"fab fa-github\",\"url\":\"https://github.com/suogongy\"},{\"name\":\"twitter\",\"icon\":\"fab fa-twitter\",\"url\":\"https://twitter.com/suogongy\"},{\"name\":\"email\",\"icon\":\"fas fa-envelope\",\"url\":\"mailto:haiyuan1832@163.com\"}]}}],[\"$\",\"main\",null,{\"className\":\"main-content\",\"children\":[\"$\",\"$L5\",null,{\"parallelRouterKey\":\"children\",\"segmentPath\":[\"children\"],\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L8\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":\"404\"}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],\"notFoundStyles\":[]}]}]]}]}]]}]\n"])</script><script>self.__next_f.push([1,"a:[[\"$\",\"meta\",\"0\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}],[\"$\",\"meta\",\"1\",{\"charSet\":\"utf-8\"}],[\"$\",\"title\",\"2\",{\"children\":\"Java项目线上问题排查 - Personal GitHub Page\"}],[\"$\",\"meta\",\"3\",{\"name\":\"description\",\"content\":\"详细介绍Java项目在线上环境中常见的问题排查方法、诊断工具和解决方案，包括CPU、内存、线程、网络等方面的故障排查。\"}]]\n3:null\n"])</script></body></html>
