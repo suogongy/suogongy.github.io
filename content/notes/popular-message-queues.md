@@ -48,31 +48,73 @@ category: "notes"
 
 ### 1. Kafka架构
 
-```
-Kafka架构图：
-┌─────────────────────────────────────────────────────────────┐
-│                    Kafka Cluster                            │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
-│  │  Broker 1   │  │  Broker 2   │  │  Broker 3   │           │
-│  │             │  │             │  │             │           │
-│  │ ┌─────────┐ │  │ ┌─────────┐ │  │ ┌─────────┐ │           │
-│  │ │ Topic A │ │  │ │ Topic A │ │  │ │ Topic A │ │           │
-│  │ └─────────┘ │  │ └─────────┘ │  │ └─────────┘ │           │
-│  │ ┌─────────┐ │  │ ┌─────────┐ │  │ ┌─────────┐ │           │
-│  │ │ Topic B │ │  │ │ Topic B │ │  │ │ Topic B │ │           │
-│  │ └─────────┘ │  │ └─────────┘ │  │ └─────────┘ │           │
-│  └─────────────┘  └─────────────┘  └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
-         ↑                    ↑                    ↑
-    ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-    │   Producer  │     │  Producer   │     │  Producer   │
-    └─────────────┘     └─────────────┘     └─────────────┘
-         ↓                    ↓                    ↓
-    ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-    │   Consumer  │     │  Consumer   │     │  Consumer   │
-    │    Group    │     │   Group     │     │   Group     │
-    └─────────────┘     └─────────────┘     └─────────────┘
+```mermaid
+graph TB
+    %% 生产者
+    P1[Producer 1]
+    P2[Producer 2]
+    P3[Producer 3]
+
+    %% Kafka集群
+    subgraph KafkaCluster["Kafka Cluster"]
+        style KafkaCluster fill:#e8f4fd,stroke:#2196f3,stroke-width:2px,color:#0d47a1
+
+        subgraph Broker1["Broker 1"]
+            style Broker1 fill:#f8fff8,stroke:#4caf50,stroke-width:2px,color:#2e7d32
+            T1A["Topic A<br/>Partition 0"]
+            T1B["Topic B<br/>Partition 0"]
+        end
+
+        subgraph Broker2["Broker 2"]
+            style Broker2 fill:#f8fff8,stroke:#4caf50,stroke-width:2px,color:#2e7d32
+            T2A["Topic A<br/>Partition 1"]
+            T2B["Topic B<br/>Partition 1"]
+        end
+
+        subgraph Broker3["Broker 3"]
+            style Broker3 fill:#f8fff8,stroke:#4caf50,stroke-width:2px,color:#2e7d32
+            T3A["Topic A<br/>Partition 2"]
+            T3B["Topic B<br/>Partition 2"]
+        end
+    end
+
+    %% 消费者组
+    subgraph CG1["Consumer Group 1"]
+        style CG1 fill:#fff8e1,stroke:#ff9800,stroke-width:2px,color:#e65100
+        C1[Consumer 1]
+        C2[Consumer 2]
+    end
+
+    subgraph CG2["Consumer Group 2"]
+        style CG2 fill:#fff8e1,stroke:#ff9800,stroke-width:2px,color:#e65100
+        C3[Consumer 3]
+        C4[Consumer 4]
+    end
+
+    %% 连接关系 - 生产者发送消息
+    P1 --> T1A
+    P1 --> T2A
+    P2 --> T1B
+    P2 --> T3B
+    P3 --> T2A
+    P3 --> T3A
+
+    %% 连接关系 - 消费者消费消息
+    T1A --> C1
+    T2A --> C2
+    T1B --> C3
+    T2B --> C3
+    T3A --> C4
+    T3B --> C4
+
+    %% 样式定义
+    classDef producer fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#0d47a1
+    classDef topic fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
+    classDef consumer fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#e65100
+
+    class P1,P2,P3 producer
+    class T1A,T1B,T2A,T2B,T3A,T3B topic
+    class C1,C2,C3,C4 consumer
 ```
 
 ### 2. Kafka核心概念
